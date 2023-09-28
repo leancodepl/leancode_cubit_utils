@@ -8,7 +8,8 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  cqrs: ^9.0.0
+  cqrs: ^10.0.1
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3
