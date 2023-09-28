@@ -218,6 +218,14 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  leancode_lint:
+    dependency: transitive
+    description:
+      name: leancode_lint
+      sha256: da5ae45a53e9cc78c7306ff4a292d266867bc81a7629b867f5c3d01d64c8939c
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   lints:
     dependency: transitive
     description:
@@ -227,7 +235,7 @@ packages:
     source: hosted
     version: "2.1.1"
   logging:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: logging
       sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"

@@ -52,7 +52,7 @@ AppCqrs createMockedCqrs() {
     () => cqrs.get(UserQuery(userId: 'success')),
   ).thenAnswer(
     (invocation) => Future.delayed(
-      const Duration(milliseconds: 600),
+      const Duration(milliseconds: 1000),
       () => const QuerySuccess(User('John', 'Doe')),
     ),
   );
@@ -60,7 +60,7 @@ AppCqrs createMockedCqrs() {
     () => cqrs.get(UserQuery(userId: 'error')),
   ).thenAnswer(
     (invocation) => Future.delayed(
-      const Duration(milliseconds: 600),
+      const Duration(milliseconds: 1000),
       () => const QueryFailure(QueryError.unknown),
     ),
   );
