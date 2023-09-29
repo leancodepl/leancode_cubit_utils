@@ -11,7 +11,7 @@ class UserQueryCubit extends QueryCubit<User, User> {
     required this.userId,
   }) : super('UserQueryCubit');
 
-  final AppCqrs cqrs;
+  final Cqrs cqrs;
   final String userId;
 
   @override
@@ -30,7 +30,7 @@ class SimpleQueryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => UserQueryCubit(
-        cqrs: context.read<AppCqrs>(),
+        cqrs: context.read<Cqrs>(),
         userId: 'success',
       ),
       child: const SimpleQueryPage(),
@@ -38,14 +38,14 @@ class SimpleQueryScreen extends StatelessWidget {
   }
 }
 
-class SimpleQueryScreen1 extends HookWidget {
-  const SimpleQueryScreen1({super.key});
+class SimpleQueryHookScreen extends HookWidget {
+  const SimpleQueryHookScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final userQueryCubit = useQueryCubit<User, User>(
       loggerTag: 'UserQueryCubit',
-      query: () => context.read<AppCqrs>().get(UserQuery(userId: 'success')),
+      query: () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
       map: (user) => user,
     );
 

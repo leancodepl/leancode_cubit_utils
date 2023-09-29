@@ -4,6 +4,7 @@ import 'package:async/async.dart';
 import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:leancode_cubit_utils/src/query_cubit_config.dart';
 import 'package:logging/logging.dart';
 
 /// Signature for a function that returns a [QueryResult].
@@ -21,16 +22,6 @@ typedef QueryResponseMapper<TRes, TOut> = TOut Function(TRes);
 typedef QueryErrorMapper<TOut> = Future<QueryState<TOut>> Function(
   QueryErrorState<TOut>,
 );
-
-/// Configures the [QueryCubit]s.
-class QueryCubitConfig {
-  /// The refresh mode used by all [QueryCubit]s.
-  static RequestMode get requestMode => _requestMode ?? RequestMode.replace;
-
-  static set requestMode(RequestMode mode) => _requestMode = mode;
-
-  static RequestMode? _requestMode;
-}
 
 /// Defines how to handle a new request when the previous one is still running.
 enum RequestMode {

@@ -5,8 +5,8 @@ import 'package:example/pages/home_page.dart';
 import 'package:example/pages/paginated_cubit_page.dart';
 import 'package:example/pages/simple_query_page.dart';
 import 'package:flutter/material.dart';
+import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
 
 class Routes {
   static const home = '/';
@@ -41,8 +41,16 @@ void main() {
   _setupLogger();
 
   runApp(
-    Provider(
-      create: (context) => cqrs,
+    QueryConfigProvider(
+      cqrs: cqrs,
+      requestMode: RequestMode.replace,
+      onLoading: (BuildContext context) => const CircularProgressIndicator(),
+      onError: (BuildContext context, QueryErrorState<dynamic> error) {
+        return const Text(
+          'Error',
+          style: TextStyle(color: Colors.red),
+        );
+      },
       child: const MainApp(),
     ),
   );
@@ -56,7 +64,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const SimpleQueryScreen1(),
+        Routes.simpleQuery: (_) => const SimpleQueryHookScreen(),
         Routes.paginatedCubit: (_) => const PaginatedCubitPage(),
       },
     );

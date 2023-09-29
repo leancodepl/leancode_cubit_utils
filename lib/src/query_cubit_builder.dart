@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/query_cubit.dart';
+import 'package:leancode_cubit_utils/src/query_provider.dart';
 
 /// Signature for a function that creates a widget when data successfully loaded.
 typedef QueryWidgetBuilder<TOut> = Widget Function(
@@ -40,6 +41,8 @@ class QueryCubitBuilder<TRes, TOut> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final config = context.read<QueryConfig>();
+
     return BlocProvider<BaseQueryCubit<TRes, TOut>>.value(
       value: queryCubit,
       child: BlocBuilder<BaseQueryCubit<TRes, TOut>, QueryState<TOut>>(
@@ -47,11 +50,10 @@ class QueryCubitBuilder<TRes, TOut> extends StatelessWidget {
           return switch (state) {
             QueryInitialState() ||
             QueryLoadingState() =>
-              onLoading?.call(context) ??
-                  const CircularProgressIndicator.adaptive(),
+              onLoading?.call(context) ?? config.onLoading(context),
             QuerySuccessState(:final data) => builder(context, data),
             QueryErrorState() =>
-              onError?.call(context, state) ?? const Text('ERROR!'),
+              onError?.call(context, state) ?? config.onError(context, state),
           };
         },
       ),
