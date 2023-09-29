@@ -56,7 +56,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const SimpleQueryScreen(),
+        Routes.simpleQuery: (_) => const SimpleQueryScreen1(),
         Routes.paginatedCubit: (_) => const PaginatedCubitPage(),
       },
     );

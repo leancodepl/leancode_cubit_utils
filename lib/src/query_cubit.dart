@@ -6,8 +6,34 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 
+/// Signature for a function that returns a [QueryResult].
+typedef QueryRequest<TRes> = Future<QueryResult<TRes>> Function();
+
+/// Signature for a function that returns a [QueryResult] and takes arguments.
+typedef QueryArgsRequest<TArgs, TRes> = Future<QueryResult<TRes>> Function(
+  TArgs,
+);
+
+/// Signature for a function that maps query response of to the output type.
+typedef QueryResponseMapper<TRes, TOut> = TOut Function(TRes);
+
+/// Signature for a function that maps query error to other state.
+typedef QueryErrorMapper<TOut> = Future<QueryState<TOut>> Function(
+  QueryErrorState<TOut>,
+);
+
+/// Configures the [QueryCubit]s.
+class QueryCubitConfig {
+  /// The refresh mode used by all [QueryCubit]s.
+  static RequestMode get requestMode => _requestMode ?? RequestMode.replace;
+
+  static set requestMode(RequestMode mode) => _requestMode = mode;
+
+  static RequestMode? _requestMode;
+}
+
 /// Defines how to handle a new request when the previous one is still running.
-enum RefreshMode {
+enum RequestMode {
   /// When a new request is triggered while the previous one is still running,
   /// the previous request is cancelled and the new one is executed.
   replace,
@@ -19,14 +45,17 @@ enum RefreshMode {
 
 /// Base class for all query cubits.
 abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
-  /// Creates a new [BaseQueryCubit] with the given [logger] and [refreshMode].
-  BaseQueryCubit(this.logger, this.refreshMode) : super(QueryInitialState());
+  /// Creates a new [BaseQueryCubit] with the given [loggerTag] and [requestMode].
+  BaseQueryCubit(
+    String loggerTag, {
+    this.requestMode,
+  })  : _logger = Logger(loggerTag),
+        super(QueryInitialState());
 
-  /// The logger used by this cubit.
-  final Logger logger;
+  final Logger _logger;
 
-  /// The refresh mode used by this cubit.
-  final RefreshMode refreshMode;
+  /// The request mode used by this cubit to handle duplicated requests.
+  final RequestMode? requestMode;
 
   CancelableOperation<QueryResult<TRes>>? _operation;
 
@@ -34,80 +63,69 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
     Future<QueryResult<TRes>> Function() callback, {
     bool isRefresh = false,
   }) async {
-    switch (refreshMode) {
-      case RefreshMode.replace:
-        unawaited(_operation?.cancel());
-      case RefreshMode.ignore:
-        if (_operation?.isCompleted == false) {
-          logger.info('Previous operation is not completed. Ignoring.');
-          return;
-        }
-    }
-
-    logger.info('Query started. Is refresh: $isRefresh');
-    emit(QueryLoadingState(isRefresh: isRefresh));
-
-    _operation = CancelableOperation.fromFuture(
-      callback(),
-      onCancel: () {
-        logger.info('Previous operation is not completed. Cancelling.');
-      },
-    );
-
-    final result = await _operation?.value;
-
-    if (result case QuerySuccess(:final data)) {
-      logger.info('Query success. Data: $data');
-      try {
-        final mappedData = map(data);
-        emit(QuerySuccessState(mappedData));
-      } catch (e, s) {
-        logger.severe(
-          'Error while mapping query result. Error: $e, StackTrace: $s',
-        );
-        emit(
-          QueryErrorState(
-            exception: e,
-            stackTrace: s,
-          ),
-        );
+    try {
+      switch (requestMode ?? QueryCubitConfig.requestMode) {
+        case RequestMode.replace:
+          await _operation?.cancel();
+        case RequestMode.ignore:
+          if (_operation?.isCompleted == false) {
+            _logger.info('Previous operation is not completed. Ignoring.');
+            return;
+          }
       }
-    } else if (result case QueryFailure(:final error)) {
-      logger.severe('Query error. Error: $error');
-      try {
-        emit(onQueryError(error));
-      } catch (e, s) {
-        logger.severe(
-          'Error while handling query error. Error: $e, StackTrace: $s',
-        );
-        emit(
-          QueryErrorState(
-            error: error,
-            exception: e,
-            stackTrace: s,
-          ),
-        );
+
+      _logger.info('Query started. Is refresh: $isRefresh');
+      emit(QueryLoadingState(isRefresh: isRefresh));
+
+      _operation = CancelableOperation.fromFuture(
+        callback(),
+        onCancel: () {
+          _logger.info('Previous operation is not completed. Cancelling.');
+        },
+      );
+
+      final result = await _operation?.value;
+
+      if (result case QuerySuccess(:final data)) {
+        _logger.info('Query success. Data: $data');
+        emit(QuerySuccessState(map(data)));
+      } else if (result case QueryFailure(:final error)) {
+        _logger.severe('Query error. Error: $error');
+        await onQueryError(QueryErrorState(error: error));
       }
+    } catch (e, s) {
+      _logger.severe('Query error. Exception: $e. Stack trace: $s');
+      await onQueryError(
+        QueryErrorState(
+          exception: e,
+          stackTrace: s,
+        ),
+      );
     }
   }
 
   /// Maps the given [data] to the output type [TOut].
   TOut map(TRes data);
 
-  /// Handles the given [error] and returns the corresponding state.
-  QueryErrorState<TOut> onQueryError(QueryError error) {
-    return QueryErrorState(error: error);
+  /// Handles the given [errorState] and returns the corresponding state.
+  Future<QueryState<TOut>> onQueryError(
+    QueryErrorState<TOut> errorState,
+  ) async {
+    return errorState;
   }
 
   /// Refreshes the query. Handling duplicated requests depends on the
-  /// [refreshMode].
-  void refresh();
+  /// [requestMode].
+  Future<void> refresh();
 }
 
 /// Base class for all query cubits which don't require any arguments.
 abstract class QueryCubit<TRes, TOut> extends BaseQueryCubit<TRes, TOut> {
-  /// Creates a new [QueryCubit] with the given [logger] and [refreshMode].
-  QueryCubit(super.logger, super.refreshMode);
+  /// Creates a new [QueryCubit] with the given [requestMode].
+  QueryCubit(
+    super.loggerTag, {
+    super.requestMode,
+  });
 
   /// Gets the data from the request and emits the corresponding state.
   Future<void> get({bool isRefresh = false}) {
@@ -119,14 +137,19 @@ abstract class QueryCubit<TRes, TOut> extends BaseQueryCubit<TRes, TOut> {
 
   /// Refreshes the query.
   @override
-  void refresh() => get(isRefresh: true);
+  Future<void> refresh() async {
+    await _get(request, isRefresh: true);
+  }
 }
 
 /// Base class for all query cubits which require arguments.
 abstract class ArgsQueryCubit<TArgs, TRes, TOut>
     extends BaseQueryCubit<TRes, TOut> {
-  /// Creates a new [ArgsQueryCubit] with the given [logger] and [refreshMode].
-  ArgsQueryCubit(super.logger, super.refreshMode);
+  /// Creates a new [ArgsQueryCubit] with the given [requestMode].
+  ArgsQueryCubit(
+    super.loggerTag, {
+    super.requestMode,
+  });
 
   /// The arguments used by this cubit to refresh the query.
   TArgs? refreshArgs;
@@ -144,12 +167,12 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
   Future<QueryResult<TRes>> request(TArgs args);
 
   @override
-  void refresh() {
+  Future<void> refresh() async {
     if (refreshArgs == null) {
-      logger.severe('Args is null. Refresh is not possible.');
+      _logger.severe('No query was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      get(refreshArgs!, isRefresh: true);
+      await _get(() => request(refreshArgs!), isRefresh: true);
     }
   }
 }
