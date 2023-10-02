@@ -25,4 +25,3 @@ dev_dependencies:
   leancode_lint: ^6.0.0
   mocktail: ^1.0.0
     
-flutter:

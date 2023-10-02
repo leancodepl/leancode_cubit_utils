@@ -71,6 +71,7 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
           QueryRefreshState(
             switch (state) {
               QuerySuccessState(:final data) => data,
+              QueryRefreshState(:final data) => data,
               _ => null,
             },
           ),
@@ -147,7 +148,9 @@ abstract class QueryCubit<TRes, TOut> extends BaseQueryCubit<TRes, TOut> {
 
   /// Refreshes the query.
   @override
-  Future<void> refresh() async => _get(request, isRefresh: true);
+  Future<void> refresh() {
+    return _get(request, isRefresh: true);
+  }
 }
 
 /// Base class for all query cubits which require arguments.
@@ -174,12 +177,13 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
   Future<QueryResult<TRes>> request(TArgs args);
 
   @override
-  Future<void> refresh() async {
+  Future<void> refresh() {
     if (_lastGetArgs == null) {
       _logger.severe('No query was executed yet. Cannot refresh.');
+      throw StateError('No query was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      await _get(() => request(_lastGetArgs!), isRefresh: true);
+      return _get(() => request(_lastGetArgs!), isRefresh: true);
     }
   }
 }
