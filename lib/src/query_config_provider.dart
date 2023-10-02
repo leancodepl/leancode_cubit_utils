@@ -15,10 +15,7 @@ class QueryConfig {
   final WidgetBuilder onLoading;
 
   /// The builder that creates a widget when query failed.
-  final Widget Function(
-    BuildContext context,
-    QueryErrorState<dynamic> error,
-  ) onError;
+  final QueryErrorBuilder<dynamic> onError;
 }
 
 /// A widget that provides default loading and error widgets for [QueryCubitBuilder].
@@ -39,10 +36,7 @@ class QueryConfigProvider extends StatelessWidget {
   final WidgetBuilder onLoading;
 
   /// The builder that creates a widget when query failed.
-  final Widget Function(
-    BuildContext context,
-    QueryErrorState<dynamic> error,
-  ) onError;
+  final QueryErrorBuilder<dynamic> onError;
 
   /// The child widget.
   final Widget child;

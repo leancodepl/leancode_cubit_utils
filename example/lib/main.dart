@@ -48,7 +48,11 @@ void main() {
       child: QueryConfigProvider(
         requestMode: RequestMode.replace,
         onLoading: (BuildContext context) => const CircularProgressIndicator(),
-        onError: (BuildContext context, QueryErrorState<dynamic> error) {
+        onError: (
+          BuildContext context,
+          QueryErrorState<dynamic> error,
+          VoidCallback? onErrorCallback,
+        ) {
           return const Text(
             'Error',
             style: TextStyle(color: Colors.red),

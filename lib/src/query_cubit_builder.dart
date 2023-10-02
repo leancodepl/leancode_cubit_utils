@@ -66,7 +66,7 @@ class QueryCubitBuilder<TOut> extends StatelessWidget {
               ? builder(context, data)
               : onLoading?.call(context) ?? config.onLoading(context),
           QueryErrorState() => onError?.call(context, state, onErrorCallback) ??
-              config.onError(context, state),
+              config.onError(context, state, onErrorCallback),
         };
       },
     );

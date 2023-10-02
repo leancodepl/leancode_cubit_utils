@@ -22,7 +22,7 @@ class TestPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return QueryConfigProvider(
       onLoading: (context) => const Text('Loading...'),
-      onError: (context, error) => const Text('Error!'),
+      onError: (context, error, onErrorCallback) => const Text('Error!'),
       child: MaterialApp(
         home: Scaffold(body: child),
       ),
