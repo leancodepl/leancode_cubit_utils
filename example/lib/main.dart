@@ -69,7 +69,7 @@ class MainApp extends StatelessWidget {
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
         Routes.simpleQuery: (_) => const SimpleQueryHookScreen(),
-        Routes.paginatedCubit: (_) => const PaginatedCubitPage(),
+        Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
       },
     );
   }

@@ -22,16 +22,28 @@ class SimpleQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
 }
 
 /// Creates a new [SimpleQueryCubit] with the given [loggerTag], [query] and
+/// [requestMode].
 QueryCubit<TOut, TOut> useQueryCubit<TOut>(
   QueryRequest<TOut> query, {
   String loggerTag = 'SimpleQueryCubit',
   RequestMode? requestMode,
+  bool callOnCreate = true,
 }) {
-  return useBloc(
+  final cubit = useBloc(
     () => SimpleQueryCubit<TOut>(
       loggerTag,
       query,
       requestMode: requestMode,
     ),
   );
+  useEffect(
+    () {
+      if (callOnCreate) {
+        cubit.get();
+      }
+      return null;
+    },
+    [cubit],
+  );
+  return cubit;
 }

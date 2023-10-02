@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PaginatedCubitPage extends StatelessWidget {
-  const PaginatedCubitPage({super.key});
+class PaginatedCubitScreen extends StatelessWidget {
+  const PaginatedCubitScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
