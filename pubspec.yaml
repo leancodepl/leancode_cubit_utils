@@ -9,7 +9,6 @@ environment:
 
 dependencies:
   async: ^2.0.0
-  bloc_test: ^9.0.0
   cqrs: ^10.0.1
   equatable: ^2.0.0
   flutter:
@@ -20,6 +19,7 @@ dependencies:
   provider: ^6.0.0
 
 dev_dependencies:
+  bloc_test: ^9.0.0
   flutter_test:
     sdk: flutter
   leancode_lint: ^6.0.0

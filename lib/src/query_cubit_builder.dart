@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:leancode_cubit_utils/src/query_config_provider.dart';
 import 'package:leancode_cubit_utils/src/query_cubit.dart';
-import 'package:leancode_cubit_utils/src/query_provider.dart';
 
 /// Signature for a function that creates a widget when data successfully loaded.
 typedef QueryWidgetBuilder<TOut> = Widget Function(
