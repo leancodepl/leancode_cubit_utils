@@ -4,7 +4,7 @@ import 'package:async/async.dart';
 import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:leancode_cubit_utils/src/query_cubit_config.dart';
+import 'package:leancode_cubit_utils/src/query/query_cubit_config.dart';
 import 'package:logging/logging.dart';
 
 /// Signature for a function that returns a [QueryResult].

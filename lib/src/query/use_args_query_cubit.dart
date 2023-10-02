@@ -1,5 +1,5 @@
 import 'package:cqrs/cqrs.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
+import 'package:leancode_cubit_utils/src/query/query_cubit.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
 /// Implementation of [ArgsQueryCubit] created in order to be used by [useArgsQueryCubit].
