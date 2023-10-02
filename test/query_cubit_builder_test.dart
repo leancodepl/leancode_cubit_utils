@@ -36,19 +36,13 @@ void main() {
     when(
       () => cqrs.get(TestQuery(id: '0')),
     ).thenAnswer(
-      (invocation) => Future.delayed(
-        const Duration(milliseconds: 500),
-        () => const QuerySuccess('Result'),
-      ),
+      (_) async => const QuerySuccess('Result'),
     );
 
     when(
       () => cqrs.get(TestQuery(id: '1')),
     ).thenAnswer(
-      (_) => Future.delayed(
-        const Duration(milliseconds: 500),
-        () => const QueryFailure(QueryError.network),
-      ),
+      (_) async => const QueryFailure(QueryError.network),
     );
 
     testWidgets(
@@ -67,9 +61,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Loading...'), findsOneWidget);
       unawaited(queryCubit.get('1'));
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Loading...'), findsOneWidget);
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      await tester.pump();
       expect(find.text('Error!'), findsOneWidget);
     });
 
@@ -90,9 +84,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Custom loading...'), findsOneWidget);
       unawaited(queryCubit.get('1'));
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.text('Custom loading...'), findsOneWidget);
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      await tester.pump();
       expect(find.text('Custom error!'), findsOneWidget);
     });
 
@@ -110,7 +104,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       unawaited(queryCubit.get('0'));
-      await tester.pumpAndSettle(const Duration(milliseconds: 700));
+      await tester.pumpAndSettle();
       expect(find.text('Success, data: Result'), findsOneWidget);
     });
 
@@ -127,13 +121,13 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      unawaited(queryCubit.get('0'));
-      await tester.pumpAndSettle(const Duration(milliseconds: 700));
-      expect(find.text('Success, data: Result'), findsOneWidget);
-      unawaited(queryCubit.refresh());
+      await queryCubit.get('0');
       await tester.pumpAndSettle();
       expect(find.text('Success, data: Result'), findsOneWidget);
-      await tester.pumpAndSettle(const Duration(milliseconds: 700));
+      unawaited(queryCubit.refresh());
+      await tester.pump();
+      expect(find.text('Success, data: Result'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
   });
 }

@@ -18,37 +18,25 @@ void main() {
     when(
       () => cqrs.get(TestQuery(id: '0')),
     ).thenAnswer(
-      (invocation) => Future.delayed(
-        const Duration(milliseconds: 500),
-        () => const QuerySuccess('Result'),
-      ),
+      (_) async => const QuerySuccess('Result'),
     );
 
     when(
       () => cqrs.get(TestQuery(id: '1')),
     ).thenAnswer(
-      (_) => Future.delayed(
-        const Duration(milliseconds: 500),
-        () => const QuerySuccess('Mapping fails'),
-      ),
+      (_) async => const QuerySuccess('Mapping fails'),
     );
 
     when(
       () => cqrs.get(TestQuery(id: '2')),
     ).thenAnswer(
-      (_) => Future.delayed(
-        const Duration(milliseconds: 500),
-        () => const QueryFailure(QueryError.network),
-      ),
+      (_) async => const QueryFailure(QueryError.network),
     );
 
     when(
       () => cqrs.get(TestQuery(id: '3')),
     ).thenAnswer(
-      (_) => Future.delayed(
-        const Duration(milliseconds: 500),
-        () => const QueryFailure(QueryError.unknown),
-      ),
+      (_) async => const QueryFailure(QueryError.unknown),
     );
   });
 
@@ -62,7 +50,6 @@ void main() {
           id: '0',
         ),
         act: (cubit) => cubit.get(),
-        wait: Duration.zero,
         verify: (cubit) {
           verify(
             () => cqrs.get(TestQuery(id: '0')),
@@ -112,7 +99,6 @@ void main() {
         ),
         act: (cubit) async {
           unawaited(cubit.get());
-          await Future<void>.delayed(const Duration(milliseconds: 100));
           await cubit.get();
         },
         verify: (_) {
@@ -120,7 +106,6 @@ void main() {
             () => cqrs.get(TestQuery(id: '0')),
           ).called(1);
         },
-        wait: const Duration(milliseconds: 400),
         expect: () => <QueryState<String>>[
           QueryLoadingState(),
           QuerySuccessState('Mapped Result'),
@@ -137,7 +122,6 @@ void main() {
         ),
         act: (cubit) async {
           unawaited(cubit.get());
-          await Future<void>.delayed(const Duration(milliseconds: 100));
           await cubit.get();
         },
         verify: (cubit) {
@@ -145,7 +129,6 @@ void main() {
             () => cqrs.get(TestQuery(id: '0')),
           ).called(2);
         },
-        wait: const Duration(milliseconds: 400),
         expect: () => <QueryState<String>>[
           QueryLoadingState(),
           QuerySuccessState('Mapped Result'),
@@ -163,7 +146,6 @@ void main() {
           id: '2',
         ),
         act: (cubit) => cubit.get(),
-        wait: Duration.zero,
         expect: () => [
           isA<QueryLoadingState<String>>(),
           isA<QueryErrorState<String>>(),
@@ -205,6 +187,7 @@ void main() {
   });
 
   group('ArgsQueryCubit', () {
+    clearInteractions(cqrs);
     blocTest<TestArgsQueryCubit, QueryState<String>>(
       'calls request() with passed arguments when get() is called',
       build: () => TestArgsQueryCubit(
@@ -239,9 +222,7 @@ void main() {
       ),
       act: (cubit) async {
         await cubit.get('0');
-        await Future<void>.delayed(const Duration(milliseconds: 200));
         await cubit.refresh();
-        await Future<void>.delayed(const Duration(milliseconds: 200));
       },
       verify: (_) {
         verify(() => cqrs.get(TestQuery(id: '0'))).called(2);
