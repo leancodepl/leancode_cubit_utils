@@ -24,6 +24,7 @@ class QueryCubitBuilder<TOut> extends StatelessWidget {
     super.key,
     required this.queryCubit,
     required this.builder,
+    this.onInitial,
     this.onLoading,
     this.onError,
     this.onErrorCallback,
@@ -35,10 +36,13 @@ class QueryCubitBuilder<TOut> extends StatelessWidget {
   /// The builder that creates a widget when data successfully loaded.
   final QueryWidgetBuilder<TOut> builder;
 
+  /// The builder that creates a widget when state is initial.
+  final WidgetBuilder? onInitial;
+
   /// The builder that creates a widget when query is loading.
   final WidgetBuilder? onLoading;
 
-  /// The builder that creates a widget when query is failed.
+  /// The builder that creates a widget when query failed.
   final QueryErrorBuilder<TOut>? onError;
 
   /// Callback to be called on error widget;
@@ -52,7 +56,9 @@ class QueryCubitBuilder<TOut> extends StatelessWidget {
       bloc: queryCubit,
       builder: (context, state) {
         return switch (state) {
-          QueryInitialState() ||
+          QueryInitialState() => onInitial?.call(context) ??
+              onLoading?.call(context) ??
+              config.onLoading(context),
           QueryLoadingState() =>
             onLoading?.call(context) ?? config.onLoading(context),
           QuerySuccessState(:final data) => builder(context, data),
