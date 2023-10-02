@@ -28,22 +28,20 @@ QueryCubit<TOut, TOut> useQueryCubit<TOut>(
   String loggerTag = 'SimpleQueryCubit',
   RequestMode? requestMode,
   bool callOnCreate = true,
+  List<Object?> keys = const [],
 }) {
-  final cubit = useBloc(
-    () => SimpleQueryCubit<TOut>(
-      loggerTag,
-      query,
-      requestMode: requestMode,
-    ),
-  );
-  useEffect(
+  return useBloc(
     () {
+      final cubit = SimpleQueryCubit<TOut>(
+        loggerTag,
+        query,
+        requestMode: requestMode,
+      );
       if (callOnCreate) {
         cubit.get();
       }
-      return null;
+      return cubit;
     },
-    [cubit],
+    keys,
   );
-  return cubit;
 }

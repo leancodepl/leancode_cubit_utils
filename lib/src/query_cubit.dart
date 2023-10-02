@@ -159,14 +159,14 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
     super.requestMode,
   });
 
-  TArgs? _lastFetchArgs;
+  TArgs? _lastGetArgs;
 
   /// The arguments used by this cubit to refresh the query.
-  TArgs? get lastFetchArgs => _lastFetchArgs;
+  TArgs? get lastFetchArgs => _lastGetArgs;
 
   /// Gets the data from the request and emits the corresponding state.
   Future<void> get(TArgs args) {
-    _lastFetchArgs = args;
+    _lastGetArgs = args;
     return _get(() => request(args));
   }
 
@@ -175,11 +175,11 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
 
   @override
   Future<void> refresh() async {
-    if (_lastFetchArgs == null) {
+    if (_lastGetArgs == null) {
       _logger.severe('No query was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      await _get(() => request(_lastFetchArgs!), isRefresh: true);
+      await _get(() => request(_lastGetArgs!), isRefresh: true);
     }
   }
 }

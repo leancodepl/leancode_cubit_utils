@@ -28,6 +28,7 @@ SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>({
   String loggerTag = 'SimpleArgsQueryCubit',
   required QueryArgsRequest<TArgs, TOut> query,
   RequestMode? requestMode,
+  List<Object?> keys = const [],
 }) {
   return useBloc(
     () => SimpleArgsQueryCubit<TArgs, TOut>(
@@ -35,5 +36,6 @@ SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>({
       query,
       requestMode: requestMode,
     ),
+    keys,
   );
 }
