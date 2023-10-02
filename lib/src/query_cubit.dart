@@ -114,10 +114,10 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
   TOut map(TRes data);
 
   /// Handles the given [errorState] and returns the corresponding state.
-  Future<QueryState<TOut>> onQueryError(
+  Future<void> onQueryError(
     QueryErrorState<TOut> errorState,
   ) async {
-    return errorState;
+    emit(errorState);
   }
 
   /// Refreshes the query. Handling duplicated requests depends on the
