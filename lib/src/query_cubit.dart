@@ -97,6 +97,9 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
         try {
           emit(await onQueryError(QueryErrorState(error: error)));
         } catch (e, s) {
+          _logger.severe(
+            'Processing error failed. Exception: $e. Stack trace: $s',
+          );
           emit(QueryErrorState(exception: e, stackTrace: s));
         }
       }
@@ -105,6 +108,9 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
       try {
         emit(await onQueryError(QueryErrorState(exception: e, stackTrace: s)));
       } catch (e, s) {
+        _logger.severe(
+          'Processing error failed. Exception: $e. Stack trace: $s',
+        );
         emit(QueryErrorState(exception: e, stackTrace: s));
       }
     }
