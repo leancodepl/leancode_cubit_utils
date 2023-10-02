@@ -95,7 +95,7 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
       } else if (result case QueryFailure(:final error)) {
         _logger.severe('Query error. Error: $error');
         try {
-          await onQueryError(QueryErrorState(error: error));
+          emit(await onQueryError(QueryErrorState(error: error)));
         } catch (e, s) {
           emit(QueryErrorState(exception: e, stackTrace: s));
         }
@@ -103,7 +103,7 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
     } catch (e, s) {
       _logger.severe('Query error. Exception: $e. Stack trace: $s');
       try {
-        await onQueryError(QueryErrorState(exception: e, stackTrace: s));
+        emit(await onQueryError(QueryErrorState(exception: e, stackTrace: s)));
       } catch (e, s) {
         emit(QueryErrorState(exception: e, stackTrace: s));
       }
@@ -114,10 +114,10 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
   TOut map(TRes data);
 
   /// Handles the given [errorState] and returns the corresponding state.
-  Future<void> onQueryError(
+  Future<QueryErrorState<TOut>> onQueryError(
     QueryErrorState<TOut> errorState,
   ) async {
-    emit(errorState);
+    return errorState;
   }
 
   /// Refreshes the query. Handling duplicated requests depends on the

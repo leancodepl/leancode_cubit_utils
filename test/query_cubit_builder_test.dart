@@ -51,13 +51,11 @@ void main() {
       ),
     );
 
-    final queryCubit = TestArgsQueryCubit(
-      'TestQueryCubit',
-      cqrs: cqrs,
-    );
     testWidgets(
         'shows default loading and error widget when no onLoading and onError provided',
         (tester) async {
+      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+
       await tester.pumpWidget(
         TestPage(
           child: QueryCubitBuilder<String>(
@@ -77,6 +75,8 @@ void main() {
 
     testWidgets('shows custom loading and error widget when provided',
         (tester) async {
+      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+
       await tester.pumpWidget(
         TestPage(
           child: QueryCubitBuilder<String>(
@@ -98,6 +98,8 @@ void main() {
 
     testWidgets('shows provided success widget when data loaded',
         (tester) async {
+      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+
       await tester.pumpWidget(
         TestPage(
           child: QueryCubitBuilder<String>(
@@ -114,6 +116,8 @@ void main() {
 
     testWidgets('keeps showing success widget when data is refreshed',
         (tester) async {
+      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+
       await tester.pumpWidget(
         TestPage(
           child: QueryCubitBuilder<String>(
