@@ -7,18 +7,18 @@ class SimpleQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
   /// Creates a new [SimpleQueryCubit].
   SimpleQueryCubit(
     super.loggerTag,
-    this.customRequest, {
+    this._customRequest, {
     super.requestMode,
   });
 
   /// The request to be executed.
-  final QueryRequest<TOut> customRequest;
+  final QueryRequest<TOut> _customRequest;
 
   @override
   TOut map(TOut data) => data;
 
   @override
-  Future<QueryResult<TOut>> request() => customRequest();
+  Future<QueryResult<TOut>> request() => _customRequest();
 }
 
 /// Creates a new [SimpleQueryCubit] with the given [loggerTag], [query] and

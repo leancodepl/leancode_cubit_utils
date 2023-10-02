@@ -8,18 +8,18 @@ class SimpleArgsQueryCubit<TArgs, TOut>
   /// Creates a new [SimpleArgsQueryCubit].
   SimpleArgsQueryCubit(
     super.loggerTag,
-    this.customRequest, {
+    this._customRequest, {
     super.requestMode,
   });
 
   /// The request to be executed.
-  final QueryArgsRequest<TArgs, TOut> customRequest;
+  final QueryArgsRequest<TArgs, TOut> _customRequest;
 
   @override
   TOut map(TOut data) => data;
 
   @override
-  Future<QueryResult<TOut>> request(TArgs args) => customRequest(args);
+  Future<QueryResult<TOut>> request(TArgs args) => _customRequest(args);
 }
 
 /// Creates a new [SimpleArgsQueryCubit] with the given [loggerTag], [query] and
