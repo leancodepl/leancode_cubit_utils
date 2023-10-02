@@ -2,81 +2,13 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cqrs/cqrs.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockedCqrs extends Mock implements Cqrs {}
-
-class TestQuery with EquatableMixin implements Query<String> {
-  TestQuery({required this.id});
-
-  final String id;
-
-  @override
-  String getFullName() => 'Test';
-
-  @override
-  String resultFactory(dynamic json) => json as String;
-
-  @override
-  Map<String, dynamic> toJson() => {};
-
-  @override
-  List<Object?> get props => [id];
-}
-
-class TestQueryCubit extends QueryCubit<String, String> {
-  TestQueryCubit(
-    super.loggerTag, {
-    super.requestMode,
-    required this.cqrs,
-    required this.id,
-  });
-
-  final Cqrs cqrs;
-  final String id;
-
-  @override
-  String map(String data) {
-    if (data == 'Mapping fails') {
-      throw Exception('Mapping failed');
-    }
-    return 'Mapped $data';
-  }
-
-  @override
-  Future<QueryResult<String>> request() {
-    return cqrs.get(TestQuery(id: id));
-  }
-
-  @override
-  Future<void> onQueryError(QueryErrorState<String> errorState) async {
-    if (errorState.error == QueryError.unknown) {
-      throw Exception('onQueryError failed');
-    } else {
-      emit(errorState);
-    }
-  }
-}
-
-class TestArgsQueryCubit extends ArgsQueryCubit<String, String, String> {
-  TestArgsQueryCubit(
-    super.loggerTag, {
-    required this.cqrs,
-  });
-
-  final Cqrs cqrs;
-
-  @override
-  String map(String data) => data;
-
-  @override
-  Future<QueryResult<String>> request(String args) {
-    return cqrs.get(TestQuery(id: args));
-  }
-}
+import 'utils/mocked_cqrs.dart';
+import 'utils/test_query.dart';
+import 'utils/test_query_cubit.dart';
 
 void main() {
   final cqrs = MockedCqrs();

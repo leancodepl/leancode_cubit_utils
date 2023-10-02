@@ -26,14 +26,14 @@ class QueryConfigProvider extends StatelessWidget {
   /// Creates a new [QueryConfigProvider].
   const QueryConfigProvider({
     super.key,
-    required this.requestMode,
+    this.requestMode,
     required this.onLoading,
     required this.onError,
     required this.child,
   });
 
   /// The default request mode used by all [QueryCubit]s.
-  final RequestMode requestMode;
+  final RequestMode? requestMode;
 
   /// The builder that creates a widget when query is loading.
   final WidgetBuilder onLoading;
@@ -50,7 +50,9 @@ class QueryConfigProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Sets the default request mode.
-    QueryCubitConfig.requestMode = requestMode;
+    if (requestMode != null) {
+      QueryCubitConfig.requestMode = requestMode!;
+    }
 
     return Provider(
       create: (context) => QueryConfig(
