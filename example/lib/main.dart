@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:cqrs/cqrs.dart';
 import 'package:example/cqrs/cqrs.dart';
 import 'package:example/pages/home_page.dart';
 import 'package:example/pages/paginated_cubit_page.dart';
@@ -7,6 +8,7 @@ import 'package:example/pages/simple_query_page.dart';
 import 'package:flutter/material.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
 
 class Routes {
   static const home = '/';
@@ -41,17 +43,19 @@ void main() {
   _setupLogger();
 
   runApp(
-    QueryConfigProvider(
-      cqrs: cqrs,
-      requestMode: RequestMode.replace,
-      onLoading: (BuildContext context) => const CircularProgressIndicator(),
-      onError: (BuildContext context, QueryErrorState<dynamic> error) {
-        return const Text(
-          'Error',
-          style: TextStyle(color: Colors.red),
-        );
-      },
-      child: const MainApp(),
+    Provider<Cqrs>.value(
+      value: cqrs,
+      child: QueryConfigProvider(
+        requestMode: RequestMode.replace,
+        onLoading: (BuildContext context) => const CircularProgressIndicator(),
+        onError: (BuildContext context, QueryErrorState<dynamic> error) {
+          return const Text(
+            'Error',
+            style: TextStyle(color: Colors.red),
+          );
+        },
+        child: const MainApp(),
+      ),
     ),
   );
 }

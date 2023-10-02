@@ -13,10 +13,11 @@ typedef QueryWidgetBuilder<TOut> = Widget Function(
 typedef QueryErrorBuilder<TOut> = Widget Function(
   BuildContext context,
   QueryErrorState<TOut> error,
+  VoidCallback? retry,
 );
 
 /// A widget that builds itself based on the latest query state.
-class QueryCubitBuilder<TRes, TOut> extends StatelessWidget {
+class QueryCubitBuilder<TOut> extends StatelessWidget {
   /// Creates a new [QueryCubitBuilder] with the given [queryCubit] and
   /// [builder].
   const QueryCubitBuilder({
@@ -25,10 +26,11 @@ class QueryCubitBuilder<TRes, TOut> extends StatelessWidget {
     required this.builder,
     this.onLoading,
     this.onError,
+    this.onErrorCallback,
   });
 
   /// The query cubit to which this widget is listening.
-  final BaseQueryCubit<TRes, TOut> queryCubit;
+  final BaseQueryCubit<dynamic, TOut> queryCubit;
 
   /// The builder that creates a widget when data successfully loaded.
   final QueryWidgetBuilder<TOut> builder;
@@ -39,24 +41,28 @@ class QueryCubitBuilder<TRes, TOut> extends StatelessWidget {
   /// The builder that creates a widget when query is failed.
   final QueryErrorBuilder<TOut>? onError;
 
+  /// Callback to be called on error widget;
+  final VoidCallback? onErrorCallback;
+
   @override
   Widget build(BuildContext context) {
     final config = context.read<QueryConfig>();
 
-    return BlocProvider<BaseQueryCubit<TRes, TOut>>.value(
-      value: queryCubit,
-      child: BlocBuilder<BaseQueryCubit<TRes, TOut>, QueryState<TOut>>(
-        builder: (context, state) {
-          return switch (state) {
-            QueryInitialState() ||
-            QueryLoadingState() =>
-              onLoading?.call(context) ?? config.onLoading(context),
-            QuerySuccessState(:final data) => builder(context, data),
-            QueryErrorState() =>
-              onError?.call(context, state) ?? config.onError(context, state),
-          };
-        },
-      ),
+    return BlocBuilder<BaseQueryCubit<dynamic, TOut>, QueryState<TOut>>(
+      bloc: queryCubit,
+      builder: (context, state) {
+        return switch (state) {
+          QueryInitialState() ||
+          QueryLoadingState() =>
+            onLoading?.call(context) ?? config.onLoading(context),
+          QuerySuccessState(:final data) => builder(context, data),
+          QueryRefreshState(:final data) => data != null
+              ? builder(context, data)
+              : onLoading?.call(context) ?? config.onLoading(context),
+          QueryErrorState() => onError?.call(context, state, onErrorCallback) ??
+              config.onError(context, state),
+        };
+      },
     );
   }
 }

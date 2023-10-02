@@ -1,4 +1,3 @@
-import 'package:cqrs/cqrs.dart';
 import 'package:flutter/widgets.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils/src/query_cubit_config.dart';
@@ -27,15 +26,11 @@ class QueryConfigProvider extends StatelessWidget {
   /// Creates a new [QueryConfigProvider].
   const QueryConfigProvider({
     super.key,
-    required this.cqrs,
     required this.requestMode,
     required this.onLoading,
     required this.onError,
     required this.child,
   });
-
-  /// The CQRS instance.
-  final Cqrs cqrs;
 
   /// The default request mode used by all [QueryCubit]s.
   final RequestMode requestMode;
@@ -57,15 +52,12 @@ class QueryConfigProvider extends StatelessWidget {
     // Sets the default request mode.
     QueryCubitConfig.requestMode = requestMode;
 
-    return Provider<Cqrs>.value(
-      value: cqrs,
-      child: Provider(
-        create: (context) => QueryConfig(
-          onLoading: onLoading,
-          onError: onError,
-        ),
-        child: child,
+    return Provider(
+      create: (context) => QueryConfig(
+        onLoading: onLoading,
+        onError: onError,
       ),
+      child: child,
     );
   }
 }

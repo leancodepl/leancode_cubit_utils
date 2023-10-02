@@ -3,54 +3,35 @@ import 'package:leancode_cubit_utils/src/query_cubit.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
 /// Implementation of [QueryCubit] created in order to be used by [useQueryCubit].
-class HookQueryCubit<TRes, TOut> extends QueryCubit<TRes, TOut> {
-  /// Creates a new [HookQueryCubit].
-  HookQueryCubit(
+class SimpleQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
+  /// Creates a new [SimpleQueryCubit].
+  SimpleQueryCubit(
     super.loggerTag,
-    this.customRequest,
-    this.customMap, {
+    this.customRequest, {
     super.requestMode,
-    this.onCustomQueryError,
   });
 
   /// The request to be executed.
-  final QueryRequest<TRes> customRequest;
-
-  /// The mapper to be used to map the response.
-  final QueryResponseMapper<TRes, TOut> customMap;
-
-  /// The method to be used to handle the error state.
-  final QueryErrorMapper<TOut>? onCustomQueryError;
+  final QueryRequest<TOut> customRequest;
 
   @override
-  TOut map(TRes data) => customMap(data);
+  TOut map(TOut data) => data;
 
   @override
-  Future<QueryResult<TRes>> request() => customRequest();
-
-  @override
-  Future<QueryState<TOut>> onQueryError(QueryErrorState<TOut> errorState) {
-    return onCustomQueryError?.call(errorState) ??
-        super.onQueryError(errorState);
-  }
+  Future<QueryResult<TOut>> request() => customRequest();
 }
 
-/// Creates a new [HookQueryCubit] with the given [loggerTag], [query] and
-/// [map].
-QueryCubit<TRes, TOut> useQueryCubit<TRes, TOut>({
-  required String loggerTag,
-  required QueryRequest<TRes> query,
-  required QueryResponseMapper<TRes, TOut> map,
+/// Creates a new [SimpleQueryCubit] with the given [loggerTag], [query] and
+QueryCubit<TOut, TOut> useQueryCubit<TOut>(
+  QueryRequest<TOut> query, {
+  String loggerTag = 'SimpleQueryCubit',
   RequestMode? requestMode,
-  QueryErrorMapper<TOut>? onQueryError,
 }) {
   return useBloc(
-    () => HookQueryCubit<TRes, TOut>(
+    () => SimpleQueryCubit<TOut>(
       loggerTag,
       query,
-      map,
       requestMode: requestMode,
-      onCustomQueryError: onQueryError,
     ),
   );
 }

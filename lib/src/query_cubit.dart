@@ -65,8 +65,20 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
           }
       }
 
-      _logger.info('Query started. Is refresh: $isRefresh');
-      emit(QueryLoadingState(isRefresh: isRefresh));
+      if (isRefresh) {
+        _logger.info('Refreshing query.');
+        emit(
+          QueryRefreshState(
+            switch (state) {
+              QuerySuccessState(:final data) => data,
+              _ => null,
+            },
+          ),
+        );
+      } else {
+        _logger.info('Query started.');
+        emit(QueryLoadingState());
+      }
 
       _operation = CancelableOperation.fromFuture(
         callback(),
@@ -82,16 +94,19 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
         emit(QuerySuccessState(map(data)));
       } else if (result case QueryFailure(:final error)) {
         _logger.severe('Query error. Error: $error');
-        await onQueryError(QueryErrorState(error: error));
+        try {
+          await onQueryError(QueryErrorState(error: error));
+        } catch (e, s) {
+          emit(QueryErrorState(exception: e, stackTrace: s));
+        }
       }
     } catch (e, s) {
       _logger.severe('Query error. Exception: $e. Stack trace: $s');
-      await onQueryError(
-        QueryErrorState(
-          exception: e,
-          stackTrace: s,
-        ),
-      );
+      try {
+        await onQueryError(QueryErrorState(exception: e, stackTrace: s));
+      } catch (e, s) {
+        emit(QueryErrorState(exception: e, stackTrace: s));
+      }
     }
   }
 
@@ -119,18 +134,14 @@ abstract class QueryCubit<TRes, TOut> extends BaseQueryCubit<TRes, TOut> {
   });
 
   /// Gets the data from the request and emits the corresponding state.
-  Future<void> get({bool isRefresh = false}) {
-    return _get(request, isRefresh: isRefresh);
-  }
+  Future<void> get() => _get(request);
 
   /// A request to be executed.
   Future<QueryResult<TRes>> request();
 
   /// Refreshes the query.
   @override
-  Future<void> refresh() async {
-    await _get(request, isRefresh: true);
-  }
+  Future<void> refresh() async => _get(request, isRefresh: true);
 }
 
 /// Base class for all query cubits which require arguments.
@@ -142,16 +153,15 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
     super.requestMode,
   });
 
+  TArgs? _lastFetchArgs;
+
   /// The arguments used by this cubit to refresh the query.
-  TArgs? refreshArgs;
+  TArgs? get lastFetchArgs => _lastFetchArgs;
 
   /// Gets the data from the request and emits the corresponding state.
-  Future<void> get(
-    TArgs args, {
-    bool isRefresh = false,
-  }) {
-    refreshArgs = args;
-    return _get(() => request(args), isRefresh: isRefresh);
+  Future<void> get(TArgs args) {
+    _lastFetchArgs = args;
+    return _get(() => request(args));
   }
 
   /// A request to be executed.
@@ -159,11 +169,11 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
 
   @override
   Future<void> refresh() async {
-    if (refreshArgs == null) {
+    if (_lastFetchArgs == null) {
       _logger.severe('No query was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      await _get(() => request(refreshArgs!), isRefresh: true);
+      await _get(() => request(_lastFetchArgs!), isRefresh: true);
     }
   }
 }
@@ -179,14 +189,23 @@ final class QueryInitialState<TOut> extends QueryState<TOut> {
 
 /// Represents the loading state of a query.
 final class QueryLoadingState<TOut> extends QueryState<TOut> {
-  /// Creates a new [QueryLoadingState] with the given [isRefresh].
-  QueryLoadingState({required this.isRefresh});
-
-  /// Whether the loading query is a refresh.
-  final bool isRefresh;
+  /// Creates a new [QueryLoadingState].
+  QueryLoadingState();
 
   @override
-  List<Object?> get props => [isRefresh];
+  List<Object?> get props => [];
+}
+
+/// Represents the refresh state of a query.
+final class QueryRefreshState<TOut> extends QueryState<TOut> {
+  /// Creates a new [QueryRefreshState] with the previous [data].
+  QueryRefreshState([this.data]);
+
+  /// The previous data.
+  final TOut? data;
+
+  @override
+  List<Object?> get props => [data];
 }
 
 /// Represents a successful query.

@@ -38,15 +38,23 @@ class SimpleQueryScreen extends StatelessWidget {
   }
 }
 
+class SimpleQueryHookPage extends StatelessWidget {
+  const SimpleQueryHookPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
 class SimpleQueryHookScreen extends HookWidget {
   const SimpleQueryHookScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userQueryCubit = useQueryCubit<User, User>(
+    final userQueryCubit = useQueryCubit<User>(
+      () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
       loggerTag: 'UserQueryCubit',
-      query: () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
-      map: (user) => user,
     );
 
     return Scaffold(
@@ -57,7 +65,7 @@ class SimpleQueryHookScreen extends HookWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: QueryCubitBuilder<User, User>(
+            child: QueryCubitBuilder<User>(
               queryCubit: userQueryCubit..get(),
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
@@ -83,7 +91,7 @@ class SimpleQueryPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: QueryCubitBuilder<User, User>(
+            child: QueryCubitBuilder<User>(
               queryCubit: context.read<UserQueryCubit>()..get(),
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
