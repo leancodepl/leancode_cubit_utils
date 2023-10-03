@@ -45,20 +45,28 @@ void main() {
   runApp(
     Provider<Cqrs>.value(
       value: cqrs,
-      child: QueryConfigProvider(
-        requestMode: RequestMode.replace,
-        onLoading: (BuildContext context) => const CircularProgressIndicator(),
-        onError: (
-          BuildContext context,
-          QueryErrorState<dynamic> error,
-          VoidCallback? onErrorCallback,
-        ) {
-          return const Text(
-            'Error',
-            style: TextStyle(color: Colors.red),
-          );
-        },
-        child: const MainApp(),
+      child: PaginatedConfigProvider(
+        onFirstPageLoading: (context) => const SliverLoader(),
+        onFirstPageError: (context) => const SliverError(),
+        onNextPageLoading: (context) => const SliverLoader(),
+        onNextPageError: (context) => const SliverError(),
+        onEmptyState: (context) => const SliverEmptyList(),
+        child: QueryConfigProvider(
+          requestMode: RequestMode.replace,
+          onLoading: (BuildContext context) =>
+              const CircularProgressIndicator(),
+          onError: (
+            BuildContext context,
+            QueryErrorState<dynamic> error,
+            VoidCallback? onErrorCallback,
+          ) {
+            return const Text(
+              'Error',
+              style: TextStyle(color: Colors.red),
+            );
+          },
+          child: const MainApp(),
+        ),
       ),
     ),
   );
@@ -75,6 +83,41 @@ class MainApp extends StatelessWidget {
         Routes.simpleQuery: (_) => const SimpleQueryHookScreen(),
         Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
       },
+    );
+  }
+}
+
+class SliverLoader extends StatelessWidget {
+  const SliverLoader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverToBoxAdapter(
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class SliverError extends StatelessWidget {
+  const SliverError({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverToBoxAdapter(
+      child: Text('Error'),
+    );
+  }
+}
+
+class SliverEmptyList extends StatelessWidget {
+  const SliverEmptyList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverToBoxAdapter(
+      child: Text('No items'),
     );
   }
 }

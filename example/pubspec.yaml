@@ -9,6 +9,7 @@ environment:
 dependencies:
   cqrs: ^10.0.1
   equatable: ^2.0.5
+  faker: ^2.1.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3

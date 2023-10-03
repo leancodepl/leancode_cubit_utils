@@ -84,7 +84,7 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
       _operation = CancelableOperation.fromFuture(
         callback(),
         onCancel: () {
-          _logger.info('Previous operation is not completed. Cancelling.');
+          _logger.info('Canceling previous operation.');
         },
       );
 
