@@ -9,14 +9,15 @@ import 'package:sliver_tools/sliver_tools.dart';
 import 'paginated_config_provider.dart';
 
 /// A builder for a paginated list item.
-typedef PaginatedItemBuilder<TItem> = Widget Function(
+typedef PaginatedItemBuilder<TData, TItem> = Widget Function(
   BuildContext context,
+  TData? data,
   int index,
   List<TItem> items,
 );
 
 /// A layout for a paginated cubit.
-class PaginatedCubitLayout<TItem> extends StatelessWidget {
+class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   /// Creates a PaginatedCubitLayout.
   const PaginatedCubitLayout({
     super.key,
@@ -34,7 +35,7 @@ class PaginatedCubitLayout<TItem> extends StatelessWidget {
   final PaginatedCubit<dynamic, TItem> cubit;
 
   /// A builder for a paginated list item.
-  final PaginatedItemBuilder<TItem> itemBuilder;
+  final PaginatedItemBuilder<TData, TItem> itemBuilder;
 
   /// A builder for a separator between items.
   final IndexedWidgetBuilder separatorBuilder;
@@ -57,44 +58,47 @@ class PaginatedCubitLayout<TItem> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final config = context.read<PaginatedConfig>();
-    return CustomScrollView(
-      slivers: [
-        if (headerBuilder != null) headerBuilder!(context),
-        BlocBuilder<PaginatedCubit<dynamic, TItem>, PaginatedState<TItem>>(
-          bloc: cubit,
-          builder: (context, state) {
-            return switch (state.type) {
-              PaginatedStateType.initial ||
-              PaginatedStateType.firstPageLoading =>
-                config.onFirstPageLoading(context),
-              PaginatedStateType.firstPageError =>
-                config.onFirstPageError(context),
-              _ => _PaginatedLayoutList(
-                  items: state.items,
-                  itemBuilder: itemBuilder,
-                  separatorBuilder: separatorBuilder,
-                  fetchNextPage: () => cubit.fetchNextPage(state.pageId + 1),
-                  nextPageErrorBuilder:
-                      state.type == PaginatedStateType.nextPageError
-                          ? nextPageErrorBuilder ?? config.onNextPageError
-                          : null,
-                  nextPageLoadingBuilder:
-                      state.type == PaginatedStateType.nextPageLoading
-                          ? nextPageLoadingBuilder ?? config.onNextPageLoading
-                          : null,
-                  emptyStateBuilder: emptyStateBuilder ?? config.onEmptyState,
-                  hasNextPage: state.hasNextPage,
-                ),
-            };
-          },
-        ),
-        if (footerBuilder != null) footerBuilder!(context),
-      ],
+    return RefreshIndicator(
+      onRefresh: cubit.refresh,
+      child: CustomScrollView(
+        slivers: [
+          if (headerBuilder != null) headerBuilder!(context),
+          BlocBuilder<PaginatedCubit<dynamic, TItem>, PaginatedState<TItem>>(
+            bloc: cubit,
+            builder: (context, state) {
+              return switch (state.type) {
+                PaginatedStateType.initial ||
+                PaginatedStateType.firstPageLoading =>
+                  config.onFirstPageLoading(context),
+                PaginatedStateType.firstPageError =>
+                  config.onFirstPageError(context),
+                _ => _PaginatedLayoutList(
+                    items: state.items,
+                    itemBuilder: itemBuilder,
+                    separatorBuilder: separatorBuilder,
+                    fetchNextPage: () => cubit.fetchNextPage(state.pageId + 1),
+                    nextPageErrorBuilder:
+                        state.type == PaginatedStateType.nextPageError
+                            ? nextPageErrorBuilder ?? config.onNextPageError
+                            : null,
+                    nextPageLoadingBuilder:
+                        state.type == PaginatedStateType.nextPageLoading
+                            ? nextPageLoadingBuilder ?? config.onNextPageLoading
+                            : null,
+                    emptyStateBuilder: emptyStateBuilder ?? config.onEmptyState,
+                    hasNextPage: state.hasNextPage,
+                  ),
+              };
+            },
+          ),
+          if (footerBuilder != null) footerBuilder!(context),
+        ],
+      ),
     );
   }
 }
 
-class _PaginatedLayoutList<TItem> extends HookWidget {
+class _PaginatedLayoutList<TData, TItem> extends HookWidget {
   const _PaginatedLayoutList({
     required this.items,
     required this.itemBuilder,
@@ -108,7 +112,7 @@ class _PaginatedLayoutList<TItem> extends HookWidget {
   });
 
   final List<TItem> items;
-  final PaginatedItemBuilder<TItem> itemBuilder;
+  final PaginatedItemBuilder<TData, TItem> itemBuilder;
   final IndexedWidgetBuilder separatorBuilder;
 
   final VoidCallback fetchNextPage;
@@ -138,6 +142,7 @@ class _PaginatedLayoutList<TItem> extends HookWidget {
     );
   }
 
+  // TODO: Find a way to not trigger fetchNextPage multiple times.
   Widget _itemBuilder(
     BuildContext context,
     int index,
@@ -150,6 +155,6 @@ class _PaginatedLayoutList<TItem> extends HookWidget {
       fetchNextPage();
     }
 
-    return itemBuilder(context, index, items);
+    return itemBuilder(context, null, index, items);
   }
 }

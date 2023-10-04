@@ -9,6 +9,8 @@ part of 'paginated_cubit.dart';
 abstract class _$PaginatedStateCWProxy<TItem> {
   PaginatedState<TItem> type(PaginatedStateType type);
 
+  PaginatedState<TItem> searchQuery(String searchQuery);
+
   PaginatedState<TItem> items(List<TItem> items);
 
   PaginatedState<TItem> pageSize(int pageSize);
@@ -25,6 +27,7 @@ abstract class _$PaginatedStateCWProxy<TItem> {
   /// ````
   PaginatedState<TItem> call({
     PaginatedStateType? type,
+    String? searchQuery,
     List<TItem>? items,
     int? pageSize,
     int? pageId,
@@ -41,6 +44,10 @@ class _$PaginatedStateCWProxyImpl<TItem>
 
   @override
   PaginatedState<TItem> type(PaginatedStateType type) => this(type: type);
+
+  @override
+  PaginatedState<TItem> searchQuery(String searchQuery) =>
+      this(searchQuery: searchQuery);
 
   @override
   PaginatedState<TItem> items(List<TItem> items) => this(items: items);
@@ -65,6 +72,7 @@ class _$PaginatedStateCWProxyImpl<TItem>
   /// ````
   PaginatedState<TItem> call({
     Object? type = const $CopyWithPlaceholder(),
+    Object? searchQuery = const $CopyWithPlaceholder(),
     Object? items = const $CopyWithPlaceholder(),
     Object? pageSize = const $CopyWithPlaceholder(),
     Object? pageId = const $CopyWithPlaceholder(),
@@ -75,6 +83,11 @@ class _$PaginatedStateCWProxyImpl<TItem>
           ? _value.type
           // ignore: cast_nullable_to_non_nullable
           : type as PaginatedStateType,
+      searchQuery:
+          searchQuery == const $CopyWithPlaceholder() || searchQuery == null
+              ? _value.searchQuery
+              // ignore: cast_nullable_to_non_nullable
+              : searchQuery as String,
       items: items == const $CopyWithPlaceholder() || items == null
           ? _value.items
           // ignore: cast_nullable_to_non_nullable

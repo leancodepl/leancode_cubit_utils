@@ -46,9 +46,9 @@ void main() {
     Provider<Cqrs>.value(
       value: cqrs,
       child: PaginatedConfigProvider(
-        onFirstPageLoading: (context) => const SliverLoader(),
+        onFirstPageLoading: (context) => const SliverFirstPageLoader(),
         onFirstPageError: (context) => const SliverError(),
-        onNextPageLoading: (context) => const SliverLoader(),
+        onNextPageLoading: (context) => const SliverNextPageLoader(),
         onNextPageError: (context) => const SliverError(),
         onEmptyState: (context) => const SliverEmptyList(),
         child: QueryConfigProvider(
@@ -87,8 +87,21 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class SliverLoader extends StatelessWidget {
-  const SliverLoader({super.key});
+class SliverFirstPageLoader extends StatelessWidget {
+  const SliverFirstPageLoader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverFillRemaining(
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class SliverNextPageLoader extends StatelessWidget {
+  const SliverNextPageLoader({super.key});
 
   @override
   Widget build(BuildContext context) {
