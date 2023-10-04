@@ -9,7 +9,6 @@ environment:
 
 dependencies:
   async: ^2.0.0
-  copy_with_extension: ^5.0.4
   cqrs: ^10.0.1
   equatable: ^2.0.0
   flutter:

@@ -29,6 +29,7 @@ class PaginatedResponse<TData, TItem> {
   /// The list of items of type [TItem].
   final List<TItem> items;
 
+  /// Additional data.
   final TData? data;
 
   /// A flag indicating whether there is a next page.
