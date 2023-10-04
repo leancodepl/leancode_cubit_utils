@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:provider/provider.dart';
 
 /// A configuration for PaginatedCubitLayout.
@@ -16,13 +17,13 @@ class PaginatedConfig {
   final WidgetBuilder onNextPageLoading;
 
   /// A builder for the error state of the next page.
-  final WidgetBuilder onNextPageError;
+  final PaginatedErrorBuilder<dynamic> onNextPageError;
 
   /// A builder for the loading state of the first page.
   final WidgetBuilder onFirstPageLoading;
 
   /// A builder for the error state of the first page.
-  final WidgetBuilder onFirstPageError;
+  final PaginatedErrorBuilder<dynamic> onFirstPageError;
 
   /// A builder for the empty state.
   final WidgetBuilder onEmptyState;
@@ -45,13 +46,13 @@ class PaginatedConfigProvider extends StatelessWidget {
   final WidgetBuilder onNextPageLoading;
 
   /// A builder for the error state of the next page.
-  final WidgetBuilder onNextPageError;
+  final PaginatedErrorBuilder<dynamic> onNextPageError;
 
   /// A builder for the loading state of the first page.
   final WidgetBuilder onFirstPageLoading;
 
   /// A builder for the error state of the first page.
-  final WidgetBuilder onFirstPageError;
+  final PaginatedErrorBuilder<dynamic> onFirstPageError;
 
   /// A builder for the empty state.
   final WidgetBuilder onEmptyState;

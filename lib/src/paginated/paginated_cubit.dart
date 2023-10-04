@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 
-part 'paginated_cubit.g.dart';
+//part 'paginated_cubit.g.dart';
 
 /// Base class for all pre-request use cases.
 abstract class PreRequest<TData> {
@@ -19,37 +18,71 @@ abstract class PreRequest<TData> {
 
 /// A response containing a list of items and a flag indicating whether there is
 /// a next page.
-class PaginatedResponse<T> {
+class PaginatedResponse<TData, TItem> {
   /// Creates a new [PaginatedResponse] with the given [items] and [hasNextPage].
   PaginatedResponse({
     required this.items,
-    required this.pageId,
+    this.data,
     required this.hasNextPage,
   });
 
-  /// The list of items of type [T].
-  final List<T> items;
+  /// The list of items of type [TItem].
+  final List<TItem> items;
 
-  /// A
-  final int pageId;
+  final TData? data;
 
   /// A flag indicating whether there is a next page.
   final bool hasNextPage;
 }
 
-/// Defines how to handle a new request when the previous one is still running.
-enum PaginatedRequestMode {
-  /// When a new request is triggered while the previous one is still running,
-  /// the previous request is cancelled and the new one is executed.
-  replace,
+///
+class Args with EquatableMixin {
+  ///
+  const Args({
+    this.pageId = 0,
+    required this.pageSize,
+    this.searchQuery = '',
+    this.isRefresh = false,
+  });
 
-  /// When a new request is triggered while the previous one is still running,
-  /// the new request is ignored.
-  ignore,
+  ///
+  final int pageId;
+
+  ///
+  final int pageSize;
+
+  ///
+  final String searchQuery;
+
+  ///
+  final bool isRefresh;
+
+  /// Copies the [Args] with the given parameters.
+  Args copyWith({
+    int? pageId,
+    int? pageSize,
+    String? searchQuery,
+    bool? isRefresh,
+  }) {
+    return Args(
+      pageId: pageId ?? this.pageId,
+      pageSize: pageSize ?? this.pageSize,
+      searchQuery: searchQuery ?? this.searchQuery,
+      isRefresh: isRefresh ?? this.isRefresh,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        pageId,
+        pageSize,
+        searchQuery,
+        isRefresh,
+      ];
 }
 
 /// Base class for all paginated cubits.
-abstract class PaginatedCubit<TPage extends PaginatedResponse<TItem>, TItem>
+abstract class PaginatedCubit<TData, TItem>
     extends Cubit<PaginatedState<TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].
   PaginatedCubit({
@@ -58,27 +91,23 @@ abstract class PaginatedCubit<TPage extends PaginatedResponse<TItem>, TItem>
   })  : _logger = Logger(loggerTag),
         super(
           PaginatedState<TItem>(
-            pageSize: pageSize,
             items: <TItem>[],
+            args: Args(pageSize: pageSize),
           ),
         );
 
   final Logger _logger;
 
-  /// The request mode used by this cubit to handle duplicated requests.
-  final requestMode = PaginatedRequestMode.ignore;
-
-  CancelableOperation<TPage>? _requestOperation;
+  CancelableOperation<PaginatedResponse<TData, TItem>>? _requestOperation;
   CancelableOperation<void>? _searchQueryOperation;
 
   /// Gets the page.
   Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
-    if (state.type.isLoading) {
-      return;
-    }
+    await _requestOperation?.cancel();
+
     if (refresh) {
       _logger.info('Refreshing...');
-      emit(state.copyWith.type(PaginatedStateType.refresh));
+      emit(state.copyWith(type: PaginatedStateType.refresh));
     } else if (pageId == 0) {
       _logger.info('Loading first page...');
       emit(
@@ -89,36 +118,43 @@ abstract class PaginatedCubit<TPage extends PaginatedResponse<TItem>, TItem>
       );
     } else {
       _logger.info('Loading next page. PageId: $pageId');
-      emit(state.copyWith.type(PaginatedStateType.nextPageLoading));
+      emit(state.copyWith(type: PaginatedStateType.nextPageLoading));
     }
+
     try {
-      if (state.searchQuery.isNotEmpty) {
-        _logger.info('Searching for ${state.searchQuery}');
+      if (state.args.searchQuery.isNotEmpty) {
+        _logger.info('Searching for ${state.args.searchQuery}');
       }
       _requestOperation = CancelableOperation.fromFuture(
-        requestPage(pageId, state.searchQuery),
-        onCancel: () => _logger.info('Canceling previous operation.'),
+        requestPage(state.args),
+        onCancel: () => _logger.info('Canceling previous request.'),
       );
-      final page = await _requestOperation?.value;
+      final page = await _requestOperation?.valueOrCancellation();
       if (page == null) {
         return;
       }
-      final items = onData(page);
+      _logger.info(
+        'Page loaded. pageId: $pageId. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
+      );
+
+      final items = onPageResult(page);
       emit(
         state.copyWith(
           type: PaginatedStateType.success,
           items: items,
-          pageId: pageId,
           hasNextPage: page.hasNextPage,
+          args: state.args.copyWith(pageId: pageId),
+          setErrorToNull: true,
         ),
       );
     } catch (e, s) {
-      _logger.severe('Error loading page.', e, s);
+      _logger.severe('Error loading page, error: $e, stacktrace: $s');
       emit(
         state.copyWith(
           type: pageId == 0
               ? PaginatedStateType.firstPageError
               : PaginatedStateType.nextPageError,
+          error: e,
         ),
       );
     }
@@ -128,7 +164,7 @@ abstract class PaginatedCubit<TPage extends PaginatedResponse<TItem>, TItem>
   void updateSearchQuery(String searchQuery) {
     _searchQueryOperation?.cancel();
 
-    emit(state.copyWith(searchQuery: searchQuery));
+    emit(state.updateSearchQuery(searchQuery));
 
     _searchQueryOperation = CancelableOperation.fromFuture(
       Future.delayed(const Duration(milliseconds: 500)),
@@ -137,10 +173,10 @@ abstract class PaginatedCubit<TPage extends PaginatedResponse<TItem>, TItem>
   }
 
   /// Method getting the page from the server.
-  Future<TPage> requestPage(int pageId, String searchQuery);
+  Future<PaginatedResponse<TData, TItem>> requestPage(Args args);
 
   /// Method mapping the page to a list of items.
-  List<TItem> onData(TPage page);
+  List<TItem> onPageResult(PaginatedResponse<TData, TItem> page);
 
   /// Gets the initial page.
   void run() => fetchNextPage(0);
@@ -173,52 +209,70 @@ enum PaginatedStateType {
   success;
 
   /// A flag indicating whether the state is loading.
-  bool get isLoading => [
+  bool get shouldNotGetNextPage => [
         PaginatedStateType.firstPageLoading,
         PaginatedStateType.nextPageLoading,
         PaginatedStateType.refresh,
+        PaginatedStateType.nextPageError,
       ].contains(this);
 }
 
 /// Represents the state of a [PaginatedCubit].
-@CopyWith()
 class PaginatedState<TItem> with EquatableMixin {
-  /// Creates a new [PaginatedState] with the given [type], [items], [pageSize],
-  /// [pageId] and [hasNextPage].
-  const PaginatedState({
+  /// Creates a new [PaginatedState].
+  PaginatedState({
     this.type = PaginatedStateType.initial,
-    this.searchQuery = '',
     required this.items,
-    required this.pageSize,
-    this.pageId = 0,
     this.hasNextPage = false,
+    this.error,
+    required this.args,
   });
 
   /// The type of the state.
   final PaginatedStateType type;
 
-  /// The search query.
-  final String searchQuery;
-
   /// The list of items.
   final List<TItem> items;
-
-  /// The number of items per page.
-  final int pageSize;
-
-  /// The id of the current page.
-  final int pageId;
 
   /// A flag indicating whether there is a next page.
   final bool hasNextPage;
 
+  /// The error.
+  final Object? error;
+
+  /// Arguments of the request.
+  final Args args;
+
   @override
   List<Object?> get props => [
         type,
-        searchQuery,
         items,
-        pageSize,
-        pageId,
         hasNextPage,
+        error,
+        args,
       ];
+
+  /// Copies the [PaginatedState] with the given parameters.
+  PaginatedState<TItem> copyWith({
+    PaginatedStateType? type,
+    List<TItem>? items,
+    bool? hasNextPage,
+    Args? args,
+    Object? error,
+    bool setErrorToNull = false,
+  }) {
+    return PaginatedState<TItem>(
+      type: type ?? this.type,
+      items: items ?? this.items,
+      hasNextPage: hasNextPage ?? this.hasNextPage,
+      error: setErrorToNull ? null : error ?? this.error,
+      args: args ?? this.args,
+    );
+  }
+
+  /// Updates search query in state.
+  PaginatedState<TItem> updateSearchQuery(String searchQuery) {
+    final updatedArgs = args.copyWith(searchQuery: searchQuery);
+    return copyWith(args: updatedArgs);
+  }
 }

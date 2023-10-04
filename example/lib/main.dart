@@ -47,9 +47,9 @@ void main() {
       value: cqrs,
       child: PaginatedConfigProvider(
         onFirstPageLoading: (context) => const SliverFirstPageLoader(),
-        onFirstPageError: (context) => const SliverError(),
+        onFirstPageError: (context, retry) => SliverError(retry: retry),
         onNextPageLoading: (context) => const SliverNextPageLoader(),
-        onNextPageError: (context) => const SliverError(),
+        onNextPageError: (context, retry) => SliverError(retry: retry),
         onEmptyState: (context) => const SliverEmptyList(),
         child: QueryConfigProvider(
           requestMode: RequestMode.replace,
@@ -114,12 +114,19 @@ class SliverNextPageLoader extends StatelessWidget {
 }
 
 class SliverError extends StatelessWidget {
-  const SliverError({super.key});
+  const SliverError({
+    super.key,
+    this.retry,
+  });
+
+  final VoidCallback? retry;
 
   @override
   Widget build(BuildContext context) {
-    return const SliverToBoxAdapter(
-      child: Text('Error'),
+    return SliverToBoxAdapter(
+      child: retry != null
+          ? ElevatedButton(onPressed: retry, child: const Text('Retry'))
+          : const Text('Error'),
     );
   }
 }

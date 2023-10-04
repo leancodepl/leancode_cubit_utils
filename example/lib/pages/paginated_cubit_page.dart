@@ -28,17 +28,19 @@ class PaginatedCubitPage extends StatelessWidget {
         children: [
           TextField(
             onChanged: context.read<SimplePaginatedCubit>().updateSearchQuery,
-            decoration: const InputDecoration(
-              hintText: 'Search',
-            ),
+            decoration: const InputDecoration(hintText: 'Search'),
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
           ),
           Expanded(
-            child: PaginatedCubitLayout(
-              cubit: context.read<SimplePaginatedCubit>(),
-              itemBuilder: (context, _, index, items) => UserTile(
-                user: items[index],
+            child: RefreshIndicator(
+              onRefresh: context.read<SimplePaginatedCubit>().refresh,
+              child: PaginatedCubitLayout(
+                cubit: context.read<SimplePaginatedCubit>(),
+                itemBuilder: (context, _, index, items) => UserTile(
+                  user: items[index],
+                ),
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
               ),
-              separatorBuilder: (context, index) => const SizedBox(height: 8),
             ),
           ),
         ],
@@ -50,33 +52,37 @@ class PaginatedCubitPage extends StatelessWidget {
 class MockedApi {
   final users = List.generate(120, (index) => User.fake(Faker()));
 
-  Future<PaginatedResponse<User>> getUsers(int pageId, int pageSize) async {
+  Future<PaginatedResponse<void, User>> getUsers(
+    int pageId,
+    int pageSize,
+  ) async {
     await Future<void>.delayed(const Duration(seconds: 1));
     final usersPage = users.skip(pageId * pageSize).take(pageSize).toList();
     return PaginatedResponse(
       items: usersPage,
-      pageId: pageId,
       hasNextPage: pageId < 5,
     );
   }
 
-  Future<PaginatedResponse<User>> searchUsers(
+  Future<PaginatedResponse<void, User>> searchUsers(
     int pageId,
     int pageSize,
     String searchQuery,
   ) async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    final filteredUsers = users
+    if (searchQuery == 'error') {
+      throw Exception();
+    }
+    final filteredUsersPage = users
         .where(
           (user) => user.name.toLowerCase().contains(searchQuery.toLowerCase()),
         )
+        .skip(pageId * pageSize)
+        .take(pageSize)
         .toList();
-    final filteredUsersPage =
-        filteredUsers.skip(pageId * pageSize).take(pageSize).toList();
     return PaginatedResponse(
       items: filteredUsersPage,
-      pageId: pageId,
-      hasNextPage: pageId < 5 && filteredUsersPage.length > pageSize,
+      hasNextPage: pageId < 5 && filteredUsersPage.length >= pageSize,
     );
   }
 }
@@ -122,8 +128,7 @@ class Filter {
   final String name;
 }
 
-class SimplePaginatedCubit
-    extends PaginatedCubit<PaginatedResponse<User>, User> {
+class SimplePaginatedCubit extends PaginatedCubit<void, User> {
   SimplePaginatedCubit(this.api)
       : super(
           loggerTag: 'SimplePaginatedCubit',
@@ -133,19 +138,16 @@ class SimplePaginatedCubit
   final MockedApi api;
 
   @override
-  List<User> onData(PaginatedResponse<User> page) {
-    if (page.pageId == 0) {
-      return page.items;
-    }
-    return state.items.followedBy(page.items).toList();
+  List<User> onPageResult(PaginatedResponse<void, User> page) {
+    return [...state.items, ...page.items];
   }
 
   @override
-  Future<PaginatedResponse<User>> requestPage(int pageId, String searchQuery) {
-    if (searchQuery.isEmpty) {
-      return api.getUsers(pageId, state.pageSize);
+  Future<PaginatedResponse<void, User>> requestPage(Args args) {
+    if (args.searchQuery.isEmpty) {
+      return api.getUsers(args.pageId, args.pageSize);
     } else {
-      return api.searchUsers(pageId, state.pageSize, searchQuery);
+      return api.searchUsers(args.pageId, args.pageSize, args.searchQuery);
     }
   }
 }
