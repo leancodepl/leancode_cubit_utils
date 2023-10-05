@@ -3,17 +3,16 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
 import 'package:logging/logging.dart';
-
-//part 'paginated_cubit.g.dart';
 
 /// Base class for all pre-request use cases.
 abstract class PreRequest<TData> {
   /// Executes the use case.
   Future<TData> execute();
 
-  /// Method mapping the data.
-  TData onData(TData data);
+  // TODO: Consult and consider
+  //TData onData(TData data) => data;
 }
 
 /// A response containing a list of items and a flag indicating whether there is
@@ -36,70 +35,28 @@ class PaginatedResponse<TData, TItem> {
   final bool hasNextPage;
 }
 
-///
-class Args with EquatableMixin {
-  ///
-  const Args({
-    this.pageId = 0,
-    required this.pageSize,
-    this.searchQuery = '',
-    this.isRefresh = false,
-  });
-
-  ///
-  final int pageId;
-
-  ///
-  final int pageSize;
-
-  ///
-  final String searchQuery;
-
-  ///
-  final bool isRefresh;
-
-  /// Copies the [Args] with the given parameters.
-  Args copyWith({
-    int? pageId,
-    int? pageSize,
-    String? searchQuery,
-    bool? isRefresh,
-  }) {
-    return Args(
-      pageId: pageId ?? this.pageId,
-      pageSize: pageSize ?? this.pageSize,
-      searchQuery: searchQuery ?? this.searchQuery,
-      isRefresh: isRefresh ?? this.isRefresh,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-        pageId,
-        pageSize,
-        searchQuery,
-        isRefresh,
-      ];
-}
-
 /// Base class for all paginated cubits.
-abstract class PaginatedCubit<TData, TItem>
-    extends Cubit<PaginatedState<TItem>> {
+abstract class PaginatedCubit<TData, TRes, TItem>
+    extends Cubit<PaginatedState<TData, TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].
   PaginatedCubit({
     required String loggerTag,
     required int pageSize,
+    PreRequest<TData>? preRequest,
   })  : _logger = Logger(loggerTag),
+        _preRequest = preRequest,
         super(
-          PaginatedState<TItem>(
+          PaginatedState<TData, TItem>(
             items: <TItem>[],
-            args: Args(pageSize: pageSize),
+            args: PaginatedArgs(pageSize: pageSize),
           ),
         );
 
   final Logger _logger;
+  final PreRequest<TData>? _preRequest;
 
-  CancelableOperation<PaginatedResponse<TData, TItem>>? _requestOperation;
+  CancelableOperation<TData>? _preRequestOperation;
+  CancelableOperation<PaginatedResponse<TData, TRes>>? _requestOperation;
   CancelableOperation<void>? _searchQueryOperation;
 
   /// Gets the page.
@@ -127,7 +84,7 @@ abstract class PaginatedCubit<TData, TItem>
         _logger.info('Searching for ${state.args.searchQuery}');
       }
       _requestOperation = CancelableOperation.fromFuture(
-        requestPage(state.args),
+        requestPage(state.args, state.data),
         onCancel: () => _logger.info('Canceling previous request.'),
       );
       final page = await _requestOperation?.valueOrCancellation();
@@ -161,6 +118,31 @@ abstract class PaginatedCubit<TData, TItem>
     }
   }
 
+  /// Runs the pre-request (if provided) and fetches the first page.
+  Future<void> run() async {
+    await _preRequestOperation?.cancel();
+    if (_preRequest != null) {
+      emit(state.copyWith(type: PaginatedStateType.preRequestLoading));
+      _logger.info('Running pre-request.');
+      try {
+        _preRequestOperation = CancelableOperation.fromFuture(
+          _preRequest!.execute(),
+          onCancel: () => _logger.info('Canceling previous pre-request.'),
+        );
+        final data = await _preRequestOperation?.valueOrCancellation();
+        if (data == null) {
+          return;
+        }
+        _logger.info('Pre-request completed.');
+        emit(state.copyWith(data: data));
+      } catch (e, s) {
+        _logger.severe('Error running pre-request, error: $e, stacktrace: $s');
+        emit(state.copyWith(type: PaginatedStateType.preRequestError));
+      }
+    }
+    unawaited(fetchNextPage(0));
+  }
+
   /// Updates the search query.
   void updateSearchQuery(String searchQuery) {
     _searchQueryOperation?.cancel();
@@ -174,13 +156,13 @@ abstract class PaginatedCubit<TData, TItem>
   }
 
   /// Method getting the page from the server.
-  Future<PaginatedResponse<TData, TItem>> requestPage(Args args);
+  Future<PaginatedResponse<TData, TRes>> requestPage(
+    PaginatedArgs args,
+    TData? data,
+  );
 
   /// Method mapping the page to a list of items.
-  List<TItem> onPageResult(PaginatedResponse<TData, TItem> page);
-
-  /// Gets the initial page.
-  void run() => fetchNextPage(0);
+  List<TItem> onPageResult(PaginatedResponse<TData, TRes> page);
 
   /// Refreshes the list.
   Future<void> refresh() => fetchNextPage(0, refresh: true);
@@ -190,6 +172,12 @@ abstract class PaginatedCubit<TData, TItem>
 enum PaginatedStateType {
   /// Initial state of the cubit. No request has been made yet.
   initial,
+
+  /// Optional pre-request is being executed.
+  preRequestLoading,
+
+  /// Optional pre-request failed.
+  preRequestError,
 
   /// The first page is loading.
   firstPageLoading,
@@ -219,7 +207,7 @@ enum PaginatedStateType {
 }
 
 /// Represents the state of a [PaginatedCubit].
-class PaginatedState<TItem> with EquatableMixin {
+class PaginatedState<TData, TItem> with EquatableMixin {
   /// Creates a new [PaginatedState].
   PaginatedState({
     this.type = PaginatedStateType.initial,
@@ -227,6 +215,7 @@ class PaginatedState<TItem> with EquatableMixin {
     this.hasNextPage = false,
     this.error,
     required this.args,
+    this.data,
   });
 
   /// The type of the state.
@@ -242,7 +231,10 @@ class PaginatedState<TItem> with EquatableMixin {
   final Object? error;
 
   /// Arguments of the request.
-  final Args args;
+  final PaginatedArgs args;
+
+  /// Additional data.
+  final TData? data;
 
   @override
   List<Object?> get props => [
@@ -251,28 +243,31 @@ class PaginatedState<TItem> with EquatableMixin {
         hasNextPage,
         error,
         args,
+        data,
       ];
 
   /// Copies the [PaginatedState] with the given parameters.
-  PaginatedState<TItem> copyWith({
+  PaginatedState<TData, TItem> copyWith({
     PaginatedStateType? type,
     List<TItem>? items,
     bool? hasNextPage,
-    Args? args,
+    PaginatedArgs? args,
     Object? error,
+    TData? data,
     bool setErrorToNull = false,
   }) {
-    return PaginatedState<TItem>(
+    return PaginatedState<TData, TItem>(
       type: type ?? this.type,
       items: items ?? this.items,
       hasNextPage: hasNextPage ?? this.hasNextPage,
-      error: setErrorToNull ? null : error ?? this.error,
       args: args ?? this.args,
+      data: data ?? this.data,
+      error: setErrorToNull ? null : error ?? this.error,
     );
   }
 
   /// Updates search query in state.
-  PaginatedState<TItem> updateSearchQuery(String searchQuery) {
+  PaginatedState<TData, TItem> updateSearchQuery(String searchQuery) {
     final updatedArgs = args.copyWith(searchQuery: searchQuery);
     return copyWith(args: updatedArgs);
   }

@@ -26,6 +26,7 @@ class PaginatedCubitPage extends StatelessWidget {
       ),
       body: Column(
         children: [
+          const FiltersRow(),
           TextField(
             onChanged: context.read<SimplePaginatedCubit>().updateSearchQuery,
             decoration: const InputDecoration(hintText: 'Search'),
@@ -49,10 +50,54 @@ class PaginatedCubitPage extends StatelessWidget {
   }
 }
 
-class MockedApi {
-  final users = List.generate(120, (index) => User.fake(Faker()));
+class FiltersRow extends StatelessWidget {
+  const FiltersRow({super.key});
 
-  Future<PaginatedResponse<void, User>> getUsers(
+  @override
+  Widget build(BuildContext context) {
+    final filters = context.select<SimplePaginatedCubit, Filters?>(
+      (cubit) => cubit.state.data,
+    );
+    return Row(
+      children: [
+        const Text('Filters: '),
+        if (filters?.availableFilters.isNotEmpty == true)
+          ...filters!.availableFilters
+              .map(
+                (filter) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: FilterChip(
+                    label: Text(filter.name),
+                    selected: filters.selectedFilters.contains(filter),
+                    onSelected: (_) {},
+                  ),
+                ),
+              )
+              .toList(),
+      ],
+    );
+  }
+}
+
+class MockedApi {
+  final _faker = Faker();
+
+  late final filters = List.generate(
+    3,
+    (index) => Filter(name: _faker.job.title().split(' ').first),
+  );
+
+  late final users = List.generate(120, (index) => User.fake(_faker));
+
+  Future<Filters> getFilters() async {
+    await Future<void>.delayed(const Duration(seconds: 1));
+    return Filters(
+      availableFilters: filters,
+      selectedFilters: [],
+    );
+  }
+
+  Future<PaginatedResponse<Filters, User>> getUsers(
     int pageId,
     int pageSize,
   ) async {
@@ -64,7 +109,7 @@ class MockedApi {
     );
   }
 
-  Future<PaginatedResponse<void, User>> searchUsers(
+  Future<PaginatedResponse<Filters, User>> searchUsers(
     int pageId,
     int pageSize,
     String searchQuery,
@@ -128,22 +173,45 @@ class Filter {
   final String name;
 }
 
-class SimplePaginatedCubit extends PaginatedCubit<void, User> {
+class Filters {
+  Filters({
+    this.availableFilters = const [],
+    this.selectedFilters = const [],
+  });
+
+  final List<Filter> availableFilters;
+  final List<Filter> selectedFilters;
+}
+
+class FiltersPreRequest extends PreRequest<Filters> {
+  FiltersPreRequest({required this.api});
+
+  final MockedApi api;
+
+  @override
+  Future<Filters> execute() => api.getFilters();
+}
+
+class SimplePaginatedCubit extends PaginatedCubit<Filters, User, User> {
   SimplePaginatedCubit(this.api)
       : super(
           loggerTag: 'SimplePaginatedCubit',
           pageSize: 20,
+          preRequest: FiltersPreRequest(api: api),
         );
 
   final MockedApi api;
 
   @override
-  List<User> onPageResult(PaginatedResponse<void, User> page) {
+  List<User> onPageResult(PaginatedResponse<Filters, User> page) {
     return [...state.items, ...page.items];
   }
 
   @override
-  Future<PaginatedResponse<void, User>> requestPage(Args args) {
+  Future<PaginatedResponse<Filters, User>> requestPage(
+    PaginatedArgs args,
+    Filters? data,
+  ) {
     if (args.searchQuery.isEmpty) {
       return api.getUsers(args.pageId, args.pageSize);
     } else {

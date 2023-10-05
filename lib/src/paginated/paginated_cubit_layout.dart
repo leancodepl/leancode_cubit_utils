@@ -40,7 +40,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   });
 
   /// The cubit that handles the paginated data.
-  final PaginatedCubit<dynamic, TItem> cubit;
+  final PaginatedCubit<TData, dynamic, TItem> cubit;
 
   /// A builder for a paginated list item.
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
@@ -76,15 +76,21 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         if (headerBuilder != null) headerBuilder!(context),
-        BlocBuilder<PaginatedCubit<dynamic, TItem>, PaginatedState<TItem>>(
+        BlocBuilder<PaginatedCubit<TData, dynamic, TItem>,
+            PaginatedState<TData, TItem>>(
           bloc: cubit,
           builder: (context, state) {
             return switch (state.type) {
+              // TODO: Add separate builder for the initial state and the preRequestLoading state.
               PaginatedStateType.initial ||
+              PaginatedStateType.preRequestLoading ||
               PaginatedStateType.firstPageLoading =>
                 firstPageLoadingBuilder?.call(context) ??
                     config.onFirstPageLoading(context),
-              PaginatedStateType.firstPageError => _buildFirstPageError(
+              // TODO: Add separate builder for the preRequestError state.
+              PaginatedStateType.firstPageError ||
+              PaginatedStateType.preRequestError =>
+                _buildFirstPageError(
                   context,
                   state,
                 ),
@@ -116,7 +122,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   Widget _buildFirstPageError(
     BuildContext context,
-    PaginatedState<TItem> state,
+    PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
     final callback = firstPageErrorBuilder ?? config.onFirstPageError;
@@ -125,7 +131,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   Widget? _buildNextPageLoader(
     BuildContext context,
-    PaginatedState<TItem> state,
+    PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
     if (state.type == PaginatedStateType.nextPageLoading) {
@@ -137,7 +143,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   Widget? _buildNextPageError(
     BuildContext context,
-    PaginatedState<TItem> state,
+    PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
     if (state.type == PaginatedStateType.nextPageError) {
@@ -164,7 +170,7 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
     this.nextPageThreshold = 3,
   });
 
-  final PaginatedState<TItem> state;
+  final PaginatedState<TData, TItem> state;
   final List<TItem> items;
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
   final IndexedWidgetBuilder separatorBuilder;
