@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +38,7 @@ class PaginatedCubitPage extends StatelessWidget {
               onRefresh: context.read<SimplePaginatedCubit>().refresh,
               child: PaginatedCubitLayout(
                 cubit: context.read<SimplePaginatedCubit>(),
-                itemBuilder: (context, _, index, items) => UserTile(
+                itemBuilder: (context, filters, index, items) => UserTile(
                   user: items[index],
                 ),
                 separatorBuilder: (context, index) => const SizedBox(height: 8),
@@ -55,26 +56,37 @@ class FiltersRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filters = context.select<SimplePaginatedCubit, Filters?>(
-      (cubit) => cubit.state.data,
-    );
-    return Row(
-      children: [
-        const Text('Filters: '),
-        if (filters?.availableFilters.isNotEmpty == true)
-          ...filters!.availableFilters
-              .map(
-                (filter) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: FilterChip(
-                    label: Text(filter.name),
-                    selected: filters.selectedFilters.contains(filter),
-                    onSelected: (_) {},
-                  ),
-                ),
-              )
-              .toList(),
-      ],
+    void toggleFilter(Filter filter) {
+      context.read<SimplePaginatedCubit>().onFilterPressed(filter);
+    }
+
+    return PaginatedCubitBuilder(
+      cubit: context.read<SimplePaginatedCubit>(),
+      builder: (context, state) {
+        final availableFilters = state.data?.availableFilters;
+        final selectedFilters = state.data?.selectedFilters ?? [];
+        if (availableFilters == null) {
+          return const SizedBox();
+        } else {
+          return Row(
+            children: [
+              const Text('Filters: '),
+              ...availableFilters
+                  .map(
+                    (filter) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: FilterChip(
+                        label: Text(filter.name),
+                        selected: selectedFilters.contains(filter),
+                        onSelected: (_) => toggleFilter(filter),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ],
+          );
+        }
+      },
     );
   }
 }
@@ -82,27 +94,39 @@ class FiltersRow extends StatelessWidget {
 class MockedApi {
   final _faker = Faker();
 
-  late final filters = List.generate(
+  late final jobTitles = List.generate(
     3,
-    (index) => Filter(name: _faker.job.title().split(' ').first),
+    (index) => Filter(name: _faker.job.title().split(' ').last),
   );
 
-  late final users = List.generate(120, (index) => User.fake(_faker));
+  late final users = List.generate(
+    120,
+    (index) => User.fake(
+      _faker,
+      jobTitles.elementAt(index % jobTitles.length).name,
+    ),
+  );
 
   Future<Filters> getFilters() async {
     await Future<void>.delayed(const Duration(seconds: 1));
     return Filters(
-      availableFilters: filters,
+      availableFilters: jobTitles,
       selectedFilters: [],
     );
   }
 
   Future<PaginatedResponse<Filters, User>> getUsers(
     int pageId,
-    int pageSize,
-  ) async {
+    int pageSize, {
+    List<Filter> selectedFilters = const [],
+  }) async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    final usersPage = users.skip(pageId * pageSize).take(pageSize).toList();
+    var filteredUsers = users;
+    if (selectedFilters.isNotEmpty) {
+      filteredUsers = _filterUsers(users, selectedFilters);
+    }
+    final usersPage =
+        filteredUsers.skip(pageId * pageSize).take(pageSize).toList();
     return PaginatedResponse(
       items: usersPage,
       hasNextPage: pageId < 5,
@@ -112,13 +136,18 @@ class MockedApi {
   Future<PaginatedResponse<Filters, User>> searchUsers(
     int pageId,
     int pageSize,
-    String searchQuery,
-  ) async {
+    String searchQuery, {
+    List<Filter> selectedFilters = const [],
+  }) async {
     await Future<void>.delayed(const Duration(seconds: 1));
     if (searchQuery == 'error') {
       throw Exception();
     }
-    final filteredUsersPage = users
+    var filteredUsers = users;
+    if (selectedFilters.isNotEmpty) {
+      filteredUsers = _filterUsers(users, selectedFilters);
+    }
+    final filteredUsersPage = filteredUsers
         .where(
           (user) => user.name.toLowerCase().contains(searchQuery.toLowerCase()),
         )
@@ -130,24 +159,32 @@ class MockedApi {
       hasNextPage: pageId < 5 && filteredUsersPage.length >= pageSize,
     );
   }
+
+  List<User> _filterUsers(List<User> users, List<Filter> filters) {
+    return users
+        .where((user) => filters.any((filter) => user.jobTitle == filter.name))
+        .toList();
+  }
 }
 
 class User {
   User({
     required this.name,
     required this.email,
+    required this.jobTitle,
   });
 
-  factory User.fake(Faker faker) {
+  factory User.fake(Faker faker, String jobTitle) {
     return User(
       name: faker.person.name(),
       email: faker.internet.email(),
+      jobTitle: jobTitle,
     );
   }
 
   final String name;
-
   final String email;
+  final String jobTitle;
 }
 
 class UserTile extends StatelessWidget {
@@ -163,6 +200,7 @@ class UserTile extends StatelessWidget {
     return ListTile(
       title: Text(user.name),
       subtitle: Text(user.email),
+      trailing: Text(user.jobTitle),
     );
   }
 }
@@ -173,7 +211,7 @@ class Filter {
   final String name;
 }
 
-class Filters {
+class Filters with EquatableMixin {
   Filters({
     this.availableFilters = const [],
     this.selectedFilters = const [],
@@ -181,6 +219,12 @@ class Filters {
 
   final List<Filter> availableFilters;
   final List<Filter> selectedFilters;
+
+  @override
+  List<Object?> get props => [
+        availableFilters,
+        selectedFilters,
+      ];
 }
 
 class FiltersPreRequest extends PreRequest<Filters> {
@@ -213,9 +257,33 @@ class SimplePaginatedCubit extends PaginatedCubit<Filters, User, User> {
     Filters? data,
   ) {
     if (args.searchQuery.isEmpty) {
-      return api.getUsers(args.pageId, args.pageSize);
+      return api.getUsers(
+        args.pageId,
+        args.pageSize,
+        selectedFilters: data?.selectedFilters ?? [],
+      );
     } else {
-      return api.searchUsers(args.pageId, args.pageSize, args.searchQuery);
+      return api.searchUsers(
+        args.pageId,
+        args.pageSize,
+        args.searchQuery,
+        selectedFilters: data?.selectedFilters ?? [],
+      );
     }
+  }
+
+  void onFilterPressed(Filter filter) {
+    // TODO: Should be debounced.
+    final filters = state.data;
+    if (filters == null) {
+      return;
+    }
+    if (filters.selectedFilters.contains(filter)) {
+      filters.selectedFilters.remove(filter);
+    } else {
+      filters.selectedFilters.add(filter);
+    }
+    emit(state.copyWith(data: filters));
+    fetchNextPage(0);
   }
 }

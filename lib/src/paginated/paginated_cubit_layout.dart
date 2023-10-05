@@ -89,11 +89,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
                     config.onFirstPageLoading(context),
               // TODO: Add separate builder for the preRequestError state.
               PaginatedStateType.firstPageError ||
-              PaginatedStateType.preRequestError =>
-                _buildFirstPageError(
-                  context,
-                  state,
-                ),
+              PaginatedStateType.preRequestError ||
               PaginatedStateType.refresh when state.error != null =>
                 _buildFirstPageError(
                   context,
