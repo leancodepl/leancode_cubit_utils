@@ -30,7 +30,9 @@ class PaginatedCubitPage extends StatelessWidget {
           const FiltersRow(),
           TextField(
             onChanged: context.read<SimplePaginatedCubit>().updateSearchQuery,
-            decoration: const InputDecoration(hintText: 'Search'),
+            decoration: const InputDecoration(
+              hintText: 'Search',
+            ),
             onTapOutside: (_) => FocusScope.of(context).unfocus(),
           ),
           Expanded(
