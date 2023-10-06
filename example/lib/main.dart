@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:cqrs/cqrs.dart';
 import 'package:example/cqrs/cqrs.dart';
 import 'package:example/pages/home_page.dart';
-import 'package:example/pages/paginated_cubit_page.dart';
-import 'package:example/pages/simple_query_page.dart';
+import 'package:example/pages/paginated/paginated_cubit_page.dart';
+import 'package:example/pages/query/query_page.dart';
 import 'package:flutter/material.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:logging/logging.dart';
@@ -80,7 +80,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const SimpleQueryHookScreen(),
+        Routes.simpleQuery: (_) => const QueryHookScreen(),
         Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
       },
     );

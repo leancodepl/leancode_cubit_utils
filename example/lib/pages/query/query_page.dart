@@ -23,8 +23,8 @@ class UserQueryCubit extends QueryCubit<User, User> {
   }
 }
 
-class SimpleQueryScreen extends StatelessWidget {
-  const SimpleQueryScreen({super.key});
+class QueryScreen extends StatelessWidget {
+  const QueryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,22 +33,22 @@ class SimpleQueryScreen extends StatelessWidget {
         cqrs: context.read<Cqrs>(),
         userId: 'success',
       )..get(),
-      child: const SimpleQueryPage(),
+      child: const QueryPage(),
     );
   }
 }
 
-class SimpleQueryHookScreen extends StatelessWidget {
-  const SimpleQueryHookScreen({super.key});
+class QueryHookScreen extends StatelessWidget {
+  const QueryHookScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const SimpleQueryHookPage();
+    return const QueryHookPage();
   }
 }
 
-class SimpleQueryHookPage extends HookWidget {
-  const SimpleQueryHookPage({super.key});
+class QueryHookPage extends HookWidget {
+  const QueryHookPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +80,8 @@ class SimpleQueryHookPage extends HookWidget {
   }
 }
 
-class SimpleQueryPage extends StatelessWidget {
-  const SimpleQueryPage({super.key});
+class QueryPage extends StatelessWidget {
+  const QueryPage({super.key});
 
   @override
   Widget build(BuildContext context) {

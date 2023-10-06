@@ -88,7 +88,10 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
         },
       );
 
-      final result = await _operation?.value;
+      final result = await _operation?.valueOrCancellation();
+      if (result == null) {
+        return;
+      }
 
       if (result case QuerySuccess(:final data)) {
         _logger.info('Query success. Data: $data');

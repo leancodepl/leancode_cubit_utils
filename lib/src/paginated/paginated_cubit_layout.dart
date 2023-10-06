@@ -92,7 +92,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
                 firstPageLoadingBuilder?.call(context) ??
                     config.onFirstPageLoading(context),
               PaginatedStateType.firstPageError ||
-              PaginatedStateType.refresh when state.error != null =>
+              PaginatedStateType.refresh when state.hasError =>
                 _buildFirstPageError(
                   context,
                   state,

@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:cqrs/cqrs.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
+import 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
 import 'package:logging/logging.dart';
+
+export 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
 
 /// Enum defining weather the pre-request should be run once or each time the
 /// first page is loaded.
@@ -20,7 +22,7 @@ enum PreRequestMode {
 /// Base class for all pre-request use cases.
 abstract class PreRequest<TRes, TData, TItem> {
   /// Executes the use case.
-  Future<TRes> execute();
+  Future<QueryResult<TRes>> execute();
 
   /// Map newly loaded data.
   TData map(TRes res, TData? data, PaginatedState<TData, TItem> state);
@@ -74,12 +76,11 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   final Duration _searchDebounce;
   bool _wasPreRequestRun = false;
 
-  CancelableOperation<TPreRequestRes>? _preRequestOperation;
+  CancelableOperation<QueryResult<TPreRequestRes>>? _preRequestOperation;
   CancelableOperation<QueryResult<TRes>>? _requestOperation;
   CancelableOperation<void>? _searchQueryOperation;
 
   //TODO: Add try-catch to handle errors
-  //TODO: Add doOnError for additional error handling
 
   /// Gets the page.
   Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
@@ -138,16 +139,19 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           items: page.items,
           hasNextPage: page.hasNextPage,
           data: page.data,
+          error: const PaginatedStateNoneError(),
         ),
       );
     } else if (result case QueryFailure(:final error)) {
       _logger.severe('Error loading page, error: $error');
       emit(
-        state.copyWith(
-          type: pageId == 0
-              ? PaginatedStateType.firstPageError
-              : PaginatedStateType.nextPageError,
-          error: error,
+        await onQueryError(
+          state.copyWith(
+            type: pageId == 0
+                ? PaginatedStateType.firstPageError
+                : PaginatedStateType.nextPageError,
+          ),
+          PaginatedStateQueryError(error),
         ),
       );
     }
@@ -186,19 +190,29 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       if (preRequestResponse == null) {
         return;
       }
-      final mappedPreRequest = _preRequest?.map(
-        preRequestResponse,
-        state.data,
-        state,
-      );
+      if (preRequestResponse case QuerySuccess(:final data)) {
+        _logger.info('Pre-request completed.');
+        _wasPreRequestRun = true;
 
-      _logger.info('Pre-request completed.');
-      _wasPreRequestRun = true;
-
-      emit(state.copyWith(data: mappedPreRequest));
+        final mappedPreRequest = _preRequest?.map(data, state.data, state);
+        emit(state.copyWith(data: mappedPreRequest));
+      } else if (preRequestResponse case QueryFailure(:final error)) {
+        _logger.severe('Error running pre-request, error: $error');
+        emit(
+          await onQueryError(
+            state.copyWith(type: PaginatedStateType.firstPageError),
+            PaginatedStateQueryError(error),
+          ),
+        );
+      }
     } catch (e, s) {
       _logger.severe('Error running pre-request, error: $e, stacktrace: $s');
-      emit(state.copyWith(type: PaginatedStateType.firstPageError));
+      emit(
+        await onQueryError(
+          state.copyWith(type: PaginatedStateType.firstPageError),
+          PaginatedStateException(e, s),
+        ),
+      );
     }
   }
 
@@ -214,97 +228,12 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
   /// Refreshes the list.
   Future<void> refresh() => fetchNextPage(0, refresh: true);
-}
 
-/// Type of the state of a [PaginatedCubit].
-enum PaginatedStateType {
-  /// Initial state of the cubit. No request has been made yet.
-  initial,
-
-  /// The first page is loading.
-  firstPageLoading,
-
-  /// The next page is loading.
-  nextPageLoading,
-
-  /// Is refreshing the list.
-  refresh,
-
-  /// The next page failed to load.
-  firstPageError,
-
-  /// The next page failed to load.
-  nextPageError,
-
-  /// The list was loaded successfully.
-  success;
-
-  /// A flag indicating whether the state is loading.
-  bool get shouldNotGetNextPage => [
-        PaginatedStateType.firstPageLoading,
-        PaginatedStateType.nextPageLoading,
-        PaginatedStateType.refresh,
-        PaginatedStateType.nextPageError,
-      ].contains(this);
-}
-
-/// Represents the state of a [PaginatedCubit].
-class PaginatedState<TData, TItem> with EquatableMixin {
-  /// Creates a new [PaginatedState].
-  PaginatedState({
-    this.type = PaginatedStateType.initial,
-    required this.items,
-    this.hasNextPage = false,
-    this.error,
-    required this.args,
-    this.data,
-  });
-
-  /// The type of the state.
-  final PaginatedStateType type;
-
-  /// The list of items.
-  final List<TItem> items;
-
-  /// A flag indicating whether there is a next page.
-  final bool hasNextPage;
-
-  /// The error.
-  final QueryError? error;
-
-  /// Arguments of the request.
-  final PaginatedArgs args;
-
-  /// Additional data.
-  final TData? data;
-
-  @override
-  List<Object?> get props => [
-        type,
-        items,
-        hasNextPage,
-        error,
-        args,
-        data,
-      ];
-
-  /// Copies the [PaginatedState] with the given parameters.
-  PaginatedState<TData, TItem> copyWith({
-    PaginatedStateType? type,
-    List<TItem>? items,
-    bool? hasNextPage,
-    PaginatedArgs? args,
-    QueryError? error,
-    TData? data,
-    bool setErrorToNull = false,
-  }) {
-    return PaginatedState<TData, TItem>(
-      type: type ?? this.type,
-      items: items ?? this.items,
-      hasNextPage: hasNextPage ?? this.hasNextPage,
-      args: args ?? this.args,
-      data: data ?? this.data,
-      error: setErrorToNull ? null : error ?? this.error,
-    );
+  /// Allows to handle errors in a custom way.
+  Future<PaginatedState<TData, TItem>> onQueryError(
+    PaginatedState<TData, TItem> state,
+    PaginatedStateError error,
+  ) async {
+    return state.copyWith(error: error);
   }
 }
