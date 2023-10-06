@@ -120,9 +120,9 @@ class MockedApi {
     ),
   );
 
-  Future<AdditionalData> getFilters() async {
+  Future<Filters> getFilters() async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    return AdditionalData(
+    return Filters(
       availableFilters: jobTitles,
       selectedFilters: {},
     );
@@ -241,8 +241,20 @@ class AdditionalData with EquatableMixin {
   }
 }
 
-class FiltersPreRequest
-    extends PreRequest<AdditionalData, AdditionalData, User> {
+class Filters with EquatableMixin {
+  Filters({
+    this.availableFilters = const [],
+    this.selectedFilters = const {},
+  });
+
+  final List<Filter> availableFilters;
+  final Set<Filter> selectedFilters;
+
+  @override
+  List<Object?> get props => [availableFilters, selectedFilters];
+}
+
+class FiltersPreRequest extends PreRequest<Filters, AdditionalData, User> {
   FiltersPreRequest({
     required this.api,
   });
@@ -250,9 +262,9 @@ class FiltersPreRequest
   final MockedApi api;
 
   @override
-  Future<AdditionalData> execute() async {
+  Future<Filters> execute() async {
     final filters = await api.getFilters();
-    return AdditionalData(
+    return Filters(
       availableFilters: filters.availableFilters,
       selectedFilters: filters.selectedFilters.toSet(),
     );
@@ -260,7 +272,7 @@ class FiltersPreRequest
 
   @override
   AdditionalData map(
-    AdditionalData res,
+    Filters res,
     AdditionalData? data,
     PaginatedState<AdditionalData, User> state,
   ) {
@@ -275,7 +287,7 @@ class FiltersPreRequest
 }
 
 class SimplePaginatedCubit
-    extends PaginatedCubit<AdditionalData, AdditionalData, Page<User>, User> {
+    extends PaginatedCubit<Filters, AdditionalData, Page<User>, User> {
   SimplePaginatedCubit(this.api)
       : super(
           loggerTag: 'SimplePaginatedCubit',

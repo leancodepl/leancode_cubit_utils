@@ -12,7 +12,7 @@ class PaginatedCubitBuilder<TData, TItem> extends StatelessWidget {
   });
 
   /// The cubit that handles the paginated data.
-  final PaginatedCubit<TData, dynamic, dynamic, TItem> cubit;
+  final PaginatedCubit<dynamic, TData, dynamic, TItem> cubit;
 
   /// A builder function that is invoked when the cubit emits a new state.
   final Widget Function(
@@ -22,7 +22,7 @@ class PaginatedCubitBuilder<TData, TItem> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
+    return BlocBuilder<PaginatedCubit<dynamic, TData, dynamic, TItem>,
         PaginatedState<TData, TItem>>(
       bloc: cubit,
       builder: builder,

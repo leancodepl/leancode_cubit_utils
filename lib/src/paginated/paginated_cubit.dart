@@ -47,7 +47,7 @@ class PaginatedResponse<TData, TItem> {
 }
 
 /// Base class for all paginated cubits.
-abstract class PaginatedCubit<TData, TPreRequestRes, TRes, TItem>
+abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     extends Cubit<PaginatedState<TData, TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].
   PaginatedCubit({
@@ -55,8 +55,10 @@ abstract class PaginatedCubit<TData, TPreRequestRes, TRes, TItem>
     required int pageSize,
     PreRequest<TPreRequestRes, TData, TItem>? preRequest,
     this.preRequestMode = PreRequestMode.once,
+    Duration searchDebounce = const Duration(milliseconds: 500),
   })  : _logger = Logger(loggerTag),
         _preRequest = preRequest,
+        _searchDebounce = searchDebounce,
         super(
           PaginatedState<TData, TItem>(
             items: <TItem>[],
@@ -69,11 +71,15 @@ abstract class PaginatedCubit<TData, TPreRequestRes, TRes, TItem>
 
   final Logger _logger;
   final PreRequest<TPreRequestRes, TData, TItem>? _preRequest;
+  final Duration _searchDebounce;
   bool _wasPreRequestRun = false;
 
   CancelableOperation<TPreRequestRes>? _preRequestOperation;
   CancelableOperation<QueryResult<TRes>>? _requestOperation;
   CancelableOperation<void>? _searchQueryOperation;
+
+  //TODO: Add try-catch to handle errors
+  //TODO: Add doOnError for additional error handling
 
   /// Gets the page.
   Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
@@ -162,7 +168,7 @@ abstract class PaginatedCubit<TData, TPreRequestRes, TRes, TItem>
     emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
 
     _searchQueryOperation = CancelableOperation.fromFuture(
-      Future.delayed(const Duration(milliseconds: 500)),
+      Future.delayed(_searchDebounce),
     );
     _searchQueryOperation?.value.whenComplete(() => fetchNextPage(0));
   }

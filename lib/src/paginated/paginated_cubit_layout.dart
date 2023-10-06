@@ -32,6 +32,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     required this.separatorBuilder,
     this.headerBuilder,
     this.footerBuilder,
+    this.initialStateBuilder,
     this.emptyStateBuilder,
     this.firstPageLoadingBuilder,
     this.firstPageErrorBuilder,
@@ -40,7 +41,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   });
 
   /// The cubit that handles the paginated data.
-  final PaginatedCubit<TData, dynamic, dynamic, TItem> cubit;
+  final PaginatedCubit<dynamic, TData, dynamic, TItem> cubit;
 
   /// A builder for a paginated list item.
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
@@ -53,6 +54,9 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   /// An optional builder for the footer.
   final WidgetBuilder? footerBuilder;
+
+  /// An optional builder for the initial state.
+  final WidgetBuilder? initialStateBuilder;
 
   /// An optional builder for the empty state.
   final WidgetBuilder? emptyStateBuilder;
@@ -76,13 +80,14 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         if (headerBuilder != null) headerBuilder!(context),
-        BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
+        BlocBuilder<PaginatedCubit<dynamic, TData, dynamic, TItem>,
             PaginatedState<TData, TItem>>(
           bloc: cubit,
           builder: (context, state) {
             return switch (state.type) {
-              // TODO: Add separate builder for the initial state.
-              PaginatedStateType.initial ||
+              PaginatedStateType.initial =>
+                initialStateBuilder?.call(context) ??
+                    config.onFirstPageLoading(context),
               PaginatedStateType.firstPageLoading =>
                 firstPageLoadingBuilder?.call(context) ??
                     config.onFirstPageLoading(context),
