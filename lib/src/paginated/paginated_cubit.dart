@@ -1,18 +1,29 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
+import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
 import 'package:logging/logging.dart';
 
-/// Base class for all pre-request use cases.
-abstract class PreRequest<TData> {
-  /// Executes the use case.
-  Future<TData> execute();
+/// Enum defining weather the pre-request should be run once or each time the
+/// first page is loaded.
+enum PreRequestMode {
+  /// The pre-request should be run once before the first page is loaded.
+  once,
 
-  // TODO: Consult and consider
-  //TData onData(TData data) => data;
+  /// The pre-request should be run each time the first page is loaded.
+  each,
+}
+
+/// Base class for all pre-request use cases.
+abstract class PreRequest<TRes, TData, TItem> {
+  /// Executes the use case.
+  Future<TRes> execute();
+
+  /// Map newly loaded data.
+  TData map(TRes res, TData? data, PaginatedState<TData, TItem> state);
 }
 
 /// A response containing a list of items and a flag indicating whether there is
@@ -36,13 +47,14 @@ class PaginatedResponse<TData, TItem> {
 }
 
 /// Base class for all paginated cubits.
-abstract class PaginatedCubit<TData, TRes, TItem>
+abstract class PaginatedCubit<TData, TPreRequestRes, TRes, TItem>
     extends Cubit<PaginatedState<TData, TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].
   PaginatedCubit({
     required String loggerTag,
     required int pageSize,
-    PreRequest<TData>? preRequest,
+    PreRequest<TPreRequestRes, TData, TItem>? preRequest,
+    this.preRequestMode = PreRequestMode.once,
   })  : _logger = Logger(loggerTag),
         _preRequest = preRequest,
         super(
@@ -52,11 +64,15 @@ abstract class PaginatedCubit<TData, TRes, TItem>
           ),
         );
 
-  final Logger _logger;
-  final PreRequest<TData>? _preRequest;
+  /// The pre-request mode.
+  final PreRequestMode preRequestMode;
 
-  CancelableOperation<TData>? _preRequestOperation;
-  CancelableOperation<PaginatedResponse<TData, TRes>>? _requestOperation;
+  final Logger _logger;
+  final PreRequest<TPreRequestRes, TData, TItem>? _preRequest;
+  bool _wasPreRequestRun = false;
+
+  CancelableOperation<TPreRequestRes>? _preRequestOperation;
+  CancelableOperation<QueryResult<TRes>>? _requestOperation;
   CancelableOperation<void>? _searchQueryOperation;
 
   /// Gets the page.
@@ -65,89 +81,85 @@ abstract class PaginatedCubit<TData, TRes, TItem>
 
     if (refresh) {
       _logger.info('Refreshing...');
-      emit(state.copyWith(type: PaginatedStateType.refresh));
+      emit(
+        state.copyWith(
+          type: PaginatedStateType.refresh,
+          args: state.args.copyWith(pageId: 0),
+        ),
+      );
     } else if (pageId == 0) {
       _logger.info('Loading first page...');
       emit(
         state.copyWith(
           type: PaginatedStateType.firstPageLoading,
+          args: state.args.copyWith(pageId: 0),
           items: <TItem>[],
         ),
       );
     } else {
       _logger.info('Loading next page. PageId: $pageId');
-      emit(state.copyWith(type: PaginatedStateType.nextPageLoading));
+      emit(
+        state.copyWith(
+          type: PaginatedStateType.nextPageLoading,
+          args: state.args.copyWith(pageId: pageId),
+        ),
+      );
     }
 
-    try {
-      if (state.args.searchQuery.isNotEmpty) {
-        _logger.info('Searching for ${state.args.searchQuery}');
-      }
-      _requestOperation = CancelableOperation.fromFuture(
-        requestPage(state.args, state.data),
-        onCancel: () => _logger.info('Canceling previous request.'),
-      );
-      final page = await _requestOperation?.valueOrCancellation();
-      if (page == null) {
-        return;
-      }
+    if (_shouldRunPreRequest) {
+      await _runPreRequest();
+    }
+
+    if (state.args.searchQuery.isNotEmpty) {
+      _logger.info('Searching for ${state.args.searchQuery}');
+    }
+    _requestOperation = CancelableOperation.fromFuture(
+      requestPage(state.args, state.data),
+      onCancel: () => _logger.info('Canceling previous request.'),
+    );
+    final result = await _requestOperation?.valueOrCancellation();
+    if (result == null) {
+      return;
+    }
+    if (result case QuerySuccess(:final data)) {
+      final page = onPageResult(data, state.args.pageId, state.data);
       _logger.info(
         'Page loaded. pageId: $pageId. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
       );
-
-      final items = onPageResult(page);
       emit(
         state.copyWith(
           type: PaginatedStateType.success,
-          items: items,
+          items: page.items,
           hasNextPage: page.hasNextPage,
-          args: state.args.copyWith(pageId: pageId),
-          setErrorToNull: true,
+          data: page.data,
         ),
       );
-    } catch (e, s) {
-      _logger.severe('Error loading page, error: $e, stacktrace: $s');
+    } else if (result case QueryFailure(:final error)) {
+      _logger.severe('Error loading page, error: $error');
       emit(
         state.copyWith(
           type: pageId == 0
               ? PaginatedStateType.firstPageError
               : PaginatedStateType.nextPageError,
-          error: e,
+          error: error,
         ),
       );
     }
   }
 
-  /// Runs the pre-request (if provided) and fetches the first page.
-  Future<void> run() async {
-    await _preRequestOperation?.cancel();
-    if (_preRequest != null) {
-      emit(state.copyWith(type: PaginatedStateType.preRequestLoading));
-      _logger.info('Running pre-request.');
-      try {
-        _preRequestOperation = CancelableOperation.fromFuture(
-          _preRequest!.execute(),
-          onCancel: () => _logger.info('Canceling previous pre-request.'),
-        );
-        final data = await _preRequestOperation?.valueOrCancellation();
-        if (data == null) {
-          return;
-        }
-        _logger.info('Pre-request completed.');
-        emit(state.copyWith(data: data));
-      } catch (e, s) {
-        _logger.severe('Error running pre-request, error: $e, stacktrace: $s');
-        emit(state.copyWith(type: PaginatedStateType.preRequestError));
-      }
-    }
-    unawaited(fetchNextPage(0));
-  }
+  bool get _shouldRunPreRequest =>
+      _preRequest != null &&
+      (!_wasPreRequestRun || preRequestMode == PreRequestMode.each) &&
+      state.args.pageId == 0;
+
+  /// Fetches the first page.
+  Future<void> run() => fetchNextPage(0);
 
   /// Updates the search query.
   void updateSearchQuery(String searchQuery) {
     _searchQueryOperation?.cancel();
 
-    emit(state.updateSearchQuery(searchQuery));
+    emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
 
     _searchQueryOperation = CancelableOperation.fromFuture(
       Future.delayed(const Duration(milliseconds: 500)),
@@ -155,14 +167,44 @@ abstract class PaginatedCubit<TData, TRes, TItem>
     _searchQueryOperation?.value.whenComplete(() => fetchNextPage(0));
   }
 
+  Future<void> _runPreRequest() async {
+    await _preRequestOperation?.cancel();
+    _logger.info('Running pre-request.');
+    try {
+      _preRequestOperation = CancelableOperation.fromFuture(
+        _preRequest!.execute(),
+        onCancel: () => _logger.info('Canceling previous pre-request.'),
+      );
+      final preRequestResponse =
+          await _preRequestOperation?.valueOrCancellation();
+      if (preRequestResponse == null) {
+        return;
+      }
+      final mappedPreRequest = _preRequest?.map(
+        preRequestResponse,
+        state.data,
+        state,
+      );
+
+      _logger.info('Pre-request completed.');
+      _wasPreRequestRun = true;
+
+      emit(state.copyWith(data: mappedPreRequest));
+    } catch (e, s) {
+      _logger.severe('Error running pre-request, error: $e, stacktrace: $s');
+      emit(state.copyWith(type: PaginatedStateType.firstPageError));
+    }
+  }
+
   /// Method getting the page from the server.
-  Future<PaginatedResponse<TData, TRes>> requestPage(
-    PaginatedArgs args,
-    TData? data,
-  );
+  Future<QueryResult<TRes>> requestPage(PaginatedArgs args, TData? data);
 
   /// Method mapping the page to a list of items.
-  List<TItem> onPageResult(PaginatedResponse<TData, TRes> page);
+  PaginatedResponse<TData, TItem> onPageResult(
+    TRes page,
+    int pageId,
+    TData? data,
+  );
 
   /// Refreshes the list.
   Future<void> refresh() => fetchNextPage(0, refresh: true);
@@ -172,12 +214,6 @@ abstract class PaginatedCubit<TData, TRes, TItem>
 enum PaginatedStateType {
   /// Initial state of the cubit. No request has been made yet.
   initial,
-
-  /// Optional pre-request is being executed.
-  preRequestLoading,
-
-  /// Optional pre-request failed.
-  preRequestError,
 
   /// The first page is loading.
   firstPageLoading,
@@ -228,7 +264,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   final bool hasNextPage;
 
   /// The error.
-  final Object? error;
+  final QueryError? error;
 
   /// Arguments of the request.
   final PaginatedArgs args;
@@ -252,7 +288,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     List<TItem>? items,
     bool? hasNextPage,
     PaginatedArgs? args,
-    Object? error,
+    QueryError? error,
     TData? data,
     bool setErrorToNull = false,
   }) {
@@ -264,11 +300,5 @@ class PaginatedState<TData, TItem> with EquatableMixin {
       data: data ?? this.data,
       error: setErrorToNull ? null : error ?? this.error,
     );
-  }
-
-  /// Updates search query in state.
-  PaginatedState<TData, TItem> updateSearchQuery(String searchQuery) {
-    final updatedArgs = args.copyWith(searchQuery: searchQuery);
-    return copyWith(args: updatedArgs);
   }
 }

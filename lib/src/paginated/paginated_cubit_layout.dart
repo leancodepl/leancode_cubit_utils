@@ -40,7 +40,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   });
 
   /// The cubit that handles the paginated data.
-  final PaginatedCubit<TData, dynamic, TItem> cubit;
+  final PaginatedCubit<TData, dynamic, dynamic, TItem> cubit;
 
   /// A builder for a paginated list item.
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
@@ -76,20 +76,17 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         if (headerBuilder != null) headerBuilder!(context),
-        BlocBuilder<PaginatedCubit<TData, dynamic, TItem>,
+        BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
             PaginatedState<TData, TItem>>(
           bloc: cubit,
           builder: (context, state) {
             return switch (state.type) {
-              // TODO: Add separate builder for the initial state and the preRequestLoading state.
+              // TODO: Add separate builder for the initial state.
               PaginatedStateType.initial ||
-              PaginatedStateType.preRequestLoading ||
               PaginatedStateType.firstPageLoading =>
                 firstPageLoadingBuilder?.call(context) ??
                     config.onFirstPageLoading(context),
-              // TODO: Add separate builder for the preRequestError state.
               PaginatedStateType.firstPageError ||
-              PaginatedStateType.preRequestError ||
               PaginatedStateType.refresh when state.error != null =>
                 _buildFirstPageError(
                   context,
@@ -97,7 +94,6 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
                 ),
               _ => _PaginatedLayoutList(
                   state: state,
-                  items: state.items,
                   itemBuilder: itemBuilder,
                   separatorBuilder: separatorBuilder,
                   fetchNextPage: () => cubit.fetchNextPage(
@@ -156,7 +152,6 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 class _PaginatedLayoutList<TData, TItem> extends HookWidget {
   const _PaginatedLayoutList({
     required this.state,
-    required this.items,
     required this.itemBuilder,
     required this.separatorBuilder,
     required this.fetchNextPage,
@@ -167,7 +162,6 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
   });
 
   final PaginatedState<TData, TItem> state;
-  final List<TItem> items;
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
   final IndexedWidgetBuilder separatorBuilder;
 
@@ -181,6 +175,8 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final items = state.items;
+
     return MultiSliver(
       children: [
         if (items.isNotEmpty)
@@ -201,7 +197,10 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
     BuildContext context,
     int index,
   ) {
-    final newPageRequestTriggerIndex = max(0, items.length - nextPageThreshold);
+    final newPageRequestTriggerIndex = max(
+      0,
+      state.items.length - nextPageThreshold,
+    );
 
     final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
@@ -211,6 +210,6 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
       fetchNextPage();
     }
 
-    return itemBuilder(context, null, index, items);
+    return itemBuilder(context, state.data, index, state.items);
   }
 }

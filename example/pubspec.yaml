@@ -19,6 +19,7 @@ dependencies:
   provider: ^6.0.5
   logging: ^1.2.0
   leancode_hooks: ^0.0.6
+  async: ^2.11.0
 
 dev_dependencies:
   flutter_test:

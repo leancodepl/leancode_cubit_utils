@@ -1,3 +1,5 @@
+import 'package:async/async.dart';
+import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
@@ -40,9 +42,14 @@ class PaginatedCubitPage extends StatelessWidget {
               onRefresh: context.read<SimplePaginatedCubit>().refresh,
               child: PaginatedCubitLayout(
                 cubit: context.read<SimplePaginatedCubit>(),
-                itemBuilder: (context, filters, index, items) => UserTile(
-                  user: items[index],
-                ),
+                itemBuilder: (context, additionalData, index, items) {
+                  final user = items[index];
+                  final selectedUsers = additionalData?.selectedUsers ?? {};
+                  return UserTile(
+                    user: user,
+                    isSelected: selectedUsers.contains(user),
+                  );
+                },
                 separatorBuilder: (context, index) => const SizedBox(height: 8),
               ),
             ),
@@ -66,22 +73,19 @@ class FiltersRow extends StatelessWidget {
       cubit: context.read<SimplePaginatedCubit>(),
       builder: (context, state) {
         final availableFilters = state.data?.availableFilters;
-        final selectedFilters = state.data?.selectedFilters ?? [];
+        final selectedFilters = state.data?.selectedFilters ?? {};
         if (availableFilters == null) {
-          return const SizedBox();
+          return const CircularProgressIndicator();
         } else {
-          return Row(
+          return Wrap(
+            spacing: 8,
             children: [
-              const Text('Filters: '),
               ...availableFilters
                   .map(
-                    (filter) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: FilterChip(
-                        label: Text(filter.name),
-                        selected: selectedFilters.contains(filter),
-                        onSelected: (_) => toggleFilter(filter),
-                      ),
+                    (filter) => FilterChip(
+                      label: Text(filter.name),
+                      selected: selectedFilters.contains(filter),
+                      onSelected: (_) => toggleFilter(filter),
                     ),
                   )
                   .toList(),
@@ -91,6 +95,13 @@ class FiltersRow extends StatelessWidget {
       },
     );
   }
+}
+
+class Page<T> {
+  final bool hasNextPage;
+  final List<T> items;
+
+  Page({required this.hasNextPage, required this.items});
 }
 
 class MockedApi {
@@ -109,56 +120,40 @@ class MockedApi {
     ),
   );
 
-  Future<Filters> getFilters() async {
+  Future<AdditionalData> getFilters() async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    return Filters(
+    return AdditionalData(
       availableFilters: jobTitles,
-      selectedFilters: [],
+      selectedFilters: {},
     );
   }
 
-  Future<PaginatedResponse<Filters, User>> getUsers(
+  Future<QueryResult<Page<User>>> getUsers(
     int pageId,
     int pageSize, {
     List<Filter> selectedFilters = const [],
-  }) async {
-    await Future<void>.delayed(const Duration(seconds: 1));
-    var filteredUsers = users;
-    if (selectedFilters.isNotEmpty) {
-      filteredUsers = _filterUsers(users, selectedFilters);
-    }
-    final usersPage =
-        filteredUsers.skip(pageId * pageSize).take(pageSize).toList();
-    return PaginatedResponse(
-      items: usersPage,
-      hasNextPage: pageId < 5,
-    );
-  }
-
-  Future<PaginatedResponse<Filters, User>> searchUsers(
-    int pageId,
-    int pageSize,
-    String searchQuery, {
-    List<Filter> selectedFilters = const [],
+    String searchQuery = '',
   }) async {
     await Future<void>.delayed(const Duration(seconds: 1));
     if (searchQuery == 'error') {
-      throw Exception();
+      return const QueryFailure(QueryError.network);
     }
     var filteredUsers = users;
     if (selectedFilters.isNotEmpty) {
       filteredUsers = _filterUsers(users, selectedFilters);
     }
-    final filteredUsersPage = filteredUsers
+    final usersPage = filteredUsers
         .where(
           (user) => user.name.toLowerCase().contains(searchQuery.toLowerCase()),
         )
         .skip(pageId * pageSize)
         .take(pageSize)
         .toList();
-    return PaginatedResponse(
-      items: filteredUsersPage,
-      hasNextPage: pageId < 5 && filteredUsersPage.length >= pageSize,
+    return QuerySuccess(
+      Page(
+        items: usersPage,
+        hasNextPage: pageId < 5 && usersPage.length >= pageSize,
+      ),
     );
   }
 
@@ -172,20 +167,17 @@ class MockedApi {
 class User {
   User({
     required this.name,
-    required this.email,
     required this.jobTitle,
   });
 
   factory User.fake(Faker faker, String jobTitle) {
     return User(
       name: faker.person.name(),
-      email: faker.internet.email(),
       jobTitle: jobTitle,
     );
   }
 
   final String name;
-  final String email;
   final String jobTitle;
 }
 
@@ -193,16 +185,21 @@ class UserTile extends StatelessWidget {
   const UserTile({
     super.key,
     required this.user,
+    required this.isSelected,
   });
 
   final User user;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return CheckboxListTile(
       title: Text(user.name),
-      subtitle: Text(user.email),
-      trailing: Text(user.jobTitle),
+      subtitle: Text(user.jobTitle),
+      value: isSelected,
+      onChanged: (_) => context.read<SimplePaginatedCubit>().onTilePressed(
+            user,
+          ),
     );
   }
 }
@@ -213,32 +210,72 @@ class Filter {
   final String name;
 }
 
-class Filters with EquatableMixin {
-  Filters({
+class AdditionalData with EquatableMixin {
+  AdditionalData({
     this.availableFilters = const [],
-    this.selectedFilters = const [],
+    this.selectedFilters = const {},
+    this.selectedUsers = const {},
   });
 
   final List<Filter> availableFilters;
-  final List<Filter> selectedFilters;
+  final Set<Filter> selectedFilters;
+  final Set<User> selectedUsers;
 
   @override
   List<Object?> get props => [
         availableFilters,
         selectedFilters,
+        selectedUsers,
       ];
+
+  AdditionalData copyWith({
+    List<Filter>? availableFilters,
+    Set<Filter>? selectedFilters,
+    Set<User>? selectedUsers,
+  }) {
+    return AdditionalData(
+      availableFilters: availableFilters ?? this.availableFilters,
+      selectedFilters: selectedFilters ?? this.selectedFilters,
+      selectedUsers: selectedUsers ?? this.selectedUsers,
+    );
+  }
 }
 
-class FiltersPreRequest extends PreRequest<Filters> {
-  FiltersPreRequest({required this.api});
+class FiltersPreRequest
+    extends PreRequest<AdditionalData, AdditionalData, User> {
+  FiltersPreRequest({
+    required this.api,
+  });
 
   final MockedApi api;
 
   @override
-  Future<Filters> execute() => api.getFilters();
+  Future<AdditionalData> execute() async {
+    final filters = await api.getFilters();
+    return AdditionalData(
+      availableFilters: filters.availableFilters,
+      selectedFilters: filters.selectedFilters.toSet(),
+    );
+  }
+
+  @override
+  AdditionalData map(
+    AdditionalData res,
+    AdditionalData? data,
+    PaginatedState<AdditionalData, User> state,
+  ) {
+    return AdditionalData(
+      availableFilters: res.availableFilters,
+      selectedFilters: data?.selectedFilters
+              .where((e) => res.availableFilters.contains(e))
+              .toSet() ??
+          {},
+    );
+  }
 }
 
-class SimplePaginatedCubit extends PaginatedCubit<Filters, User, User> {
+class SimplePaginatedCubit
+    extends PaginatedCubit<AdditionalData, AdditionalData, Page<User>, User> {
   SimplePaginatedCubit(this.api)
       : super(
           loggerTag: 'SimplePaginatedCubit',
@@ -247,45 +284,73 @@ class SimplePaginatedCubit extends PaginatedCubit<Filters, User, User> {
         );
 
   final MockedApi api;
+  CancelableOperation<void>? _filtersDebounceOperation;
 
   @override
-  List<User> onPageResult(PaginatedResponse<Filters, User> page) {
-    return [...state.items, ...page.items];
-  }
-
-  @override
-  Future<PaginatedResponse<Filters, User>> requestPage(
+  Future<QueryResult<Page<User>>> requestPage(
     PaginatedArgs args,
-    Filters? data,
+    AdditionalData? data,
   ) {
-    if (args.searchQuery.isEmpty) {
-      return api.getUsers(
-        args.pageId,
-        args.pageSize,
-        selectedFilters: data?.selectedFilters ?? [],
-      );
-    } else {
-      return api.searchUsers(
-        args.pageId,
-        args.pageSize,
-        args.searchQuery,
-        selectedFilters: data?.selectedFilters ?? [],
-      );
-    }
+    return api.getUsers(
+      args.pageId,
+      args.pageSize,
+      selectedFilters: data?.selectedFilters.toList() ?? [],
+      searchQuery: args.searchQuery,
+    );
   }
 
-  void onFilterPressed(Filter filter) {
-    // TODO: Should be debounced.
-    final filters = state.data;
-    if (filters == null) {
+  @override
+  PaginatedResponse<AdditionalData, User> onPageResult(
+    Page<User> page,
+    int pageId,
+    AdditionalData? data,
+  ) {
+    return PaginatedResponse(
+      items: pageId == 0 ? page.items : [...state.items, ...page.items],
+      hasNextPage: page.hasNextPage,
+      data: data,
+    );
+  }
+
+  Future<void> onFilterPressed(Filter filter) async {
+    await _filtersDebounceOperation?.cancel();
+
+    final selectedFilters = state.data?.selectedFilters;
+    if (selectedFilters == null) {
       return;
     }
-    if (filters.selectedFilters.contains(filter)) {
-      filters.selectedFilters.remove(filter);
-    } else {
-      filters.selectedFilters.add(filter);
+
+    emit(
+      state.copyWith(
+        data: state.data?.copyWith(
+          selectedFilters: switch (selectedFilters.contains(filter)) {
+            true => selectedFilters.difference({filter}),
+            false => selectedFilters.union({filter}),
+          },
+        ),
+      ),
+    );
+
+    _filtersDebounceOperation = CancelableOperation.fromFuture(
+      Future.delayed(const Duration(milliseconds: 300)),
+    );
+    _filtersDebounceOperation?.value.whenComplete(() => fetchNextPage(0));
+  }
+
+  void onTilePressed(User user) {
+    final selectedUsers = state.data?.selectedUsers;
+    if (selectedUsers == null) {
+      return;
     }
-    emit(state.copyWith(data: filters));
-    fetchNextPage(0);
+    emit(
+      state.copyWith(
+        data: state.data?.copyWith(
+          selectedUsers: switch (selectedUsers.contains(user)) {
+            true => selectedUsers.difference({user}),
+            false => selectedUsers.union({user}),
+          },
+        ),
+      ),
+    );
   }
 }
