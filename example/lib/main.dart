@@ -53,7 +53,9 @@ void main() {
           retry: retry,
           error: error,
         ),
-        onNextPageLoading: (context) => const CircularProgressIndicator(),
+        onNextPageLoading: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
         onNextPageError: (context, error, retry) => Error(
           retry: retry,
           error: error,

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_cubit.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
-import 'package:sliver_tools/sliver_tools.dart';
 
 import 'paginated_config_provider.dart';
 
@@ -97,12 +96,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
                   fetchNextPage: () => cubit.fetchNextPage(
                     state.args.pageId + 1,
                   ),
-                  nextPageError: _buildNextPageError(
-                    context,
-                    state,
-                    state.error,
-                  ),
-                  nextPageLoading: _buildNextPageLoader(context, state),
+                  bottom: _buildListBottom(context, state),
                   emptyState: _buildEmptyState(context),
                 ),
             };
@@ -152,35 +146,24 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     );
   }
 
-  Widget? _buildNextPageLoader(
+  Widget? _buildListBottom(
     BuildContext context,
     PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
     if (state.type == PaginatedStateType.nextPageLoading) {
       final callback = nextPageLoadingBuilder ?? config.onNextPageLoading;
-      return SliverToBoxAdapter(child: callback(context));
-    }
-    return null;
-  }
-
-  Widget? _buildNextPageError(
-    BuildContext context,
-    PaginatedState<TData, TItem> state,
-    PaginatedStateError error,
-  ) {
-    final config = context.read<PaginatedConfig>();
-    if (state.type == PaginatedStateType.nextPageError) {
+      return callback(context);
+    } else if (state.type == PaginatedStateType.nextPageError) {
       final callback = nextPageErrorBuilder ?? config.onNextPageError;
-      return SliverToBoxAdapter(
-        child: callback(
-          context,
-          error,
-          () => cubit.fetchNextPage(state.args.pageId + 1),
-        ),
+      return callback(
+        context,
+        state.error,
+        () => cubit.fetchNextPage(state.args.pageId),
       );
+    } else {
+      return null;
     }
-    return null;
   }
 }
 
@@ -191,8 +174,7 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
     required this.separatorBuilder,
     required this.fetchNextPage,
     required this.emptyState,
-    this.nextPageError,
-    this.nextPageLoading,
+    this.bottom,
     this.nextPageThreshold = 3,
   });
 
@@ -202,8 +184,7 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
 
   final VoidCallback fetchNextPage;
   final Widget emptyState;
-  final Widget? nextPageLoading;
-  final Widget? nextPageError;
+  final Widget? bottom;
 
   /// The number of remaining items that should trigger a new fetch.
   final int nextPageThreshold;
@@ -212,26 +193,22 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
   Widget build(BuildContext context) {
     final items = state.items;
 
-    return MultiSliver(
-      children: [
-        if (items.isNotEmpty)
-          SliverList.separated(
+    return items.isNotEmpty
+        ? SliverList.separated(
             itemBuilder: _itemBuilder,
             separatorBuilder: separatorBuilder,
-            itemCount: items.length,
+            itemCount: items.length + (bottom != null ? 1 : 0),
           )
-        else
-          emptyState,
-        if (nextPageLoading != null) nextPageLoading!,
-        if (nextPageError != null) nextPageError!,
-      ],
-    );
+        : emptyState;
   }
 
   Widget _itemBuilder(
     BuildContext context,
     int index,
   ) {
+    if (bottom != null && index == state.items.length) {
+      return bottom!;
+    }
     final newPageRequestTriggerIndex = max(
       0,
       state.items.length - nextPageThreshold,
