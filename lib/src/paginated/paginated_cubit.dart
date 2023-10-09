@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:cqrs/cqrs.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
@@ -76,14 +77,12 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   final Duration _searchDebounce;
   bool _wasPreRequestRun = false;
 
-  CancelableOperation<QueryResult<TPreRequestRes>>? _preRequestOperation;
-  CancelableOperation<QueryResult<TRes>>? _requestOperation;
-  CancelableOperation<void>? _searchQueryOperation;
+  CancelableOperation<dynamic>? _cancelableOperation;
 
   /// Gets the page.
   Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
     try {
-      await _requestOperation?.cancel();
+      await _cancelableOperation?.cancel();
 
       if (refresh) {
         _logger.info('Refreshing...');
@@ -119,14 +118,14 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       if (state.args.searchQuery.isNotEmpty) {
         _logger.info('Searching for ${state.args.searchQuery}');
       }
-      _requestOperation = CancelableOperation.fromFuture(
+      final result = await _runCancelableOperation<QueryResult<TRes>>(
         requestPage(state.args, state.data),
         onCancel: () => _logger.info('Canceling previous request.'),
       );
-      final result = await _requestOperation?.valueOrCancellation();
       if (result == null) {
         return;
       }
+
       if (result case QuerySuccess(:final data)) {
         final page = onPageResult(data, state.args.pageId, state.data);
         _logger.info(
@@ -182,37 +181,41 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   Future<void> run() => fetchNextPage(0);
 
   /// Updates the search query.
-  void updateSearchQuery(String searchQuery) {
-    _searchQueryOperation?.cancel();
+  Future<void> updateSearchQuery(String searchQuery) async {
+    await _cancelableOperation?.cancel();
 
     emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
 
-    _searchQueryOperation = CancelableOperation.fromFuture(
-      Future.delayed(_searchDebounce),
+    final result = await _runCancelableOperation<bool>(
+      Future.delayed(_searchDebounce, () => true),
     );
-    _searchQueryOperation?.value.whenComplete(() => fetchNextPage(0));
+    if (result != null && result) {
+      unawaited(fetchNextPage(0));
+    }
   }
 
   Future<void> _runPreRequest() async {
     try {
-      await _preRequestOperation?.cancel();
+      await _cancelableOperation?.cancel();
       _logger.info('Running pre-request.');
-      _preRequestOperation = CancelableOperation.fromFuture(
+      final result = await _runCancelableOperation<QueryResult<TPreRequestRes>>(
         _preRequest!.execute(),
         onCancel: () => _logger.info('Canceling previous pre-request.'),
       );
-      final preRequestResponse =
-          await _preRequestOperation?.valueOrCancellation();
-      if (preRequestResponse == null) {
+      if (result == null) {
         return;
       }
-      if (preRequestResponse case QuerySuccess(:final data)) {
+      if (result case QuerySuccess(:final data)) {
         _logger.info('Pre-request completed.');
         _wasPreRequestRun = true;
 
-        final mappedPreRequest = _preRequest?.map(data, state.data, state);
+        final mappedPreRequest = _preRequest?.map(
+          data,
+          state.data,
+          state,
+        );
         emit(state.copyWith(data: mappedPreRequest));
-      } else if (preRequestResponse case QueryFailure(:final error)) {
+      } else if (result case QueryFailure(:final error)) {
         _logger.severe('Error running pre-request, error: $error');
         emit(
           await onQueryError(
@@ -242,6 +245,21 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         );
       }
     }
+  }
+
+  Future<T?> _runCancelableOperation<T>(
+    Future<T> operation, {
+    VoidCallback? onCancel,
+  }) async {
+    _cancelableOperation = CancelableOperation.fromFuture(
+      operation,
+      onCancel: onCancel,
+    );
+    final response = await _cancelableOperation?.valueOrCancellation();
+    if (response != null) {
+      return response as T;
+    }
+    return null;
   }
 
   /// Method getting the page from the server.
