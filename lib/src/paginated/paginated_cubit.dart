@@ -80,80 +80,96 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   CancelableOperation<QueryResult<TRes>>? _requestOperation;
   CancelableOperation<void>? _searchQueryOperation;
 
-  //TODO: Add try-catch to handle errors
-
   /// Gets the page.
   Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
-    await _requestOperation?.cancel();
+    try {
+      await _requestOperation?.cancel();
 
-    if (refresh) {
-      _logger.info('Refreshing...');
-      emit(
-        state.copyWith(
-          type: PaginatedStateType.refresh,
-          args: state.args.copyWith(pageId: 0),
-        ),
-      );
-    } else if (pageId == 0) {
-      _logger.info('Loading first page...');
-      emit(
-        state.copyWith(
-          type: PaginatedStateType.firstPageLoading,
-          args: state.args.copyWith(pageId: 0),
-          items: <TItem>[],
-        ),
-      );
-    } else {
-      _logger.info('Loading next page. PageId: $pageId');
-      emit(
-        state.copyWith(
-          type: PaginatedStateType.nextPageLoading,
-          args: state.args.copyWith(pageId: pageId),
-        ),
-      );
-    }
-
-    if (_shouldRunPreRequest) {
-      await _runPreRequest();
-    }
-
-    if (state.args.searchQuery.isNotEmpty) {
-      _logger.info('Searching for ${state.args.searchQuery}');
-    }
-    _requestOperation = CancelableOperation.fromFuture(
-      requestPage(state.args, state.data),
-      onCancel: () => _logger.info('Canceling previous request.'),
-    );
-    final result = await _requestOperation?.valueOrCancellation();
-    if (result == null) {
-      return;
-    }
-    if (result case QuerySuccess(:final data)) {
-      final page = onPageResult(data, state.args.pageId, state.data);
-      _logger.info(
-        'Page loaded. pageId: $pageId. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
-      );
-      emit(
-        state.copyWith(
-          type: PaginatedStateType.success,
-          items: page.items,
-          hasNextPage: page.hasNextPage,
-          data: page.data,
-          error: const PaginatedStateNoneError(),
-        ),
-      );
-    } else if (result case QueryFailure(:final error)) {
-      _logger.severe('Error loading page, error: $error');
-      emit(
-        await onQueryError(
+      if (refresh) {
+        _logger.info('Refreshing...');
+        emit(
           state.copyWith(
-            type: pageId == 0
-                ? PaginatedStateType.firstPageError
-                : PaginatedStateType.nextPageError,
+            type: PaginatedStateType.refresh,
+            args: state.args.copyWith(pageId: 0),
           ),
-          PaginatedStateQueryError(error),
-        ),
+        );
+      } else if (pageId == 0) {
+        _logger.info('Loading first page...');
+        emit(
+          state.copyWith(
+            type: PaginatedStateType.firstPageLoading,
+            args: state.args.copyWith(pageId: 0),
+            items: <TItem>[],
+          ),
+        );
+      } else {
+        _logger.info('Loading next page. PageId: $pageId');
+        emit(
+          state.copyWith(
+            type: PaginatedStateType.nextPageLoading,
+            args: state.args.copyWith(pageId: pageId),
+          ),
+        );
+      }
+
+      if (_shouldRunPreRequest) {
+        await _runPreRequest();
+      }
+
+      if (state.args.searchQuery.isNotEmpty) {
+        _logger.info('Searching for ${state.args.searchQuery}');
+      }
+      _requestOperation = CancelableOperation.fromFuture(
+        requestPage(state.args, state.data),
+        onCancel: () => _logger.info('Canceling previous request.'),
       );
+      final result = await _requestOperation?.valueOrCancellation();
+      if (result == null) {
+        return;
+      }
+      if (result case QuerySuccess(:final data)) {
+        final page = onPageResult(data, state.args.pageId, state.data);
+        _logger.info(
+          'Page loaded. pageId: $pageId. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
+        );
+        emit(
+          state.copyWith(
+            type: PaginatedStateType.success,
+            items: page.items,
+            hasNextPage: page.hasNextPage,
+            data: page.data,
+            error: const PaginatedStateNoneError(),
+          ),
+        );
+      } else if (result case QueryFailure(:final error)) {
+        _logger.severe('Error loading page, error: $error');
+        emit(
+          await onQueryError(
+            state.copyWithError(isFirstPage: pageId == 0),
+            PaginatedStateQueryError(error),
+          ),
+        );
+      }
+    } catch (e, s) {
+      _logger.severe('Error loading page, error: $e, stacktrace: $s');
+      try {
+        emit(
+          await onQueryError(
+            state.copyWithError(isFirstPage: pageId == 0),
+            PaginatedStateException(e, s),
+          ),
+        );
+      } catch (e, s) {
+        _logger.severe(
+          'Processing error failed. Exception: $e. Stack trace: $s',
+        );
+        emit(
+          state.copyWithError(
+            isFirstPage: pageId == 0,
+            error: PaginatedStateException(e, s),
+          ),
+        );
+      }
     }
   }
 
@@ -178,9 +194,9 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   }
 
   Future<void> _runPreRequest() async {
-    await _preRequestOperation?.cancel();
-    _logger.info('Running pre-request.');
     try {
+      await _preRequestOperation?.cancel();
+      _logger.info('Running pre-request.');
       _preRequestOperation = CancelableOperation.fromFuture(
         _preRequest!.execute(),
         onCancel: () => _logger.info('Canceling previous pre-request.'),
@@ -207,12 +223,24 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       }
     } catch (e, s) {
       _logger.severe('Error running pre-request, error: $e, stacktrace: $s');
-      emit(
-        await onQueryError(
-          state.copyWith(type: PaginatedStateType.firstPageError),
-          PaginatedStateException(e, s),
-        ),
-      );
+      try {
+        emit(
+          await onQueryError(
+            state.copyWithError(isFirstPage: true),
+            PaginatedStateException(e, s),
+          ),
+        );
+      } catch (e, s) {
+        _logger.severe(
+          'Processing error failed. Exception: $e. Stack trace: $s',
+        );
+        emit(
+          state.copyWithError(
+            isFirstPage: true,
+            error: PaginatedStateException(e, s),
+          ),
+        );
+      }
     }
   }
 

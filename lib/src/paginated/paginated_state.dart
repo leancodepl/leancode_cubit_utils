@@ -2,32 +2,45 @@ import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
 
+/// Base class for all error states of a PaginatedCubit.
 sealed class PaginatedStateError {
+  /// Creates a new [PaginatedStateError].
   const PaginatedStateError();
 
+  /// A flag indicating whether the state has an error.
   bool get hasError;
 }
 
+/// A state indicating that there is no error.
 class PaginatedStateNoneError extends PaginatedStateError {
+  /// Creates a new [PaginatedStateNoneError].
   const PaginatedStateNoneError();
 
   @override
   bool get hasError => false;
 }
 
+/// A state indicating that the query failed.
 class PaginatedStateQueryError extends PaginatedStateError {
+  /// Creates a new [PaginatedStateQueryError].
   const PaginatedStateQueryError(this.error);
 
+  /// The error.
   final QueryError error;
 
   @override
   bool get hasError => true;
 }
 
+/// A state indicating that there was an exception.
 class PaginatedStateException extends PaginatedStateError {
+  /// Creates a new [PaginatedStateException].
   const PaginatedStateException(this.exception, this.stackTrace);
 
+  /// The exception.
   final Object exception;
+
+  /// The stack trace.
   final StackTrace stackTrace;
 
   @override
@@ -108,6 +121,19 @@ class PaginatedState<TData, TItem> with EquatableMixin {
         args,
         data,
       ];
+
+  /// Copies the [PaginatedState] with the given error.
+  PaginatedState<TData, TItem> copyWithError({
+    required bool isFirstPage,
+    PaginatedStateError? error,
+  }) {
+    return copyWith(
+      type: isFirstPage
+          ? PaginatedStateType.firstPageError
+          : PaginatedStateType.nextPageError,
+      error: error,
+    );
+  }
 
   /// Copies the [PaginatedState] with the given parameters.
   PaginatedState<TData, TItem> copyWith({
