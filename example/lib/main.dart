@@ -46,11 +46,19 @@ void main() {
     Provider<Cqrs>.value(
       value: cqrs,
       child: PaginatedConfigProvider(
-        onFirstPageLoading: (context) => const SliverFirstPageLoader(),
-        onFirstPageError: (context, retry) => SliverError(retry: retry),
-        onNextPageLoading: (context) => const SliverNextPageLoader(),
-        onNextPageError: (context, retry) => SliverError(retry: retry),
-        onEmptyState: (context) => const SliverEmptyList(),
+        onFirstPageLoading: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        onFirstPageError: (context, error, retry) => Error(
+          retry: retry,
+          error: error,
+        ),
+        onNextPageLoading: (context) => const CircularProgressIndicator(),
+        onNextPageError: (context, error, retry) => Error(
+          retry: retry,
+          error: error,
+        ),
+        onEmptyState: (context) => const Center(child: Text('No items')),
         child: QueryConfigProvider(
           requestMode: RequestMode.replace,
           onLoading: (BuildContext context) =>
@@ -87,57 +95,32 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class SliverFirstPageLoader extends StatelessWidget {
-  const SliverFirstPageLoader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SliverFillRemaining(
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-class SliverNextPageLoader extends StatelessWidget {
-  const SliverNextPageLoader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SliverToBoxAdapter(
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-class SliverError extends StatelessWidget {
-  const SliverError({
+class Error extends StatelessWidget {
+  const Error({
     super.key,
     this.retry,
+    required this.error,
   });
 
   final VoidCallback? retry;
+  final PaginatedStateError error;
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: retry != null
-          ? ElevatedButton(onPressed: retry, child: const Text('Retry'))
-          : const Text('Error'),
-    );
-  }
-}
+    final message = switch (error) {
+      PaginatedStateQueryError(:final error) => error.name,
+      PaginatedStateException(:final exception) => exception.toString(),
+      _ => '',
+    };
 
-class SliverEmptyList extends StatelessWidget {
-  const SliverEmptyList({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SliverFillRemaining(
-      child: Center(child: Text('No items')),
-    );
+    return retry != null
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(message),
+              ElevatedButton(onPressed: retry, child: const Text('Retry')),
+            ],
+          )
+        : Text(message);
   }
 }

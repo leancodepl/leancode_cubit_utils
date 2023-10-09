@@ -2,6 +2,7 @@ import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:faker/faker.dart';
 
+/// This is a fake API class as an example of paginated response from an API.
 class Page<T> {
   final bool hasNextPage;
   final List<T> items;
