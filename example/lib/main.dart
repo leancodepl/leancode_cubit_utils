@@ -46,21 +46,21 @@ void main() {
     Provider<Cqrs>.value(
       value: cqrs,
       child: PaginatedConfigProvider(
-        onFirstPageLoading: (context) => const Center(
+        onFirstPageLoading: (context, state) => const Center(
           child: CircularProgressIndicator(),
         ),
         onFirstPageError: (context, error, retry) => Error(
           retry: retry,
           error: error,
         ),
-        onNextPageLoading: (context) => const Center(
+        onNextPageLoading: (context, state) => const Center(
           child: CircularProgressIndicator(),
         ),
         onNextPageError: (context, error, retry) => Error(
           retry: retry,
           error: error,
         ),
-        onEmptyState: (context) => const Center(child: Text('No items')),
+        onEmptyState: (context, state) => const Center(child: Text('No items')),
         child: QueryConfigProvider(
           requestMode: RequestMode.replace,
           onLoading: (BuildContext context) =>

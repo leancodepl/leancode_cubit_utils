@@ -15,19 +15,19 @@ class PaginatedConfig {
   });
 
   /// A builder for the loading state of the next page.
-  final WidgetBuilder onNextPageLoading;
+  final PaginatedWidgetBuilder<dynamic, dynamic> onNextPageLoading;
 
   /// A builder for the error state of the next page.
   final PaginatedErrorBuilder<dynamic> onNextPageError;
 
   /// A builder for the loading state of the first page.
-  final WidgetBuilder onFirstPageLoading;
+  final PaginatedWidgetBuilder<dynamic, dynamic> onFirstPageLoading;
 
   /// A builder for the error state of the first page.
   final PaginatedErrorBuilder<dynamic> onFirstPageError;
 
   /// A builder for the empty state.
-  final WidgetBuilder onEmptyState;
+  final PaginatedWidgetBuilder<dynamic, dynamic> onEmptyState;
 }
 
 /// A provider for default configuration for PaginatedCubitLayout.
@@ -52,19 +52,19 @@ class PaginatedConfigProvider extends StatelessWidget {
   final int? pageSize;
 
   /// A builder for the loading state of the next page.
-  final WidgetBuilder onNextPageLoading;
+  final PaginatedWidgetBuilder<dynamic, dynamic> onNextPageLoading;
 
   /// A builder for the error state of the next page.
   final PaginatedErrorBuilder<dynamic> onNextPageError;
 
   /// A builder for the loading state of the first page.
-  final WidgetBuilder onFirstPageLoading;
+  final PaginatedWidgetBuilder<dynamic, dynamic> onFirstPageLoading;
 
   /// A builder for the error state of the first page.
   final PaginatedErrorBuilder<dynamic> onFirstPageError;
 
   /// A builder for the empty state.
-  final WidgetBuilder onEmptyState;
+  final PaginatedWidgetBuilder<dynamic, dynamic> onEmptyState;
 
   /// The child widget.
   final Widget child;

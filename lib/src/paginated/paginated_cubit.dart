@@ -51,7 +51,6 @@ class PaginatedResponse<TData, TItem> {
 }
 
 /// Base class for all paginated cubits.
-// TODO: Review arguments in methods.
 abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     extends Cubit<PaginatedState<TData, TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].

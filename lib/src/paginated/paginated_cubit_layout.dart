@@ -15,6 +15,12 @@ typedef PaginatedItemBuilder<TData, TItem> = Widget Function(
   List<TItem> items,
 );
 
+/// A builder for a widget using the paginated state and data.
+typedef PaginatedWidgetBuilder<TData, TItem> = Widget Function(
+  BuildContext context,
+  PaginatedState<TData, TItem> state,
+);
+
 /// A builder for the error state widget in PaginatedCubitLayout.
 typedef PaginatedErrorBuilder<TItem> = Widget Function(
   BuildContext context,
@@ -23,7 +29,6 @@ typedef PaginatedErrorBuilder<TItem> = Widget Function(
 );
 
 /// A layout for a paginated cubit.
-// TODO: Pass Data and State to builders.
 class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   /// Creates a PaginatedCubitLayout.
   const PaginatedCubitLayout({
@@ -51,25 +56,25 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   final IndexedWidgetBuilder separatorBuilder;
 
   /// An optional builder for the header.
-  final WidgetBuilder? headerBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? headerBuilder;
 
   /// An optional builder for the footer.
-  final WidgetBuilder? footerBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? footerBuilder;
 
   /// An optional builder for the initial state.
-  final WidgetBuilder? initialStateBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? initialStateBuilder;
 
   /// An optional builder for the empty state.
-  final WidgetBuilder? emptyStateBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? emptyStateBuilder;
 
   /// An optional builder for the loading state of the first page.
-  final WidgetBuilder? firstPageLoadingBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? firstPageLoadingBuilder;
 
   /// An optional builder for the error state of the first page.
   final PaginatedErrorBuilder<dynamic>? firstPageErrorBuilder;
 
   /// An optional builder for the loading state of the next page.
-  final WidgetBuilder? nextPageLoadingBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? nextPageLoadingBuilder;
 
   /// An optional builder for the error state of the next page.
   final PaginatedErrorBuilder<dynamic>? nextPageErrorBuilder;
@@ -78,15 +83,15 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        if (headerBuilder != null) headerBuilder!(context),
+        if (headerBuilder != null) headerBuilder!(context, cubit.state),
         BlocBuilder<PaginatedCubit<dynamic, TData, dynamic, TItem>,
             PaginatedState<TData, TItem>>(
           bloc: cubit,
           builder: (context, state) {
             return switch (state.type) {
-              PaginatedStateType.initial => _buildInitialLoader(context),
+              PaginatedStateType.initial => _buildInitialLoader(context, state),
               PaginatedStateType.firstPageLoading =>
-                _buildFirstPageLoader(context),
+                _buildFirstPageLoader(context, state),
               PaginatedStateType.firstPageError ||
               PaginatedStateType.refresh when state.hasError =>
                 _buildFirstPageError(context, state.error),
@@ -98,40 +103,49 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
                     state.args.pageId + 1,
                   ),
                   bottom: _buildListBottom(context, state),
-                  emptyState: _buildEmptyState(context),
+                  emptyState: _buildEmptyState(context, state),
                 ),
             };
           },
         ),
-        if (footerBuilder != null) footerBuilder!(context),
+        if (footerBuilder != null) footerBuilder!(context, cubit.state),
       ],
     );
   }
 
-  Widget _buildInitialLoader(BuildContext context) {
+  Widget _buildInitialLoader(
+    BuildContext context,
+    PaginatedState<TData, TItem> state,
+  ) {
     final config = context.read<PaginatedConfig>();
     final callback = initialStateBuilder ?? config.onFirstPageLoading;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context),
+      child: callback(context, state),
     );
   }
 
-  Widget _buildFirstPageLoader(BuildContext context) {
+  Widget _buildFirstPageLoader(
+    BuildContext context,
+    PaginatedState<TData, TItem> state,
+  ) {
     final config = context.read<PaginatedConfig>();
     final callback = firstPageLoadingBuilder ?? config.onFirstPageLoading;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context),
+      child: callback(context, state),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    PaginatedState<TData, TItem> state,
+  ) {
     final config = context.read<PaginatedConfig>();
     final callback = emptyStateBuilder ?? config.onEmptyState;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context),
+      child: callback(context, state),
     );
   }
 
@@ -154,7 +168,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     final config = context.read<PaginatedConfig>();
     if (state.type == PaginatedStateType.nextPageLoading) {
       final callback = nextPageLoadingBuilder ?? config.onNextPageLoading;
-      return callback(context);
+      return callback(context, state);
     } else if (state.type == PaginatedStateType.nextPageError) {
       final callback = nextPageErrorBuilder ?? config.onNextPageError;
       return callback(
