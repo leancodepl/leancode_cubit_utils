@@ -45,7 +45,7 @@ void main() {
   runApp(
     Provider<Cqrs>.value(
       value: cqrs,
-      child: PaginatedConfigProvider(
+      child: PaginatedLayoutConfigProvider(
         onFirstPageLoading: (context) => const Center(
           child: CircularProgressIndicator(),
         ),

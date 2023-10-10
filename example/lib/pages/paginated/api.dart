@@ -73,7 +73,7 @@ class MockedApi {
   }
 
   Future<QueryResult<Page<User>>> getUsers(
-    int pageId,
+    int pageNumber,
     int pageSize, {
     List<Filter> selectedFilters = const [],
     String searchQuery = '',
@@ -90,7 +90,7 @@ class MockedApi {
         .where(
           (user) => user.name.toLowerCase().contains(searchQuery.toLowerCase()),
         )
-        .skip(pageId * pageSize)
+        .skip(pageNumber * pageSize)
         .take(pageSize)
         .toList();
     return QuerySuccess(

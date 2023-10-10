@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_cubit_config.dart';
 import 'package:provider/provider.dart';
 
 /// A configuration for PaginatedCubitLayout.
-class PaginatedConfig {
-  /// Creates a PaginatedConfig.
-  const PaginatedConfig({
+class PaginatedLayoutConfig {
+  /// Creates a PaginatedLayoutConfig.
+  const PaginatedLayoutConfig({
     required this.onNextPageLoading,
     required this.onNextPageError,
     required this.onFirstPageLoading,
@@ -30,14 +29,15 @@ class PaginatedConfig {
   final WidgetBuilder onEmptyState;
 }
 
-/// A provider for default configuration for PaginatedCubitLayout.
-class PaginatedConfigProvider extends StatelessWidget {
-  /// Creates a PaginatedConfigProvider.
-  const PaginatedConfigProvider({
+/// A provider for default configuration for PaginatedLayoutConfigProvider.
+class PaginatedLayoutConfigProvider extends StatelessWidget {
+  /// Creates a PaginatedLayoutConfigProvider.
+  const PaginatedLayoutConfigProvider({
     super.key,
     this.runDebounce,
     this.pageSize,
     this.searchBeginAt,
+    this.firstPageIndex,
     required this.onNextPageLoading,
     required this.onNextPageError,
     required this.onFirstPageLoading,
@@ -54,6 +54,9 @@ class PaginatedConfigProvider extends StatelessWidget {
 
   /// The number of characters after which the search query will be sent.
   final int? searchBeginAt;
+
+  /// The first page index.
+  final int? firstPageIndex;
 
   /// A builder for the loading state of the next page.
   final WidgetBuilder onNextPageLoading;
@@ -75,21 +78,15 @@ class PaginatedConfigProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sets the default page mode.
-    if (pageSize != null) {
-      PaginatedCubitConfig.pageSize = pageSize!;
-    }
-    // Sets the default duration for run in PaginatedCubit when withDebounce is used.
-    if (runDebounce != null) {
-      PaginatedCubitConfig.runDebounce = runDebounce!;
-    }
-    // Sets the default number of characters after which the search query will be sent.
-    if (searchBeginAt != null) {
-      PaginatedCubitConfig.searchBeginAt = searchBeginAt!;
-    }
+    PaginatedConfigProvider.config = PaginatedConfigProvider.config.copyWith(
+      pageSize: pageSize,
+      runDebounce: runDebounce,
+      searchBeginAt: searchBeginAt,
+      firstPageIndex: firstPageIndex,
+    );
 
     return Provider(
-      create: (context) => PaginatedConfig(
+      create: (context) => PaginatedLayoutConfig(
         onNextPageLoading: onNextPageLoading,
         onNextPageError: onNextPageError,
         onFirstPageLoading: onFirstPageLoading,

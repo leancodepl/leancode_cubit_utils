@@ -112,6 +112,9 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   /// A flag indicating whether the state has an error.
   bool get hasError => error.hasError;
 
+  /// A flag indicating whether the current page is the first page.
+  bool get isFirstPage => args.isFirstPage;
+
   @override
   List<Object?> get props => [
         type,
@@ -124,7 +127,6 @@ class PaginatedState<TData, TItem> with EquatableMixin {
 
   /// Copies the [PaginatedState] with the given error.
   PaginatedState<TData, TItem> copyWithError({
-    required bool isFirstPage,
     PaginatedStateError? error,
   }) {
     return copyWith(

@@ -69,19 +69,17 @@ class SimplePaginatedCubit
       : super(
           loggerTag: 'SimplePaginatedCubit',
           preRequest: FiltersPreRequest(api: api),
+          config: PaginatedConfigProvider.config.copyWith(pageSize: 15),
         );
 
   final MockedApi api;
 
   @override
-  Future<QueryResult<Page<User>>> requestPage(
-    PaginatedArgs args,
-    AdditionalData? data,
-  ) {
+  Future<QueryResult<Page<User>>> requestPage(PaginatedArgs args) {
     return api.getUsers(
-      args.pageId,
+      args.pageNumber,
       args.pageSize,
-      selectedFilters: data?.selectedFilters.toList() ?? [],
+      selectedFilters: state.data?.selectedFilters.toList() ?? [],
       searchQuery: args.searchQuery,
     );
   }
@@ -89,13 +87,12 @@ class SimplePaginatedCubit
   @override
   PaginatedResponse<AdditionalData, User> onPageResult(
     Page<User> page,
-    int pageId,
-    AdditionalData? data,
+    int pageNumber,
   ) {
     return PaginatedResponse(
-      items: pageId == 0 ? page.items : [...state.items, ...page.items],
+      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
       hasNextPage: page.hasNextPage,
-      data: data,
+      data: state.data,
     );
   }
 

@@ -5,7 +5,7 @@ import 'package:cqrs/cqrs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_cubit_config.dart';
+import 'package:leancode_cubit_utils/src/paginated/paginated_config.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
 import 'package:logging/logging.dart';
 
@@ -53,61 +53,57 @@ class PaginatedResponse<TData, TItem> {
 /// Base class for all paginated cubits.
 abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     extends Cubit<PaginatedState<TData, TItem>> {
-  /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].
+  /// Creates a new [PaginatedCubit] with the given [loggerTag], [preRequest]
+  /// and [config].
   PaginatedCubit({
     required String loggerTag,
-    int? pageSize,
     PreRequest<TPreRequestRes, TData, TItem>? preRequest,
-    this.preRequestMode = PreRequestMode.once,
-    Duration searchDebounce = const Duration(milliseconds: 500),
+    PaginatedConfig? config,
   })  : _logger = Logger(loggerTag),
         _preRequest = preRequest,
-        _searchDebounce = searchDebounce,
+        _config = config ?? PaginatedConfigProvider.config,
         super(
           PaginatedState<TData, TItem>(
             items: <TItem>[],
-            args: PaginatedArgs(
-              pageSize: pageSize ?? PaginatedCubitConfig.pageSize,
+            args: PaginatedArgs.fromConfig(
+              config ?? PaginatedConfigProvider.config,
             ),
           ),
         );
 
-  /// The pre-request mode.
-  final PreRequestMode preRequestMode;
-
+  final PaginatedConfig _config;
   final Logger _logger;
   final PreRequest<TPreRequestRes, TData, TItem>? _preRequest;
-  final Duration _searchDebounce;
   bool _wasPreRequestRun = false;
 
   CancelableOperation<dynamic>? _cancelableOperation;
 
   /// Gets the page.
-  Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
+  Future<void> fetchNextPage(int pageNumber, {bool refresh = false}) async {
     try {
       if (refresh) {
         _logger.info('Refreshing...');
         emit(
           state.copyWith(
             type: PaginatedStateType.refresh,
-            args: state.args.copyWith(pageId: 0),
+            args: state.args.copyWith(pageNumber: _config.firstPageIndex),
           ),
         );
-      } else if (pageId == 0) {
+      } else if (pageNumber == _config.firstPageIndex) {
         _logger.info('Loading first page...');
         emit(
           state.copyWith(
             type: PaginatedStateType.firstPageLoading,
-            args: state.args.copyWith(pageId: 0),
+            args: state.args.copyWith(pageNumber: _config.firstPageIndex),
             items: <TItem>[],
           ),
         );
       } else {
-        _logger.info('Loading next page. PageId: $pageId');
+        _logger.info('Loading next page. PageId: $pageNumber');
         emit(
           state.copyWith(
             type: PaginatedStateType.nextPageLoading,
-            args: state.args.copyWith(pageId: pageId),
+            args: state.args.copyWith(pageNumber: pageNumber),
           ),
         );
       }
@@ -120,7 +116,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         _logger.info('Searching for ${state.args.searchQuery}');
       }
       final result = await _runCancelableOperation<QueryResult<TRes>>(
-        requestPage(state.args, state.data),
+        requestPage(state.args),
         onCancel: () => _logger.info('Canceling previous request.'),
       );
       if (result == null) {
@@ -128,9 +124,9 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       }
 
       if (result case QuerySuccess(:final data)) {
-        final page = onPageResult(data, state.args.pageId, state.data);
+        final page = onPageResult(data, state.args.pageNumber);
         _logger.info(
-          'Page loaded. pageId: $pageId. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
+          'Page loaded. pageNumber: $pageNumber. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
         );
         emit(
           state.copyWith(
@@ -145,7 +141,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         _logger.severe('Error loading page, error: $error');
         emit(
           await onQueryError(
-            state.copyWithError(isFirstPage: pageId == 0),
+            state.copyWithError(),
             PaginatedStateQueryError(error),
           ),
         );
@@ -155,7 +151,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       try {
         emit(
           await onQueryError(
-            state.copyWithError(isFirstPage: pageId == 0),
+            state.copyWithError(),
             PaginatedStateException(e, s),
           ),
         );
@@ -165,7 +161,6 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         );
         emit(
           state.copyWithError(
-            isFirstPage: pageId == 0,
             error: PaginatedStateException(e, s),
           ),
         );
@@ -175,34 +170,34 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
   bool get _shouldRunPreRequest =>
       _preRequest != null &&
-      (!_wasPreRequestRun || preRequestMode == PreRequestMode.each) &&
-      state.args.pageId == 0;
+      (!_wasPreRequestRun || _config.preRequestMode == PreRequestMode.each) &&
+      state.args.pageNumber == _config.firstPageIndex;
 
   /// Fetches the first page. If [withDebounce] is true, the request will be
-  /// delayed by [PaginatedCubitConfig.runDebounce].
+  /// delayed by [PaginatedConfig.runDebounce].
   Future<void> run({bool withDebounce = false}) async {
     if (withDebounce) {
       final result = await _runCancelableOperation<bool>(
-        Future.delayed(_searchDebounce, () => true),
+        Future.delayed(_config.runDebounce, () => true),
       );
       if (result != null && result) {
-        return fetchNextPage(0);
+        return fetchNextPage(_config.firstPageIndex);
       }
     } else {
-      return fetchNextPage(0);
+      return fetchNextPage(_config.firstPageIndex);
     }
   }
 
   /// Updates the search query. If the query length is equal to or longer than
-  /// [PaginatedCubitConfig.searchBeginAt], the search will be run.
+  /// [PaginatedConfig.searchBeginAt], the search will be run.
   /// Otherwise, first page will be loaded without the search query, but only if
-  /// the previous search query was longer than of equal to [PaginatedCubitConfig.searchBeginAt].
+  /// the previous search query was longer than of equal to [PaginatedConfig.searchBeginAt].
   Future<void> updateSearchQuery(String searchQuery) async {
     final previousSearchQuery = state.args.searchQuery;
     emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
 
-    if (searchQuery.length < PaginatedCubitConfig.searchBeginAt) {
-      if (previousSearchQuery.length >= PaginatedCubitConfig.searchBeginAt) {
+    if (searchQuery.length < _config.searchBeginAt) {
+      if (previousSearchQuery.length >= _config.searchBeginAt) {
         return _runSearch(searchQuery);
       }
       return;
@@ -214,10 +209,10 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   /// Runs the search after the debounce.
   Future<void> _runSearch(String searchQuery) async {
     final result = await _runCancelableOperation<bool>(
-      Future.delayed(_searchDebounce, () => true),
+      Future.delayed(_config.searchDebounce, () => true),
     );
     if (result != null && result) {
-      return fetchNextPage(0);
+      return fetchNextPage(_config.firstPageIndex);
     }
   }
 
@@ -251,7 +246,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       try {
         emit(
           await onQueryError(
-            state.copyWithError(isFirstPage: true),
+            state.copyWith(type: PaginatedStateType.firstPageError),
             PaginatedStateException(e, s),
           ),
         );
@@ -261,7 +256,6 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         );
         emit(
           state.copyWithError(
-            isFirstPage: true,
             error: PaginatedStateException(e, s),
           ),
         );
@@ -286,13 +280,12 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   }
 
   /// Method getting the page from the server.
-  Future<QueryResult<TRes>> requestPage(PaginatedArgs args, TData? data);
+  Future<QueryResult<TRes>> requestPage(PaginatedArgs args);
 
   /// Method mapping the page to a list of items.
   PaginatedResponse<TData, TItem> onPageResult(
     TRes page,
-    int pageId,
-    TData? data,
+    int pageNumber,
   );
 
   /// Refreshes the list.
