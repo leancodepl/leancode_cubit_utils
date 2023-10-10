@@ -37,6 +37,7 @@ class PaginatedConfigProvider extends StatelessWidget {
     super.key,
     this.runDebounce,
     this.pageSize,
+    this.searchBeginAt,
     required this.onNextPageLoading,
     required this.onNextPageError,
     required this.onFirstPageLoading,
@@ -50,6 +51,9 @@ class PaginatedConfigProvider extends StatelessWidget {
 
   /// The default page size used by all PaginatedCubits.
   final int? pageSize;
+
+  /// The number of characters after which the search query will be sent.
+  final int? searchBeginAt;
 
   /// A builder for the loading state of the next page.
   final PaginatedWidgetBuilder<dynamic, dynamic> onNextPageLoading;
@@ -78,6 +82,10 @@ class PaginatedConfigProvider extends StatelessWidget {
     // Sets the default duration for run in PaginatedCubit when withDebounce is used.
     if (runDebounce != null) {
       PaginatedCubitConfig.runDebounce = runDebounce!;
+    }
+    // Sets the default number of characters after which the search query will be sent.
+    if (searchBeginAt != null) {
+      PaginatedCubitConfig.searchBeginAt = searchBeginAt!;
     }
 
     return Provider(
