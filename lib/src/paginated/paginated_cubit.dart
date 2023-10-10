@@ -137,7 +137,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       }
 
       if (result case QuerySuccess(:final data)) {
-        final page = onPageResult(data, state.args.pageNumber);
+        final page = onPageResult(data);
         _logger.info(
           'Page loaded. pageNumber: $pageNumber. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
         );
@@ -284,10 +284,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   Future<QueryResult<TRes>> requestPage(PaginatedArgs args);
 
   /// Method mapping the page to a list of items.
-  PaginatedResponse<TData, TItem> onPageResult(
-    TRes page,
-    int pageNumber,
-  );
+  PaginatedResponse<TData, TItem> onPageResult(TRes page);
 
   /// Refreshes the list.
   Future<void> refresh() => fetchNextPage(0, refresh: true);
