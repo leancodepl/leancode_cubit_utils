@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
+import 'package:leancode_cubit_utils/src/paginated/paginated_cubit_config.dart';
 import 'package:provider/provider.dart';
 
 /// A configuration for PaginatedCubitLayout.
@@ -34,6 +35,8 @@ class PaginatedConfigProvider extends StatelessWidget {
   /// Creates a PaginatedConfigProvider.
   const PaginatedConfigProvider({
     super.key,
+    this.runDebounce,
+    this.pageSize,
     required this.onNextPageLoading,
     required this.onNextPageError,
     required this.onFirstPageLoading,
@@ -41,6 +44,12 @@ class PaginatedConfigProvider extends StatelessWidget {
     required this.onEmptyState,
     required this.child,
   });
+
+  /// The default duration for run in PaginatedCubit when withDebounce is used.
+  final Duration? runDebounce;
+
+  /// The default page size used by all PaginatedCubits.
+  final int? pageSize;
 
   /// A builder for the loading state of the next page.
   final WidgetBuilder onNextPageLoading;
@@ -62,6 +71,15 @@ class PaginatedConfigProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Sets the default page mode.
+    if (pageSize != null) {
+      PaginatedCubitConfig.pageSize = pageSize!;
+    }
+    // Sets the default duration for run in PaginatedCubit when withDebounce is used.
+    if (runDebounce != null) {
+      PaginatedCubitConfig.runDebounce = runDebounce!;
+    }
+
     return Provider(
       create: (context) => PaginatedConfig(
         onNextPageLoading: onNextPageLoading,

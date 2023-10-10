@@ -1,4 +1,3 @@
-import 'package:async/async.dart';
 import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:example/pages/paginated/api.dart';
@@ -69,12 +68,10 @@ class SimplePaginatedCubit
   SimplePaginatedCubit(this.api)
       : super(
           loggerTag: 'SimplePaginatedCubit',
-          pageSize: 20,
           preRequest: FiltersPreRequest(api: api),
         );
 
   final MockedApi api;
-  CancelableOperation<void>? _filtersDebounceOperation;
 
   @override
   Future<QueryResult<Page<User>>> requestPage(
@@ -103,8 +100,6 @@ class SimplePaginatedCubit
   }
 
   Future<void> onFilterPressed(Filter filter) async {
-    await _filtersDebounceOperation?.cancel();
-
     final selectedFilters = state.data?.selectedFilters;
     if (selectedFilters == null) {
       return;
@@ -121,10 +116,7 @@ class SimplePaginatedCubit
       ),
     );
 
-    _filtersDebounceOperation = CancelableOperation.fromFuture(
-      Future.delayed(const Duration(milliseconds: 300)),
-    );
-    _filtersDebounceOperation?.value.whenComplete(() => fetchNextPage(0));
+    run(withDebounce: true);
   }
 
   void onTilePressed(User user) {

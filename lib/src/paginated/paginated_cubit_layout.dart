@@ -23,6 +23,7 @@ typedef PaginatedErrorBuilder<TItem> = Widget Function(
 );
 
 /// A layout for a paginated cubit.
+// TODO: Pass Data and State to builders.
 class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   /// Creates a PaginatedCubitLayout.
   const PaginatedCubitLayout({

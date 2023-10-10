@@ -5,6 +5,7 @@ import 'package:cqrs/cqrs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
+import 'package:leancode_cubit_utils/src/paginated/paginated_cubit_config.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
 import 'package:logging/logging.dart';
 
@@ -50,12 +51,13 @@ class PaginatedResponse<TData, TItem> {
 }
 
 /// Base class for all paginated cubits.
+// TODO: Review arguments in methods.
 abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     extends Cubit<PaginatedState<TData, TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag] and [pageSize].
   PaginatedCubit({
     required String loggerTag,
-    required int pageSize,
+    int? pageSize,
     PreRequest<TPreRequestRes, TData, TItem>? preRequest,
     this.preRequestMode = PreRequestMode.once,
     Duration searchDebounce = const Duration(milliseconds: 500),
@@ -65,7 +67,9 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         super(
           PaginatedState<TData, TItem>(
             items: <TItem>[],
-            args: PaginatedArgs(pageSize: pageSize),
+            args: PaginatedArgs(
+              pageSize: pageSize ?? PaginatedCubitConfig.pageSize,
+            ),
           ),
         );
 
@@ -175,13 +179,37 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       (!_wasPreRequestRun || preRequestMode == PreRequestMode.each) &&
       state.args.pageId == 0;
 
-  /// Fetches the first page.
-  Future<void> run() => fetchNextPage(0);
+  /// Fetches the first page. If [withDebounce] is true, the request will be
+  /// delayed by [PaginatedCubitConfig.runDebounce].
+  Future<void> run({bool withDebounce = false}) async {
+    if (withDebounce) {
+      final result = await _runCancelableOperation<bool>(
+        Future.delayed(_searchDebounce, () => true),
+      );
+      if (result != null && result) {
+        return fetchNextPage(0);
+      }
+    } else {
+      return fetchNextPage(0);
+    }
+  }
 
   /// Updates the search query.
   Future<void> updateSearchQuery(String searchQuery) async {
+    final previousSearchQuery = state.args.searchQuery;
     emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
 
+    if (searchQuery.length < PaginatedCubitConfig.searchBeginAt) {
+      if (previousSearchQuery.length >= PaginatedCubitConfig.searchBeginAt) {
+        return _runSearch(searchQuery);
+      }
+      return;
+    }
+
+    return _runSearch(searchQuery);
+  }
+
+  Future<void> _runSearch(String searchQuery) async {
     final result = await _runCancelableOperation<bool>(
       Future.delayed(_searchDebounce, () => true),
     );
