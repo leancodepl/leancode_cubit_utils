@@ -79,7 +79,20 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   CancelableOperation<dynamic>? _cancelableOperation;
 
   /// Gets the page.
-  Future<void> fetchNextPage(int pageNumber, {bool refresh = false}) async {
+  Future<void> fetchNextPage(
+    int pageNumber, {
+    bool refresh = false,
+    bool withDebounce = false,
+  }) async {
+    if (withDebounce) {
+      final result = await _runCancelableOperation<bool>(
+        Future.delayed(_config.runDebounce, () => true),
+      );
+      if (result == null) {
+        return;
+      }
+    }
+
     try {
       if (refresh) {
         _logger.info('Refreshing...');
@@ -173,20 +186,8 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       (!_wasPreRequestRun || _config.preRequestMode == PreRequestMode.each) &&
       state.args.pageNumber == _config.firstPageIndex;
 
-  /// Fetches the first page. If [withDebounce] is true, the request will be
-  /// delayed by [PaginatedConfig.runDebounce].
-  Future<void> run({bool withDebounce = false}) async {
-    if (withDebounce) {
-      final result = await _runCancelableOperation<bool>(
-        Future.delayed(_config.runDebounce, () => true),
-      );
-      if (result != null && result) {
-        return fetchNextPage(_config.firstPageIndex);
-      }
-    } else {
-      return fetchNextPage(_config.firstPageIndex);
-    }
-  }
+  /// Fetches the first page.
+  Future<void> run() => fetchNextPage(_config.firstPageIndex);
 
   /// Updates the search query . If the query length is equal to or longer than
   /// [PaginatedConfig.searchBeginAt], the search will be run.
@@ -211,7 +212,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     final result = await _runCancelableOperation<bool>(
       Future.delayed(_config.searchDebounce, () => true),
     );
-    if (result != null && result) {
+    if (result != null) {
       return fetchNextPage(_config.firstPageIndex);
     }
   }

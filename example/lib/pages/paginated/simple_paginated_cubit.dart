@@ -113,7 +113,7 @@ class SimplePaginatedCubit
       ),
     );
 
-    run(withDebounce: true);
+    fetchNextPage(state.args.firstPageIndex, withDebounce: true);
   }
 
   void onTilePressed(User user) {
