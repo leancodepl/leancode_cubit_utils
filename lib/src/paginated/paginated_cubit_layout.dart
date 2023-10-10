@@ -118,10 +118,10 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
-    final callback = initialStateBuilder ?? config.onFirstPageLoading;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context, state),
+      child: initialStateBuilder?.call(context, state) ??
+          config.onFirstPageLoading(context),
     );
   }
 
@@ -130,10 +130,10 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
-    final callback = firstPageLoadingBuilder ?? config.onFirstPageLoading;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context, state),
+      child: firstPageLoadingBuilder?.call(context, state) ??
+          config.onFirstPageLoading(context),
     );
   }
 
@@ -142,10 +142,10 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     PaginatedState<TData, TItem> state,
   ) {
     final config = context.read<PaginatedConfig>();
-    final callback = emptyStateBuilder ?? config.onEmptyState;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context, state),
+      child: emptyStateBuilder?.call(context, state) ??
+          config.onEmptyState(context),
     );
   }
 
@@ -167,8 +167,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   ) {
     final config = context.read<PaginatedConfig>();
     if (state.type == PaginatedStateType.nextPageLoading) {
-      final callback = nextPageLoadingBuilder ?? config.onNextPageLoading;
-      return callback(context, state);
+      return nextPageLoadingBuilder?.call(context, state) ??
+          config.onNextPageLoading(context);
     } else if (state.type == PaginatedStateType.nextPageError) {
       final callback = nextPageErrorBuilder ?? config.onNextPageError;
       return callback(
