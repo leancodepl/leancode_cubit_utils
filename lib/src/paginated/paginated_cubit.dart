@@ -193,7 +193,10 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     }
   }
 
-  /// Updates the search query.
+  /// Updates the search query. If the query length is equal to or longer than
+  /// [PaginatedCubitConfig.searchBeginAt], the search will be run.
+  /// Otherwise, first page will be loaded without the search query, but only if
+  /// the previous search query was longer than of equal to [PaginatedCubitConfig.searchBeginAt].
   Future<void> updateSearchQuery(String searchQuery) async {
     final previousSearchQuery = state.args.searchQuery;
     emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
@@ -208,6 +211,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     return _runSearch(searchQuery);
   }
 
+  /// Runs the search after the debounce.
   Future<void> _runSearch(String searchQuery) async {
     final result = await _runCancelableOperation<bool>(
       Future.delayed(_searchDebounce, () => true),
