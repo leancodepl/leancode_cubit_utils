@@ -23,10 +23,10 @@ enum PreRequestMode {
 /// Base class for all pre-request use cases.
 abstract class PreRequest<TRes, TData, TItem> {
   /// Executes the use case.
-  Future<QueryResult<TRes>> execute();
+  Future<QueryResult<TRes>> request(PaginatedState<TData, TItem> state);
 
   /// Map newly loaded data.
-  TData map(TRes res, TData? data, PaginatedState<TData, TItem> state);
+  TData map(TRes res, PaginatedState<TData, TItem> state);
 }
 
 /// A response containing a list of items and a flag indicating whether there is
@@ -82,8 +82,6 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   /// Gets the page.
   Future<void> fetchNextPage(int pageId, {bool refresh = false}) async {
     try {
-      await _cancelableOperation?.cancel();
-
       if (refresh) {
         _logger.info('Refreshing...');
         emit(
@@ -182,24 +180,21 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
   /// Updates the search query.
   Future<void> updateSearchQuery(String searchQuery) async {
-    await _cancelableOperation?.cancel();
-
     emit(state.copyWith(args: state.args.copyWith(searchQuery: searchQuery)));
 
     final result = await _runCancelableOperation<bool>(
       Future.delayed(_searchDebounce, () => true),
     );
     if (result != null && result) {
-      unawaited(fetchNextPage(0));
+      return fetchNextPage(0);
     }
   }
 
   Future<void> _runPreRequest() async {
     try {
-      await _cancelableOperation?.cancel();
       _logger.info('Running pre-request.');
       final result = await _runCancelableOperation<QueryResult<TPreRequestRes>>(
-        _preRequest!.execute(),
+        _preRequest!.request(state),
         onCancel: () => _logger.info('Canceling previous pre-request.'),
       );
       if (result == null) {
@@ -209,11 +204,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         _logger.info('Pre-request completed.');
         _wasPreRequestRun = true;
 
-        final mappedPreRequest = _preRequest?.map(
-          data,
-          state.data,
-          state,
-        );
+        final mappedPreRequest = _preRequest?.map(data, state);
         emit(state.copyWith(data: mappedPreRequest));
       } else if (result case QueryFailure(:final error)) {
         _logger.severe('Error running pre-request, error: $error');
@@ -251,6 +242,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     Future<T> operation, {
     VoidCallback? onCancel,
   }) async {
+    await _cancelableOperation?.cancel();
     _cancelableOperation = CancelableOperation.fromFuture(
       operation,
       onCancel: onCancel,

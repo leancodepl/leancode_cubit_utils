@@ -43,17 +43,20 @@ class FiltersPreRequest extends PreRequest<Filters, AdditionalData, User> {
   final MockedApi api;
 
   @override
-  Future<QueryResult<Filters>> execute() => api.getFilters();
+  Future<QueryResult<Filters>> request(
+    PaginatedState<AdditionalData, User> state,
+  ) {
+    return api.getFilters();
+  }
 
   @override
   AdditionalData map(
     Filters res,
-    AdditionalData? data,
     PaginatedState<AdditionalData, User> state,
   ) {
     return AdditionalData(
       availableFilters: res.availableFilters,
-      selectedFilters: data?.selectedFilters
+      selectedFilters: state.data?.selectedFilters
               .where((e) => res.availableFilters.contains(e))
               .toSet() ??
           {},

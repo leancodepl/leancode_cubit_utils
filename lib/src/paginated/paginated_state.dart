@@ -61,7 +61,7 @@ enum PaginatedStateType {
   /// Is refreshing the list.
   refresh,
 
-  /// The next page failed to load.
+  /// The first page failed to load.
   firstPageError,
 
   /// The next page failed to load.
