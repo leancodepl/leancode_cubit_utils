@@ -157,7 +157,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     final callback = firstPageErrorBuilder ?? config.onFirstPageError;
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: callback(context, error, () => cubit.fetchNextPage(0)),
+      child: callback(context, error, cubit.run),
     );
   }
 
