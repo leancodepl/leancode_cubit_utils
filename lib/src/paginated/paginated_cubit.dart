@@ -188,7 +188,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     }
   }
 
-  /// Updates the search query. If the query length is equal to or longer than
+  /// Updates the search query . If the query length is equal to or longer than
   /// [PaginatedConfig.searchBeginAt], the search will be run.
   /// Otherwise, first page will be loaded without the search query, but only if
   /// the previous search query was longer than of equal to [PaginatedConfig.searchBeginAt].
@@ -198,16 +198,16 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
     if (searchQuery.length < _config.searchBeginAt) {
       if (previousSearchQuery.length >= _config.searchBeginAt) {
-        return _runSearch(searchQuery);
+        return _runSearch();
       }
       return;
     }
 
-    return _runSearch(searchQuery);
+    return _runSearch();
   }
 
   /// Runs the search after the debounce.
-  Future<void> _runSearch(String searchQuery) async {
+  Future<void> _runSearch() async {
     final result = await _runCancelableOperation<bool>(
       Future.delayed(_config.searchDebounce, () => true),
     );

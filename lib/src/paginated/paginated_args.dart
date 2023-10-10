@@ -8,9 +8,12 @@ class PaginatedArgs with EquatableMixin {
     required this.firstPageIndex,
     required this.pageNumber,
     required this.pageSize,
-    this.searchQuery = '',
+    required int searchBeginAt,
+    String searchQuery = '',
     this.isRefresh = false,
-  });
+  })  : _searchBeginAt = searchBeginAt,
+        _searchQuery = searchQuery,
+        super();
 
   /// Creates a new instance of [PaginatedArgs] from the given [config].
   factory PaginatedArgs.fromConfig(PaginatedConfig config) {
@@ -18,6 +21,7 @@ class PaginatedArgs with EquatableMixin {
       firstPageIndex: config.firstPageIndex,
       pageSize: config.pageSize,
       pageNumber: config.firstPageIndex,
+      searchBeginAt: config.searchBeginAt,
     );
   }
 
@@ -30,8 +34,15 @@ class PaginatedArgs with EquatableMixin {
   /// The page size.
   final int pageSize;
 
+  final int _searchBeginAt;
+
   /// The search query.
-  final String searchQuery;
+  final String _searchQuery;
+
+  /// Effective search query. Returns empty string if the search query is less
+  /// than the searchBeginAt.
+  String get searchQuery =>
+      _searchQuery.length >= _searchBeginAt ? _searchQuery : '';
 
   /// A flag indicating whether the request is a refresh.
   final bool isRefresh;
@@ -51,16 +62,19 @@ class PaginatedArgs with EquatableMixin {
       firstPageIndex: firstPageIndex ?? this.firstPageIndex,
       pageNumber: pageNumber ?? this.pageNumber,
       pageSize: pageSize ?? this.pageSize,
-      searchQuery: searchQuery ?? this.searchQuery,
+      searchQuery: searchQuery ?? _searchQuery,
       isRefresh: isRefresh ?? this.isRefresh,
+      searchBeginAt: _searchBeginAt,
     );
   }
 
   @override
   List<Object?> get props => [
+        firstPageIndex,
         pageNumber,
         pageSize,
-        searchQuery,
+        _searchQuery,
+        _searchBeginAt,
         isRefresh,
       ];
 }

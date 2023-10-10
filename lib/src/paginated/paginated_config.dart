@@ -38,12 +38,16 @@ class PaginatedConfig {
     Duration? runDebounce,
     int? searchBeginAt,
     int? firstPageIndex,
+    Duration? searchDebounce,
+    PreRequestMode? preRequestMode,
   }) {
     return PaginatedConfig(
       pageSize: pageSize ?? this.pageSize,
       runDebounce: runDebounce ?? this.runDebounce,
       searchBeginAt: searchBeginAt ?? this.searchBeginAt,
       firstPageIndex: firstPageIndex ?? this.firstPageIndex,
+      searchDebounce: searchDebounce ?? this.searchDebounce,
+      preRequestMode: preRequestMode ?? this.preRequestMode,
     );
   }
 }
