@@ -1,4 +1,6 @@
-part of 'request_cubit.dart';
+import 'package:cqrs/cqrs.dart';
+import 'package:leancode_cubit_utils/src/request/request_cubit.dart';
+import 'package:leancode_cubit_utils/src/request/result_handlers.dart';
 
 /// Base class for all request cubits that perform a CQRS query
 /// and do not require any arguments.

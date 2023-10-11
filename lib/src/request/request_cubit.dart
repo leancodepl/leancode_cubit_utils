@@ -1,14 +1,10 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils/src/request/request_cubit_config.dart';
 import 'package:logging/logging.dart';
-
-part 'query_cubit.dart';
 
 /// Signature for a function that performs a request.
 typedef Request<TRes> = Future<TRes> Function();

@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
-class UserRequestCubit extends QueryCubit<User, User> {
-  UserRequestCubit({
+class UserQueryCubit extends QueryCubit<User, User> {
+  UserQueryCubit({
     required this.cqrs,
     required this.userId,
   }) : super('UserRequestCubit');
@@ -23,38 +23,64 @@ class UserRequestCubit extends QueryCubit<User, User> {
   User map(User data) => data;
 }
 
-class RequestScreen extends StatelessWidget {
-  const RequestScreen({super.key});
+class QueryScreen extends StatelessWidget {
+  const QueryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => UserRequestCubit(
+      create: (context) => UserQueryCubit(
         cqrs: context.read<Cqrs>(),
         userId: 'success',
       )..get(),
-      child: const RequestPage(),
+      child: const QueryPage(),
     );
   }
 }
 
-class RequestHookScreen extends StatelessWidget {
-  const RequestHookScreen({super.key});
+class QueryPage extends StatelessWidget {
+  const QueryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const RequestHookPage();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Simple request page')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: RequestCubitBuilder(
+              requestCubit: context.read<UserQueryCubit>(),
+              builder: (context, data) => Text('${data.name} ${data.surname}'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: context.read<UserQueryCubit>().refresh,
+            child: const Text('Refresh'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-class RequestHookPage extends HookWidget {
-  const RequestHookPage({super.key});
+class QueryHookScreen extends StatelessWidget {
+  const QueryHookScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userRequestCubit = useQueryCubit(
+    return const QueryHookPage();
+  }
+}
+
+class QueryHookPage extends HookWidget {
+  const QueryHookPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userQueryCubit = useQueryCubit(
       () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
-      loggerTag: 'UserRequestCubit',
+      loggerTag: 'UserQueryCubit',
     );
 
     return Scaffold(
@@ -66,38 +92,12 @@ class RequestHookPage extends HookWidget {
         children: [
           Center(
             child: RequestCubitBuilder(
-              requestCubit: userRequestCubit,
+              requestCubit: userQueryCubit,
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
           ),
           ElevatedButton(
-            onPressed: userRequestCubit.refresh,
-            child: const Text('Refresh'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RequestPage extends StatelessWidget {
-  const RequestPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Simple request page')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: RequestCubitBuilder(
-              requestCubit: context.read<UserRequestCubit>(),
-              builder: (context, data) => Text('${data.name} ${data.surname}'),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: context.read<UserRequestCubit>().refresh,
+            onPressed: userQueryCubit.refresh,
             child: const Text('Refresh'),
           ),
         ],

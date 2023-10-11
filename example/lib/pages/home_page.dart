@@ -16,8 +16,12 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () => pushNamed(Routes.simpleRequest),
-              child: const Text('Simple request page'),
+              onPressed: () => pushNamed(Routes.simpleQuery),
+              child: const Text('Simple query page'),
+            ),
+            ElevatedButton(
+              onPressed: () => pushNamed(Routes.simpleQueryHook),
+              child: const Text('Simple query hook page'),
             ),
             ElevatedButton(
               onPressed: () => pushNamed(Routes.paginatedCubit),
