@@ -4,7 +4,7 @@ import 'package:cqrs/cqrs.dart';
 import 'package:example/cqrs/cqrs.dart';
 import 'package:example/pages/home_page.dart';
 import 'package:example/pages/paginated/paginated_cubit_page.dart';
-import 'package:example/pages/query/query_page.dart';
+import 'package:example/pages/request/request_page.dart';
 import 'package:flutter/material.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:logging/logging.dart';
@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 
 class Routes {
   static const home = '/';
-  static const simpleQuery = '/simple-query';
+  static const simpleRequest = '/simple-request';
   static const paginatedCubit = '/paginated-cubit';
 }
 
@@ -61,13 +61,13 @@ void main() {
           error: error,
         ),
         onEmptyState: (context) => const Center(child: Text('No items')),
-        child: QueryConfigProvider(
+        child: RequestLayoutConfigProvider(
           requestMode: RequestMode.replace,
           onLoading: (BuildContext context) =>
               const CircularProgressIndicator(),
           onError: (
             BuildContext context,
-            QueryErrorState<dynamic> error,
+            RequestErrorState<dynamic, dynamic> error,
             VoidCallback? onErrorCallback,
           ) {
             return const Text(
@@ -90,7 +90,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const QueryHookScreen(),
+        Routes.simpleRequest: (_) => const RequestHookScreen(),
         Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
       },
     );

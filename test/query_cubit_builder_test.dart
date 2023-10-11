@@ -1,4 +1,4 @@
-import 'dart:async';
+/* import 'dart:async';
 
 import 'package:cqrs/cqrs.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,7 @@ class TestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QueryConfigProvider(
+    return RequestLayoutConfigProvider(
       onLoading: (context) => const Text('Loading...'),
       onError: (context, error, onErrorCallback) => const Text('Error!'),
       child: MaterialApp(
@@ -131,3 +131,4 @@ void main() {
     });
   });
 }
+ */

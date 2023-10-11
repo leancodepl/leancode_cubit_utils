@@ -1,4 +1,4 @@
-import 'package:cqrs/cqrs.dart';
+/* import 'package:cqrs/cqrs.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 import 'test_query.dart';
@@ -55,3 +55,4 @@ class TestArgsQueryCubit extends ArgsQueryCubit<String, String, String> {
     return cqrs.get(TestQuery(id: args));
   }
 }
+ */
