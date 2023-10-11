@@ -78,7 +78,7 @@ class QueryHookPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userQueryCubit = useQueryCubit(
+    final userCubit = useQueryCubit(
       () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
       loggerTag: 'UserQueryCubit',
     );
@@ -92,12 +92,12 @@ class QueryHookPage extends HookWidget {
         children: [
           Center(
             child: RequestCubitBuilder(
-              requestCubit: userQueryCubit,
+              requestCubit: userCubit,
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
           ),
           ElevatedButton(
-            onPressed: userQueryCubit.refresh,
+            onPressed: userCubit.refresh,
             child: const Text('Refresh'),
           ),
         ],

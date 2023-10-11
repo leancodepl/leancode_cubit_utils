@@ -49,15 +49,17 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
   /// Creates a new [BaseRequestCubit] with the given [loggerTag] and [requestMode].
   BaseRequestCubit(
     String loggerTag, {
-    required this.resultHandler,
+    required ResultHandler<TRes, TData, TOut, TError> resultHandler,
     this.requestMode,
-  })  : _logger = Logger(loggerTag),
+  })  : logger = Logger(loggerTag),
+        _resultHandler = resultHandler,
         super(RequestInitialState());
 
-  final Logger _logger;
+  /// The logger used by this cubit.
+  final Logger logger;
 
   ///
-  final ResultHandler<TRes, TData, TOut, TError> resultHandler;
+  final ResultHandler<TRes, TData, TOut, TError> _resultHandler;
 
   /// The request mode used by this cubit to handle duplicated requests.
   final RequestMode? requestMode;
@@ -74,13 +76,13 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
           await _operation?.cancel();
         case RequestMode.ignore:
           if (_operation?.isCompleted == false) {
-            _logger.info('Previous operation is not completed. Ignoring.');
+            logger.info('Previous operation is not completed. Ignoring.');
             return;
           }
       }
 
       if (isRefresh) {
-        _logger.info('Refreshing request.');
+        logger.info('Refreshing request.');
         emit(
           RequestRefreshState(
             switch (state) {
@@ -91,14 +93,14 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
           ),
         );
       } else {
-        _logger.info('Request started.');
+        logger.info('Request started.');
         emit(RequestLoadingState());
       }
 
       _operation = CancelableOperation.fromFuture(
         callback(),
         onCancel: () {
-          _logger.info('Canceling previous operation.');
+          logger.info('Canceling previous operation.');
         },
       );
 
@@ -107,9 +109,9 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
         return;
       }
 
-      emit(await resultHandler(result, handleError, map, _logger));
+      emit(await _resultHandler(result, handleError, map, logger));
     } catch (e, s) {
-      _logger.severe('Request error. Exception: $e. Stack trace: $s');
+      logger.severe('Request error. Exception: $e. Stack trace: $s');
       try {
         emit(
           await handleError(
@@ -117,7 +119,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
           ),
         );
       } catch (e, s) {
-        _logger.severe(
+        logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
         );
         emit(RequestErrorState<TOut, TError>(exception: e, stackTrace: s));
@@ -173,14 +175,14 @@ abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
     required super.resultHandler,
   });
 
-  TArgs? _lastGetArgs;
+  TArgs? _lastRequestArgs;
 
   /// The arguments used by this cubit to refresh the request.
-  TArgs? get lastFetchArgs => _lastGetArgs;
+  TArgs? get lastRequestArgs => _lastRequestArgs;
 
   /// Gets the data from the request and emits the corresponding state.
   Future<void> get(TArgs args) {
-    _lastGetArgs = args;
+    _lastRequestArgs = args;
     return _get(() => request(args));
   }
 
@@ -189,12 +191,12 @@ abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
 
   @override
   Future<void> refresh() {
-    if (_lastGetArgs == null) {
-      _logger.severe('No request was executed yet. Cannot refresh.');
+    if (_lastRequestArgs == null) {
+      logger.severe('No request was executed yet. Cannot refresh.');
       throw StateError('No request was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      return _get(() => request(_lastGetArgs!), isRefresh: true);
+      return _get(() => request(_lastRequestArgs!), isRefresh: true);
     }
   }
 }
