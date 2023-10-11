@@ -59,7 +59,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     required String loggerTag,
     PreRequest<TPreRequestRes, TData, TItem>? preRequest,
     PaginatedConfig? config,
-  })  : _logger = Logger(loggerTag),
+  })  : logger = Logger(loggerTag),
         _preRequest = preRequest,
         _config = config ?? PaginatedConfigProvider.config,
         super(
@@ -71,8 +71,10 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
 
+  /// The logger.
+  final Logger logger;
+
   final PaginatedConfig _config;
-  final Logger _logger;
   final PreRequest<TPreRequestRes, TData, TItem>? _preRequest;
   bool _wasPreRequestRun = false;
 
@@ -95,7 +97,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
     try {
       if (refresh) {
-        _logger.info('Refreshing...');
+        logger.info('Refreshing...');
         emit(
           state.copyWith(
             type: PaginatedStateType.refresh,
@@ -103,7 +105,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
       } else if (pageNumber == _config.firstPageIndex) {
-        _logger.info('Loading first page...');
+        logger.info('Loading first page...');
         emit(
           state.copyWith(
             type: PaginatedStateType.firstPageLoading,
@@ -112,7 +114,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
       } else {
-        _logger.info('Loading next page. PageId: $pageNumber');
+        logger.info('Loading next page. PageId: $pageNumber');
         emit(
           state.copyWith(
             type: PaginatedStateType.nextPageLoading,
@@ -126,11 +128,11 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       }
 
       if (state.args.searchQuery.isNotEmpty) {
-        _logger.info('Searching for ${state.args.searchQuery}');
+        logger.info('Searching for ${state.args.searchQuery}');
       }
       final result = await _runCancelableOperation<QueryResult<TRes>>(
         requestPage(state.args),
-        onCancel: () => _logger.info('Canceling previous request.'),
+        onCancel: () => logger.info('Canceling previous request.'),
       );
       if (result == null) {
         return;
@@ -138,7 +140,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
       if (result case QuerySuccess(:final data)) {
         final page = onPageResult(data);
-        _logger.info(
+        logger.info(
           'Page loaded. pageNumber: $pageNumber. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
         );
         emit(
@@ -151,7 +153,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
       } else if (result case QueryFailure(:final error)) {
-        _logger.severe('Error loading page, error: $error');
+        logger.severe('Error loading page, error: $error');
         emit(
           await onQueryError(
             state.copyWithError(),
@@ -160,7 +162,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         );
       }
     } catch (e, s) {
-      _logger.severe('Error loading page, error: $e, stacktrace: $s');
+      logger.severe('Error loading page, error: $e, stacktrace: $s');
       try {
         emit(
           await onQueryError(
@@ -169,7 +171,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
       } catch (e, s) {
-        _logger.severe(
+        logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
         );
         emit(
@@ -219,22 +221,22 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
 
   Future<void> _runPreRequest() async {
     try {
-      _logger.info('Running pre-request.');
+      logger.info('Running pre-request.');
       final result = await _runCancelableOperation<QueryResult<TPreRequestRes>>(
         _preRequest!.request(state),
-        onCancel: () => _logger.info('Canceling previous pre-request.'),
+        onCancel: () => logger.info('Canceling previous pre-request.'),
       );
       if (result == null) {
         return;
       }
       if (result case QuerySuccess(:final data)) {
-        _logger.info('Pre-request completed.');
+        logger.info('Pre-request completed.');
         _wasPreRequestRun = true;
 
         final mappedPreRequest = _preRequest?.map(data, state);
         emit(state.copyWith(data: mappedPreRequest));
       } else if (result case QueryFailure(:final error)) {
-        _logger.severe('Error running pre-request, error: $error');
+        logger.severe('Error running pre-request, error: $error');
         emit(
           await onQueryError(
             state.copyWith(type: PaginatedStateType.firstPageError),
@@ -243,7 +245,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         );
       }
     } catch (e, s) {
-      _logger.severe('Error running pre-request, error: $e, stacktrace: $s');
+      logger.severe('Error running pre-request, error: $e, stacktrace: $s');
       try {
         emit(
           await onQueryError(
@@ -252,7 +254,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
       } catch (e, s) {
-        _logger.severe(
+        logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
         );
         emit(
