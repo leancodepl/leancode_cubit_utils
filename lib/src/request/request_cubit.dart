@@ -58,7 +58,8 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
   /// The logger used by this cubit.
   final Logger logger;
 
-  ///
+  /// The method used by this cubit to handle the request result and return the
+  /// corresponding state.
   final ResultHandler<TRes, TData, TOut, TError> _resultHandler;
 
   /// The request mode used by this cubit to handle duplicated requests.

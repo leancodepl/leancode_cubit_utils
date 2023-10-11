@@ -73,7 +73,6 @@ SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>(
   ArgsRequest<TArgs, QueryResult<TOut>> request, {
   String loggerTag = 'SimpleArgsQueryCubit',
   RequestMode? requestMode,
-  bool callOnCreate = true,
   List<Object?> keys = const [],
 }) {
   return useBloc(

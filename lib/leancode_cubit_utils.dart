@@ -11,6 +11,4 @@ export 'src/request/query_cubit.dart';
 export 'src/request/request_config_provider.dart';
 export 'src/request/request_cubit.dart';
 export 'src/request/request_cubit_builder.dart';
-export 'src/request/result_handlers.dart';
 export 'src/request/use_query_cubit.dart';
-export 'src/request/use_request_cubit.dart';
