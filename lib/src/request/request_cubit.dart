@@ -20,18 +20,6 @@ typedef ErrorMapper<TOut, TError> = Future<TOut> Function(
   RequestErrorState<TOut, TError>,
 );
 
-/// Signature for a function that handles the request result and returns the
-/// corresponding state.
-typedef ResultHandler<TRes, TData, TOut, TError>
-    = Future<RequestState<TOut, TError>> Function(
-  TRes result,
-  Future<RequestErrorState<TOut, TError>> Function(
-    RequestErrorState<TOut, TError> errorState,
-  ),
-  TOut Function(TData) dataMapper,
-  Logger logger,
-);
-
 /// Defines how to handle a new request when the previous one is still running.
 enum RequestMode {
   /// When a new request is triggered while the previous one is still running,
@@ -49,18 +37,15 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
   /// Creates a new [BaseRequestCubit] with the given [loggerTag] and [requestMode].
   BaseRequestCubit(
     String loggerTag, {
-    required ResultHandler<TRes, TData, TOut, TError> resultHandler,
     this.requestMode,
   })  : logger = Logger(loggerTag),
-        _resultHandler = resultHandler,
         super(RequestInitialState());
 
   /// The logger used by this cubit.
   final Logger logger;
 
-  /// The method used by this cubit to handle the request result and return the
-  /// corresponding state.
-  final ResultHandler<TRes, TData, TOut, TError> _resultHandler;
+  /// Handles the given [result] and returns the corresponding state.
+  Future<RequestState<TOut, TError>> handleResult(TRes result);
 
   /// The request mode used by this cubit to handle duplicated requests.
   final RequestMode? requestMode;
@@ -110,7 +95,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
         return;
       }
 
-      emit(await _resultHandler(result, handleError, map, logger));
+      emit(await handleResult(result));
     } catch (e, s) {
       logger.severe('Request error. Exception: $e. Stack trace: $s');
       try {
@@ -149,7 +134,6 @@ abstract class RequestCubit<TRes, TData, TOut, TError>
   /// Creates a new [RequestCubit] with the given [requestMode].
   RequestCubit(
     super.loggerTag, {
-    required super.resultHandler,
     super.requestMode,
   });
 
@@ -173,7 +157,6 @@ abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
   ArgsRequestCubit(
     super.loggerTag, {
     super.requestMode,
-    required super.resultHandler,
   });
 
   TArgs? _lastRequestArgs;
