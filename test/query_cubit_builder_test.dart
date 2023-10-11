@@ -1,4 +1,4 @@
-/* import 'dart:async';
+import 'dart:async';
 
 import 'package:cqrs/cqrs.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class TestPage extends StatelessWidget {
 }
 
 void main() {
-  group('QueryCubitBuilder', () {
+  group('RequestCubitBuilder', () {
     final cqrs = MockedCqrs();
     when(
       () => cqrs.get(TestQuery(id: '0')),
@@ -52,8 +52,8 @@ void main() {
 
       await tester.pumpWidget(
         TestPage(
-          child: QueryCubitBuilder<String>(
-            queryCubit: queryCubit,
+          child: RequestCubitBuilder(
+            requestCubit: queryCubit,
             builder: (context, data) => Text(data),
           ),
         ),
@@ -73,8 +73,8 @@ void main() {
 
       await tester.pumpWidget(
         TestPage(
-          child: QueryCubitBuilder<String>(
-            queryCubit: queryCubit,
+          child: RequestCubitBuilder(
+            requestCubit: queryCubit,
             onLoading: (context) => const Text('Custom loading...'),
             onError: (context, error, retry) => const Text('Custom error!'),
             builder: (context, data) => Text(data),
@@ -96,8 +96,8 @@ void main() {
 
       await tester.pumpWidget(
         TestPage(
-          child: QueryCubitBuilder<String>(
-            queryCubit: queryCubit,
+          child: RequestCubitBuilder(
+            requestCubit: queryCubit,
             builder: (context, data) => Text('Success, data: $data'),
           ),
         ),
@@ -114,8 +114,8 @@ void main() {
 
       await tester.pumpWidget(
         TestPage(
-          child: QueryCubitBuilder<String>(
-            queryCubit: queryCubit,
+          child: RequestCubitBuilder(
+            requestCubit: queryCubit,
             builder: (context, data) => Text('Success, data: $data'),
           ),
         ),
@@ -131,4 +131,3 @@ void main() {
     });
   });
 }
- */

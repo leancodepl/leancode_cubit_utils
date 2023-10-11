@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
+import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils/src/request/request_cubit_config.dart';
 import 'package:logging/logging.dart';
+
+part 'query_cubit.dart';
 
 /// Signature for a function that performs a request.
 typedef Request<TRes> = Future<TRes> Function();
@@ -22,12 +26,13 @@ typedef ErrorMapper<TOut, TError> = Future<TOut> Function(
 
 /// Signature for a function that handles the request result and returns the
 /// corresponding state.
-typedef ResultHandler<TRes, TOut, TError> = Future<RequestState<TOut, TError>>
-    Function(
+typedef ResultHandler<TRes, TData, TOut, TError>
+    = Future<RequestState<TOut, TError>> Function(
   TRes result,
   Future<RequestErrorState<TOut, TError>> Function(
     RequestErrorState<TOut, TError> errorState,
   ),
+  TOut Function(TData) dataMapper,
   Logger logger,
 );
 
@@ -56,7 +61,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
   final Logger _logger;
 
   ///
-  final ResultHandler<TRes, TOut, TError> resultHandler;
+  final ResultHandler<TRes, TData, TOut, TError> resultHandler;
 
   /// The request mode used by this cubit to handle duplicated requests.
   final RequestMode? requestMode;
@@ -106,7 +111,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
         return;
       }
 
-      emit(await resultHandler(result, handleError, _logger));
+      emit(await resultHandler(result, handleError, map, _logger));
     } catch (e, s) {
       _logger.severe('Request error. Exception: $e. Stack trace: $s');
       try {

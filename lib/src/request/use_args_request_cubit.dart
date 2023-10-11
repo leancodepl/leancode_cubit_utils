@@ -27,7 +27,7 @@ class SimpleArgsRequestCubit<TArgs, TRes, TOut, TError>
 SimpleArgsRequestCubit<TArgs, TRes, TOut, TError>
     useArgsRequestCubit<TArgs, TRes, TOut, TError>(
   ArgsRequest<TArgs, TRes> request, {
-  required ResultHandler<TRes, TOut, TError> resultHandler,
+  required ResultHandler<TRes, TOut, TOut, TError> resultHandler,
   String loggerTag = 'SimpleArgsQueryCubit',
   RequestMode? requestMode,
   List<Object?> keys = const [],

@@ -1,4 +1,4 @@
-/* import 'package:cqrs/cqrs.dart';
+import 'package:cqrs/cqrs.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 import 'test_query.dart';
@@ -28,8 +28,8 @@ class TestQueryCubit extends QueryCubit<String, String> {
   }
 
   @override
-  Future<QueryErrorState<String>> onQueryError(
-    QueryErrorState<String> errorState,
+  Future<RequestErrorState<String, QueryError>> handleError(
+    RequestErrorState<String, QueryError> errorState,
   ) async {
     if (errorState.error == QueryError.unknown) {
       throw Exception('onQueryError failed');
@@ -55,4 +55,3 @@ class TestArgsQueryCubit extends ArgsQueryCubit<String, String, String> {
     return cqrs.get(TestQuery(id: args));
   }
 }
- */

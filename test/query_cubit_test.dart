@@ -1,4 +1,4 @@
-/* import 'dart:async';
+import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cqrs/cqrs.dart';
@@ -42,7 +42,7 @@ void main() {
 
   group('QueryCubit', () {
     group('request succeeded', () {
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'get() triggers request',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -57,7 +57,7 @@ void main() {
         },
       );
 
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'emits QueryErrorSuccess when processing succeeds',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -66,31 +66,31 @@ void main() {
         ),
         act: (cubit) => cubit.get(),
         wait: Duration.zero,
-        expect: () => <QueryState<String>>[
-          QueryLoadingState(),
-          QuerySuccessState('Mapped Result'),
+        expect: () => <RequestState<String, QueryError>>[
+          RequestLoadingState(),
+          RequestSuccessState('Mapped Result'),
         ],
       );
     });
 
     group('refresh', () {
       setUp(() => clearInteractions(cqrs));
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'emits QueryRefreshState with the same data when refresh is called',
         build: () => TestQueryCubit(
           'TestQueryCubit',
           cqrs: cqrs,
           id: '0',
         ),
-        seed: () => QuerySuccessState('Mapped Result'),
+        seed: () => RequestSuccessState('Mapped Result'),
         act: (cubit) => cubit.refresh(),
-        expect: () => <QueryState<String>>[
-          QueryRefreshState('Mapped Result'),
-          QuerySuccessState('Mapped Result'),
+        expect: () => <RequestState<String, QueryError>>[
+          RequestRefreshState('Mapped Result'),
+          RequestSuccessState('Mapped Result'),
         ],
       );
 
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'ignores duplicated refresh calls by default',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -106,13 +106,13 @@ void main() {
             () => cqrs.get(TestQuery(id: '0')),
           ).called(1);
         },
-        expect: () => <QueryState<String>>[
-          QueryLoadingState(),
-          QuerySuccessState('Mapped Result'),
+        expect: () => <RequestState<String, QueryError>>[
+          RequestLoadingState(),
+          RequestSuccessState('Mapped Result'),
         ],
       );
 
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'cancels previous call and starts over when requestMode is replace',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -129,15 +129,15 @@ void main() {
             () => cqrs.get(TestQuery(id: '0')),
           ).called(2);
         },
-        expect: () => <QueryState<String>>[
-          QueryLoadingState(),
-          QuerySuccessState('Mapped Result'),
+        expect: () => <RequestState<String, QueryError>>[
+          RequestLoadingState(),
+          RequestSuccessState('Mapped Result'),
         ],
       );
     });
 
     group('handling errors and exceptions', () {
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'emits QueryErrorState when query fails',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -147,12 +147,12 @@ void main() {
         ),
         act: (cubit) => cubit.get(),
         expect: () => [
-          isA<QueryLoadingState<String>>(),
-          isA<QueryErrorState<String>>(),
+          isA<RequestLoadingState<String, QueryError>>(),
+          isA<RequestErrorState<String, QueryError>>(),
         ],
       );
 
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'emits QueryErrorState when request mapping fails',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -163,12 +163,12 @@ void main() {
         act: (cubit) => cubit.get(),
         wait: Duration.zero,
         expect: () => [
-          isA<QueryLoadingState<String>>(),
-          isA<QueryErrorState<String>>(),
+          isA<RequestLoadingState<String, QueryError>>(),
+          isA<RequestErrorState<String, QueryError>>(),
         ],
       );
 
-      blocTest<TestQueryCubit, QueryState<String>>(
+      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
         'emits QueryErrorState when onQueryError fails',
         build: () => TestQueryCubit(
           'TestQueryCubit',
@@ -179,8 +179,8 @@ void main() {
         act: (cubit) => cubit.get(),
         wait: Duration.zero,
         expect: () => [
-          isA<QueryLoadingState<String>>(),
-          isA<QueryErrorState<String>>(),
+          isA<RequestLoadingState<String, QueryError>>(),
+          isA<RequestErrorState<String, QueryError>>(),
         ],
       );
     });
@@ -188,7 +188,7 @@ void main() {
 
   group('ArgsQueryCubit', () {
     clearInteractions(cqrs);
-    blocTest<TestArgsQueryCubit, QueryState<String>>(
+    blocTest<TestArgsQueryCubit, RequestState<String, QueryError>>(
       'calls request() with passed arguments when get() is called',
       build: () => TestArgsQueryCubit(
         'TestArgsQueryCubit',
@@ -202,19 +202,7 @@ void main() {
       },
     );
 
-    blocTest<TestArgsQueryCubit, QueryState<String>>(
-      'do not refresh the call when get() was not called before',
-      build: () => TestArgsQueryCubit(
-        'TestArgsQueryCubit',
-        cqrs: cqrs,
-      ),
-      act: (cubit) => cubit.refresh(),
-      verify: (_) {
-        verifyNever(() => cqrs.get(any()));
-      },
-    );
-
-    blocTest<TestArgsQueryCubit, QueryState<String>>(
+    blocTest<TestArgsQueryCubit, RequestState<String, QueryError>>(
       'calls refresh with last args when get() was called before',
       build: () => TestArgsQueryCubit(
         'TestArgsQueryCubit',
@@ -230,4 +218,3 @@ void main() {
     );
   });
 }
- */

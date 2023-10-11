@@ -5,12 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
-class UserRequestCubit
-    extends RequestCubit<QueryResult<User>, User, User, QueryError> {
+class UserRequestCubit extends QueryCubit<User, User> {
   UserRequestCubit({
     required this.cqrs,
     required this.userId,
-  }) : super('UserRequestCubit', resultHandler: queryResultHandler<User>);
+  }) : super('UserRequestCubit');
 
   final Cqrs cqrs;
   final String userId;
@@ -53,11 +52,9 @@ class RequestHookPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userRequestCubit =
-        useRequestCubit<QueryResult<User>, User, QueryError>(
+    final userRequestCubit = useQueryCubit(
       () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
       loggerTag: 'UserRequestCubit',
-      resultHandler: queryResultHandler,
     );
 
     return Scaffold(
