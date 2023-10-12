@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
 
 /// Base class for all error states of a PaginatedCubit.
-sealed class PaginatedStateError {
+sealed class PaginatedStateError with EquatableMixin {
   /// Creates a new [PaginatedStateError].
   const PaginatedStateError();
 
@@ -18,6 +18,9 @@ class PaginatedStateNoneError extends PaginatedStateError {
 
   @override
   bool get hasError => false;
+
+  @override
+  List<Object?> get props => [];
 }
 
 /// A state indicating that the query failed.
@@ -30,6 +33,9 @@ class PaginatedStateQueryError extends PaginatedStateError {
 
   @override
   bool get hasError => true;
+
+  @override
+  List<Object?> get props => [error];
 }
 
 /// A state indicating that there was an exception.
@@ -45,6 +51,9 @@ class PaginatedStateException extends PaginatedStateError {
 
   @override
   bool get hasError => true;
+
+  @override
+  List<Object?> get props => [exception, stackTrace];
 }
 
 /// Type of the [PaginatedState].
@@ -84,7 +93,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   /// Creates a new [PaginatedState].
   const PaginatedState({
     this.type = PaginatedStateType.initial,
-    required this.items,
+    this.items = const [],
     this.hasNextPage = false,
     this.error = const PaginatedStateNoneError(),
     required this.args,

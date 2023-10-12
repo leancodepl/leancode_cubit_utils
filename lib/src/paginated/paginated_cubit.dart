@@ -124,7 +124,12 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       }
 
       if (_shouldRunPreRequest) {
-        await _runPreRequest();
+        final preRequestSucceeded = await _runPreRequest();
+        if (preRequestSucceeded) {
+          _wasPreRequestRun = true;
+        } else {
+          return;
+        }
       }
 
       if (state.args.searchQuery.isNotEmpty) {
@@ -219,7 +224,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     }
   }
 
-  Future<void> _runPreRequest() async {
+  Future<bool> _runPreRequest() async {
     try {
       logger.info('Running pre-request.');
       final result = await _runCancelableOperation<QueryResult<TPreRequestRes>>(
@@ -227,14 +232,14 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         onCancel: () => logger.info('Canceling previous pre-request.'),
       );
       if (result == null) {
-        return;
+        return false;
       }
       if (result case QuerySuccess(:final data)) {
         logger.info('Pre-request completed.');
-        _wasPreRequestRun = true;
 
         final mappedPreRequest = _preRequest?.map(data, state);
         emit(state.copyWith(data: mappedPreRequest));
+        return true;
       } else if (result case QueryFailure(:final error)) {
         logger.severe('Error running pre-request, error: $error');
         emit(
@@ -243,6 +248,9 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
             PaginatedStateQueryError(error),
           ),
         );
+        return false;
+      } else {
+        return false;
       }
     } catch (e, s) {
       logger.severe('Error running pre-request, error: $e, stacktrace: $s');
@@ -263,6 +271,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
           ),
         );
       }
+      return false;
     }
   }
 
@@ -271,13 +280,13 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
     VoidCallback? onCancel,
   }) async {
     await _cancelableOperation?.cancel();
-    _cancelableOperation = CancelableOperation.fromFuture(
+    _cancelableOperation = CancelableOperation<T>.fromFuture(
       operation,
       onCancel: onCancel,
     );
     final response = await _cancelableOperation?.valueOrCancellation();
-    if (response != null) {
-      return response as T;
+    if (response case T()) {
+      return response;
     }
     return null;
   }
