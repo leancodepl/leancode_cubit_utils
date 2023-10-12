@@ -73,7 +73,6 @@ class TestPreRequestPaginatedCubit
     return PaginatedResponse.append(
       items: page.items,
       hasNextPage: page.hasNextPage,
-      data: state.data,
     );
   }
 }
