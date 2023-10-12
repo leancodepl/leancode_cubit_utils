@@ -57,7 +57,9 @@ class PaginatedResponse<TData, TItem> {
   /// The list of items of type [TItem].
   final List<TItem> items;
 
-  /// Additional data.
+  /// Additional data which can be modified when processing page in [PaginatedCubit.onPageResult].
+  /// If the data is null, previous data is preserved. If the data is not null,
+  /// the previous data is replaced in the state.
   final TData? data;
 
   /// A flag indicating whether there is a next page.
