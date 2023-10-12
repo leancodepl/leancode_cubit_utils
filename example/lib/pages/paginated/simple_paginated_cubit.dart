@@ -86,8 +86,8 @@ class SimplePaginatedCubit
 
   @override
   PaginatedResponse<AdditionalData, User> onPageResult(Page<User> page) {
-    return PaginatedResponse(
-      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
+    return PaginatedResponse.append(
+      items: page.items,
       hasNextPage: page.hasNextPage,
       data: state.data,
     );

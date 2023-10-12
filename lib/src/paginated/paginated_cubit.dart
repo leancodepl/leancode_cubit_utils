@@ -33,12 +33,26 @@ abstract class PreRequest<TRes, TData, TItem> {
 /// A response containing a list of items and a flag indicating whether there is
 /// a next page.
 class PaginatedResponse<TData, TItem> {
-  /// Creates a new [PaginatedResponse] with the given [items] and [hasNextPage].
-  PaginatedResponse({
+  /// Creates a PaginatedResponse which gave full control over the items list to
+  /// the caller. Useful in cases where you don't want to append the items to
+  /// the existing list.
+  PaginatedResponse.custom({
     required this.items,
     this.data,
     required this.hasNextPage,
-  });
+  }) : _isAppend = false;
+
+  /// Creates a PaginatedResponse which follows the strategy where next page
+  /// items are appended to the existing list of items.
+  /// In case of the first page (initial run, refresh), the page items replaces
+  /// the existing items list.
+  PaginatedResponse.append({
+    required this.items,
+    this.data,
+    required this.hasNextPage,
+  }) : _isAppend = true;
+
+  final bool _isAppend;
 
   /// The list of items of type [TItem].
   final List<TItem> items;
@@ -146,12 +160,14 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       if (result case QuerySuccess(:final data)) {
         final page = onPageResult(data);
         logger.info(
-          'Page loaded. pageNumber: $pageNumber. hasNextPage: ${page.hasNextPage}. Number of items: ${page.items.length}',
+          'Page loaded. pageNumber: $pageNumber. hasNextPage: ${page.hasNextPage}. Page size: ${page.items.length}',
         );
         emit(
           state.copyWith(
             type: PaginatedStateType.success,
-            items: page.items,
+            items: state.isFirstPage || !page._isAppend
+                ? page.items
+                : [...state.items, ...page.items],
             hasNextPage: page.hasNextPage,
             data: page.data,
             error: const PaginatedStateNoneError(),

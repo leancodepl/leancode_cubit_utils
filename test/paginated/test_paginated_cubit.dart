@@ -13,8 +13,8 @@ class TestPaginatedCubit extends PaginatedCubit<void, void, Page<City>, City> {
 
   @override
   PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
-    return PaginatedResponse(
-      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
+    return PaginatedResponse.append(
+      items: page.items,
       hasNextPage: page.hasNextPage,
     );
   }
@@ -70,8 +70,8 @@ class TestPreRequestPaginatedCubit
 
   @override
   PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
-    return PaginatedResponse(
-      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
+    return PaginatedResponse.append(
+      items: page.items,
       hasNextPage: page.hasNextPage,
       data: state.data,
     );
