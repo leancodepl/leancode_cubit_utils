@@ -12,13 +12,8 @@ class TestPaginatedCubit extends PaginatedCubit<void, void, Page<City>, City> {
   final ApiBase api;
 
   @override
-  PaginatedResponse<void, City> onPageResult(Page<City> page) {
-    //TODO: Simplify mapping page result. Implementation should not require developer
-    // to append new list to existing list.
-    return PaginatedResponse(
-      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
-      hasNextPage: page.hasNextPage,
-    );
+  PageResponse<City> onPageResult(Page<City> page) {
+    return (items: page.items, hasNextPage: page.hasNextPage);
   }
 
   @override
@@ -62,11 +57,8 @@ class TestPreRequestPaginatedCubit
   final ApiBase api;
 
   @override
-  PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
-    return PaginatedResponse(
-      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
-      hasNextPage: page.hasNextPage,
-    );
+  PageResponse<City> onPageResult(Page<City> page) {
+    return (items: page.items, hasNextPage: page.hasNextPage);
   }
 
   @override

@@ -30,25 +30,8 @@ abstract class PreRequest<TRes, TData, TItem> {
   TData map(TRes res, PaginatedState<TData, TItem> state);
 }
 
-/// A response containing a list of items and a flag indicating whether there is
-/// a next page.
-class PaginatedResponse<TData, TItem> {
-  /// Creates a new [PaginatedResponse] with the given [items] and [hasNextPage].
-  PaginatedResponse({
-    required this.items,
-    this.data,
-    required this.hasNextPage,
-  });
-
-  /// The list of items of type [TItem].
-  final List<TItem> items;
-
-  /// Additional data.
-  final TData? data;
-
-  /// A flag indicating whether there is a next page.
-  final bool hasNextPage;
-}
+/// Type definition for the page response.
+typedef PageResponse<TItem> = ({List<TItem> items, bool hasNextPage});
 
 /// Base class for all paginated cubits.
 abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
@@ -151,9 +134,11 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         emit(
           state.copyWith(
             type: PaginatedStateType.success,
-            items: page.items,
+            items: state.isFirstPage
+                ? page.items
+                : [...state.items, ...page.items],
             hasNextPage: page.hasNextPage,
-            data: page.data,
+            data: state.data,
             error: const PaginatedStateNoneError(),
           ),
         );
@@ -295,7 +280,8 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   Future<QueryResult<TRes>> requestPage(PaginatedArgs args);
 
   /// Method mapping the page to a list of items.
-  PaginatedResponse<TData, TItem> onPageResult(TRes page);
+  /* PaginatedResponse<TData, TItem> */
+  PageResponse<TItem> onPageResult(TRes page);
 
   /// Refreshes the list.
   Future<void> refresh() => fetchNextPage(0, refresh: true);

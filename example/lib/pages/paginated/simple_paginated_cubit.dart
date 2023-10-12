@@ -85,12 +85,8 @@ class SimplePaginatedCubit
   }
 
   @override
-  PaginatedResponse<AdditionalData, User> onPageResult(Page<User> page) {
-    return PaginatedResponse(
-      items: state.isFirstPage ? page.items : [...state.items, ...page.items],
-      hasNextPage: page.hasNextPage,
-      data: state.data,
-    );
+  PageResponse<User> onPageResult(Page<User> page) {
+    return (items: page.items, hasNextPage: page.hasNextPage);
   }
 
   Future<void> onFilterPressed(Filter filter) async {
