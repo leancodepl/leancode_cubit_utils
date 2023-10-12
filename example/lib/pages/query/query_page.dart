@@ -23,47 +23,6 @@ class UserQueryCubit extends QueryCubit<User, User> {
   User map(User data) => data;
 }
 
-class QueryScreen extends StatelessWidget {
-  const QueryScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => UserQueryCubit(
-        cqrs: context.read<Cqrs>(),
-        userId: 'success',
-      )..get(),
-      child: const QueryPage(),
-    );
-  }
-}
-
-class QueryPage extends StatelessWidget {
-  const QueryPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Simple request page')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: RequestCubitBuilder(
-              requestCubit: context.read<UserQueryCubit>(),
-              builder: (context, data) => Text('${data.name} ${data.surname}'),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: context.read<UserQueryCubit>().refresh,
-            child: const Text('Refresh'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class QueryHookScreen extends StatelessWidget {
   const QueryHookScreen({super.key});
 
@@ -98,6 +57,47 @@ class QueryHookPage extends HookWidget {
           ),
           ElevatedButton(
             onPressed: userCubit.refresh,
+            child: const Text('Refresh'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class QueryScreen extends StatelessWidget {
+  const QueryScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => UserQueryCubit(
+        cqrs: context.read<Cqrs>(),
+        userId: 'success',
+      )..get(),
+      child: const QueryPage(),
+    );
+  }
+}
+
+class QueryPage extends StatelessWidget {
+  const QueryPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Simple request page')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: RequestCubitBuilder(
+              requestCubit: context.read<UserQueryCubit>(),
+              builder: (context, data) => Text('${data.name} ${data.surname}'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: context.read<UserQueryCubit>().refresh,
             child: const Text('Refresh'),
           ),
         ],
