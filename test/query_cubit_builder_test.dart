@@ -53,7 +53,7 @@ void main() {
       await tester.pumpWidget(
         TestPage(
           child: RequestCubitBuilder(
-            requestCubit: queryCubit,
+            cubit: queryCubit,
             builder: (context, data) => Text(data),
           ),
         ),
@@ -74,7 +74,7 @@ void main() {
       await tester.pumpWidget(
         TestPage(
           child: RequestCubitBuilder(
-            requestCubit: queryCubit,
+            cubit: queryCubit,
             onLoading: (context) => const Text('Custom loading...'),
             onError: (context, error, retry) => const Text('Custom error!'),
             builder: (context, data) => Text(data),
@@ -97,7 +97,7 @@ void main() {
       await tester.pumpWidget(
         TestPage(
           child: RequestCubitBuilder(
-            requestCubit: queryCubit,
+            cubit: queryCubit,
             builder: (context, data) => Text('Success, data: $data'),
           ),
         ),
@@ -115,7 +115,7 @@ void main() {
       await tester.pumpWidget(
         TestPage(
           child: RequestCubitBuilder(
-            requestCubit: queryCubit,
+            cubit: queryCubit,
             builder: (context, data) => Text('Success, data: $data'),
           ),
         ),
