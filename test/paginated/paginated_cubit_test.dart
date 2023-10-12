@@ -286,14 +286,26 @@ void main() {
 
       blocTest<TestPreRequestPaginatedCubit, TestPreRequestPaginatedState>(
         'runs pre-request once before the first page is loaded when preRequestMode is once',
+        setUp: () {
+          when(mockedApi.getTypes).thenAnswer(
+            (_) async => const QuerySuccess(CityType.values),
+          );
+          when(() => mockedApi.getCities(any(), any())).thenAnswer(
+            (_) async => QuerySuccess(
+              Page(
+                items: api.cities.take(20).toList(),
+                hasNextPage: true,
+              ),
+            ),
+          );
+        },
         build: () => TestPreRequestPaginatedCubit(
           mockedApi,
           preRequest: preRequest,
         ),
         act: (cubit) async {
-          unawaited(cubit.run());
-          await Future<void>.delayed(const Duration(milliseconds: 100));
-          unawaited(cubit.run());
+          await cubit.run();
+          await cubit.run();
         },
         verify: (_) {
           verify(mockedApi.getTypes).called(1);

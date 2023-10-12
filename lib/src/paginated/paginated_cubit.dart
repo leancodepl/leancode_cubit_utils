@@ -280,7 +280,6 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   Future<QueryResult<TRes>> requestPage(PaginatedArgs args);
 
   /// Method mapping the page to a list of items.
-  /* PaginatedResponse<TData, TItem> */
   PageResponse<TItem> onPageResult(TRes page);
 
   /// Refreshes the list.
