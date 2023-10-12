@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:cqrs/cqrs.dart';
 import 'package:example/cqrs/cqrs.dart';
 import 'package:example/pages/home_page.dart';
-import 'package:example/pages/paginated_cubit_page.dart';
-import 'package:example/pages/simple_query_page.dart';
+import 'package:example/pages/paginated/paginated_cubit_page.dart';
+import 'package:example/pages/query/query_page.dart';
 import 'package:flutter/material.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:logging/logging.dart';
@@ -45,20 +45,38 @@ void main() {
   runApp(
     Provider<Cqrs>.value(
       value: cqrs,
-      child: QueryConfigProvider(
-        requestMode: RequestMode.replace,
-        onLoading: (BuildContext context) => const CircularProgressIndicator(),
-        onError: (
-          BuildContext context,
-          QueryErrorState<dynamic> error,
-          VoidCallback? onErrorCallback,
-        ) {
-          return const Text(
-            'Error',
-            style: TextStyle(color: Colors.red),
-          );
-        },
-        child: const MainApp(),
+      child: PaginatedLayoutConfigProvider(
+        onFirstPageLoading: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        onFirstPageError: (context, error, retry) => Error(
+          retry: retry,
+          error: error,
+        ),
+        onNextPageLoading: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        onNextPageError: (context, error, retry) => Error(
+          retry: retry,
+          error: error,
+        ),
+        onEmptyState: (context) => const Center(child: Text('No items')),
+        child: QueryConfigProvider(
+          requestMode: RequestMode.replace,
+          onLoading: (BuildContext context) =>
+              const CircularProgressIndicator(),
+          onError: (
+            BuildContext context,
+            QueryErrorState<dynamic> error,
+            VoidCallback? onErrorCallback,
+          ) {
+            return const Text(
+              'Error',
+              style: TextStyle(color: Colors.red),
+            );
+          },
+          child: const MainApp(),
+        ),
       ),
     ),
   );
@@ -72,9 +90,39 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const SimpleQueryHookScreen(),
+        Routes.simpleQuery: (_) => const QueryHookScreen(),
         Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
       },
     );
+  }
+}
+
+class Error extends StatelessWidget {
+  const Error({
+    super.key,
+    this.retry,
+    required this.error,
+  });
+
+  final VoidCallback? retry;
+  final PaginatedStateError error;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = switch (error) {
+      PaginatedStateQueryError(:final error) => error.name,
+      PaginatedStateException(:final exception) => exception.toString(),
+      _ => '',
+    };
+
+    return retry != null
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(message),
+              ElevatedButton(onPressed: retry, child: const Text('Retry')),
+            ],
+          )
+        : Text(message);
   }
 }

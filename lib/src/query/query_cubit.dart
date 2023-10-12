@@ -4,7 +4,7 @@ import 'package:async/async.dart';
 import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:leancode_cubit_utils/src/query_cubit_config.dart';
+import 'package:leancode_cubit_utils/src/query/query_cubit_config.dart';
 import 'package:logging/logging.dart';
 
 /// Signature for a function that returns a [QueryResult].
@@ -84,11 +84,14 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
       _operation = CancelableOperation.fromFuture(
         callback(),
         onCancel: () {
-          _logger.info('Previous operation is not completed. Cancelling.');
+          _logger.info('Canceling previous operation.');
         },
       );
 
-      final result = await _operation?.value;
+      final result = await _operation?.valueOrCancellation();
+      if (result == null) {
+        return;
+      }
 
       if (result case QuerySuccess(:final data)) {
         _logger.info('Query success. Data: $data');
