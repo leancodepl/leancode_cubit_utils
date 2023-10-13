@@ -28,8 +28,8 @@ class TestQueryCubit extends QueryCubit<String, String> {
   }
 
   @override
-  Future<QueryErrorState<String>> onQueryError(
-    QueryErrorState<String> errorState,
+  Future<RequestErrorState<String, QueryError>> handleError(
+    RequestErrorState<String, QueryError> errorState,
   ) async {
     if (errorState.error == QueryError.unknown) {
       throw Exception('onQueryError failed');

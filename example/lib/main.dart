@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 class Routes {
   static const home = '/';
   static const simpleQuery = '/simple-query';
+  static const simpleQueryHook = '/simple-query-hook';
   static const paginatedCubit = '/paginated-cubit';
 }
 
@@ -61,13 +62,13 @@ void main() {
           error: error,
         ),
         onEmptyState: (context) => const Center(child: Text('No items')),
-        child: QueryConfigProvider(
+        child: RequestLayoutConfigProvider(
           requestMode: RequestMode.replace,
           onLoading: (BuildContext context) =>
               const CircularProgressIndicator(),
           onError: (
             BuildContext context,
-            QueryErrorState<dynamic> error,
+            RequestErrorState<dynamic, dynamic> error,
             VoidCallback? onErrorCallback,
           ) {
             return const Text(
@@ -90,7 +91,8 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const QueryHookScreen(),
+        Routes.simpleQuery: (_) => const QueryScreen(),
+        Routes.simpleQueryHook: (_) => const QueryHookScreen(),
         Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
       },
     );

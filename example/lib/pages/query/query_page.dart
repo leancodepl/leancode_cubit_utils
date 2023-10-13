@@ -9,17 +9,59 @@ class UserQueryCubit extends QueryCubit<User, User> {
   UserQueryCubit({
     required this.cqrs,
     required this.userId,
-  }) : super('UserQueryCubit');
+  }) : super('UserRequestCubit');
 
   final Cqrs cqrs;
   final String userId;
 
   @override
-  User map(User data) => data;
-
-  @override
   Future<QueryResult<User>> request() {
     return cqrs.get(UserQuery(userId: userId));
+  }
+
+  @override
+  User map(User data) => data;
+}
+
+class QueryHookScreen extends StatelessWidget {
+  const QueryHookScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const QueryHookPage();
+  }
+}
+
+class QueryHookPage extends HookWidget {
+  const QueryHookPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userCubit = useQueryCubit(
+      () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
+      loggerTag: 'UserQueryCubit',
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Simple request page'),
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: RequestCubitBuilder(
+              cubit: userCubit,
+              builder: (context, data) => Text('${data.name} ${data.surname}'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: userCubit.refresh,
+            child: const Text('Refresh'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -38,61 +80,19 @@ class QueryScreen extends StatelessWidget {
   }
 }
 
-class QueryHookScreen extends StatelessWidget {
-  const QueryHookScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const QueryHookPage();
-  }
-}
-
-class QueryHookPage extends HookWidget {
-  const QueryHookPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final userQueryCubit = useQueryCubit<User>(
-      () => context.read<Cqrs>().get(UserQuery(userId: 'success')),
-      loggerTag: 'UserQueryCubit',
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Simple query page'),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: QueryCubitBuilder<User>(
-              queryCubit: userQueryCubit,
-              builder: (context, data) => Text('${data.name} ${data.surname}'),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: userQueryCubit.refresh,
-            child: const Text('Refresh'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class QueryPage extends StatelessWidget {
   const QueryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Simple query page')),
+      appBar: AppBar(title: const Text('Simple request page')),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: QueryCubitBuilder<User>(
-              queryCubit: context.read<UserQueryCubit>(),
+            child: RequestCubitBuilder(
+              cubit: context.read<UserQueryCubit>(),
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
           ),

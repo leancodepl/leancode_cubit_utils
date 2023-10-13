@@ -20,6 +20,10 @@ class HomePage extends StatelessWidget {
               child: const Text('Simple query page'),
             ),
             ElevatedButton(
+              onPressed: () => pushNamed(Routes.simpleQueryHook),
+              child: const Text('Simple query hook page'),
+            ),
+            ElevatedButton(
               onPressed: () => pushNamed(Routes.paginatedCubit),
               child: const Text('Paginated cubit page'),
             ),
