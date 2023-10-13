@@ -107,24 +107,18 @@ class Error extends StatelessWidget {
   });
 
   final VoidCallback? retry;
-  final PaginatedStateError error;
+  final Object? error;
 
   @override
   Widget build(BuildContext context) {
-    final message = switch (error) {
-      PaginatedStateQueryError(:final error) => error.name,
-      PaginatedStateException(:final exception) => exception.toString(),
-      _ => '',
-    };
-
     return retry != null
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(message),
+              Text(error.toString()),
               ElevatedButton(onPressed: retry, child: const Text('Retry')),
             ],
           )
-        : Text(message);
+        : Text(error.toString());
   }
 }

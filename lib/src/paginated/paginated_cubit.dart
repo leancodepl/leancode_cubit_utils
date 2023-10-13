@@ -1,34 +1,13 @@
 import 'dart:async';
 
 import 'package:async/async.dart';
-import 'package:cqrs/cqrs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_config.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
+import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
+import 'package:leancode_cubit_utils/src/paginated/request_result.dart';
 import 'package:logging/logging.dart';
 
 export 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
-
-/// Enum defining weather the pre-request should be run once or each time the
-/// first page is loaded.
-enum PreRequestMode {
-  /// The pre-request should be run once before the first page is loaded.
-  once,
-
-  /// The pre-request should be run each time the first page is loaded.
-  each,
-}
-
-/// Base class for all pre-request use cases.
-abstract class PreRequest<TRes, TData, TItem> {
-  /// Executes the use case.
-  Future<QueryResult<TRes>> request(PaginatedState<TData, TItem> state);
-
-  /// Map newly loaded data.
-  TData map(TRes res, PaginatedState<TData, TItem> state);
-}
 
 /// A response containing a list of items and a flag indicating whether there is
 /// a next page.
@@ -67,13 +46,13 @@ class PaginatedResponse<TData, TItem> {
 }
 
 /// Base class for all paginated cubits.
-abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
+abstract class PaginatedCubit<TData, TRes, TResData, TItem>
     extends Cubit<PaginatedState<TData, TItem>> {
   /// Creates a new [PaginatedCubit] with the given [loggerTag], [preRequest]
   /// and [config].
   PaginatedCubit({
     required String loggerTag,
-    PreRequest<TPreRequestRes, TData, TItem>? preRequest,
+    PreRequest<dynamic, dynamic, TData, TItem>? preRequest,
     PaginatedConfig? config,
   })  : logger = Logger(loggerTag),
         _preRequest = preRequest,
@@ -91,7 +70,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   final Logger logger;
 
   final PaginatedConfig _config;
-  final PreRequest<TPreRequestRes, TData, TItem>? _preRequest;
+  final PreRequest<dynamic, dynamic, TData, TItem>? _preRequest;
   bool _wasPreRequestRun = false;
 
   CancelableOperation<dynamic>? _cancelableOperation;
@@ -151,7 +130,7 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
       if (state.args.searchQuery.isNotEmpty) {
         logger.info('Searching for ${state.args.searchQuery}');
       }
-      final result = await _runCancelableOperation<QueryResult<TRes>>(
+      final result = await _runCancelableOperation<TRes>(
         requestPage(state.args),
         onCancel: () => logger.info('Canceling previous request.'),
       );
@@ -159,7 +138,9 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
         return;
       }
 
-      if (result case QuerySuccess(:final data)) {
+      final resData = handleResponse(result);
+
+      if (resData case Success(:final data)) {
         final page = onPageResult(data);
         logger.info(
           'Page loaded. pageNumber: $pageNumber. hasNextPage: ${page.hasNextPage}. Page size: ${page.items.length}',
@@ -172,36 +153,21 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
                 : [...state.items, ...page.items],
             hasNextPage: page.hasNextPage,
             data: page.data,
-            error: const PaginatedStateNoneError(),
+            nullError: true,
           ),
         );
-      } else if (result case QueryFailure(:final error)) {
-        logger.severe('Error loading page, error: $error');
-        emit(
-          await onQueryError(
-            state.copyWithError(),
-            PaginatedStateQueryError(error),
-          ),
-        );
+      } else if (resData case Failure(:final error)) {
+        emit(await handleError(state.copyWithError(error)));
       }
     } catch (e, s) {
       logger.severe('Error loading page, error: $e, stacktrace: $s');
       try {
-        emit(
-          await onQueryError(
-            state.copyWithError(),
-            PaginatedStateException(e, s),
-          ),
-        );
+        emit(await handleError(state.copyWithError(e)));
       } catch (e, s) {
         logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
         );
-        emit(
-          state.copyWithError(
-            error: PaginatedStateException(e, s),
-          ),
-        );
+        emit(state.copyWithError(e));
       }
     }
   }
@@ -245,51 +211,18 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   Future<bool> _runPreRequest() async {
     try {
       logger.info('Running pre-request.');
-      final result = await _runCancelableOperation<QueryResult<TPreRequestRes>>(
-        _preRequest!.request(state),
+      final result = await _runCancelableOperation(
+        _preRequest!.run(state),
         onCancel: () => logger.info('Canceling previous pre-request.'),
       );
       if (result == null) {
         return false;
       }
-      if (result case QuerySuccess(:final data)) {
-        logger.info('Pre-request completed.');
-
-        final mappedPreRequest = _preRequest?.map(data, state);
-        emit(state.copyWith(data: mappedPreRequest));
-        return true;
-      } else if (result case QueryFailure(:final error)) {
-        logger.severe('Error running pre-request, error: $error');
-        emit(
-          await onQueryError(
-            state.copyWith(type: PaginatedStateType.firstPageError),
-            PaginatedStateQueryError(error),
-          ),
-        );
-        return false;
-      } else {
-        return false;
-      }
+      emit(result);
+      return !result.hasError;
     } catch (e, s) {
       logger.severe('Error running pre-request, error: $e, stacktrace: $s');
-      try {
-        emit(
-          await onQueryError(
-            state.copyWith(type: PaginatedStateType.firstPageError),
-            PaginatedStateException(e, s),
-          ),
-        );
-      } catch (e, s) {
-        logger.severe(
-          'Processing error failed. Exception: $e. Stack trace: $s',
-        );
-        emit(
-          state.copyWithError(
-            error: PaginatedStateException(e, s),
-          ),
-        );
-      }
-      return false;
+      rethrow;
     }
   }
 
@@ -310,19 +243,21 @@ abstract class PaginatedCubit<TPreRequestRes, TData, TRes, TItem>
   }
 
   /// Method getting the page from the server.
-  Future<QueryResult<TRes>> requestPage(PaginatedArgs args);
+  Future<TRes> requestPage(PaginatedArgs args);
+
+  /// Method handling the response from the server.
+  RequestResult<TResData> handleResponse(TRes res);
 
   /// Method mapping the page to a list of items.
-  PaginatedResponse<TData, TItem> onPageResult(TRes page);
+  PaginatedResponse<TData, TItem> onPageResult(TResData page);
 
   /// Refreshes the list.
   Future<void> refresh() => fetchNextPage(0, refresh: true);
 
   /// Allows to handle errors in a custom way.
-  Future<PaginatedState<TData, TItem>> onQueryError(
+  Future<PaginatedState<TData, TItem>> handleError(
     PaginatedState<TData, TItem> state,
-    PaginatedStateError error,
   ) async {
-    return state.copyWith(error: error);
+    return state;
   }
 }

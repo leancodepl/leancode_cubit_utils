@@ -551,7 +551,7 @@ void main() {
           PaginatedState(
             type: PaginatedStateType.firstPageError,
             args: defaultArgs,
-            error: const PaginatedStateQueryError(QueryError.network),
+            error: QueryError.network,
           ),
         ],
       );
@@ -583,7 +583,7 @@ void main() {
             items: api.cities.take(20).toList(),
             args: defaultArgs.copyWith(pageNumber: 1),
             hasNextPage: true,
-            error: const PaginatedStateQueryError(QueryError.network),
+            error: QueryError.network,
           ),
         ],
       );
@@ -608,7 +608,7 @@ void main() {
           PaginatedState(
             type: PaginatedStateType.firstPageError,
             args: defaultArgs,
-            error: const PaginatedStateQueryError(QueryError.network),
+            error: QueryError.network,
           ),
         ],
       );

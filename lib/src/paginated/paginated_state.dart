@@ -1,9 +1,8 @@
-import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
-
+/* 
 /// Base class for all error states of a PaginatedCubit.
-sealed class PaginatedStateError with EquatableMixin {
+sealed class PaginatedStateError<T> with EquatableMixin implements Exception {
   /// Creates a new [PaginatedStateError].
   const PaginatedStateError();
 
@@ -12,7 +11,7 @@ sealed class PaginatedStateError with EquatableMixin {
 }
 
 /// A state indicating that there is no error.
-class PaginatedStateNoneError extends PaginatedStateError {
+class PaginatedStateNoneError<T> extends PaginatedStateError<T> {
   /// Creates a new [PaginatedStateNoneError].
   const PaginatedStateNoneError();
 
@@ -24,12 +23,12 @@ class PaginatedStateNoneError extends PaginatedStateError {
 }
 
 /// A state indicating that the query failed.
-class PaginatedStateQueryError extends PaginatedStateError {
-  /// Creates a new [PaginatedStateQueryError].
-  const PaginatedStateQueryError(this.error);
+class PaginatedStateRequestError<T> extends PaginatedStateError<T> {
+  /// Creates a new [PaginatedStateRequestError].
+  const PaginatedStateRequestError(this.error);
 
   /// The error.
-  final QueryError error;
+  final T error;
 
   @override
   bool get hasError => true;
@@ -39,7 +38,7 @@ class PaginatedStateQueryError extends PaginatedStateError {
 }
 
 /// A state indicating that there was an exception.
-class PaginatedStateException extends PaginatedStateError {
+class PaginatedStateException<T> extends PaginatedStateError<T> {
   /// Creates a new [PaginatedStateException].
   const PaginatedStateException(this.exception, this.stackTrace);
 
@@ -54,7 +53,7 @@ class PaginatedStateException extends PaginatedStateError {
 
   @override
   List<Object?> get props => [exception, stackTrace];
-}
+} */
 
 /// Type of the [PaginatedState].
 enum PaginatedStateType {
@@ -95,7 +94,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     this.type = PaginatedStateType.initial,
     this.items = const [],
     this.hasNextPage = false,
-    this.error = const PaginatedStateNoneError(),
+    this.error,
     required this.args,
     this.data,
   });
@@ -110,7 +109,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   final bool hasNextPage;
 
   /// The error.
-  final PaginatedStateError error;
+  final Object? error;
 
   /// Arguments of the request.
   final PaginatedArgs args;
@@ -119,7 +118,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   final TData? data;
 
   /// A flag indicating whether the state has an error.
-  bool get hasError => error.hasError;
+  bool get hasError => error != null;
 
   /// A flag indicating whether the current page is the first page.
   bool get isFirstPage => args.isFirstPage;
@@ -135,9 +134,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
       ];
 
   /// Copies the [PaginatedState] with the given error.
-  PaginatedState<TData, TItem> copyWithError({
-    PaginatedStateError? error,
-  }) {
+  PaginatedState<TData, TItem> copyWithError([Object? error]) {
     return copyWith(
       type: isFirstPage
           ? PaginatedStateType.firstPageError
@@ -153,7 +150,8 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     bool? hasNextPage,
     PaginatedArgs? args,
     TData? data,
-    PaginatedStateError? error,
+    Object? error,
+    bool nullError = false,
   }) {
     return PaginatedState<TData, TItem>(
       type: type ?? this.type,
@@ -161,7 +159,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
       hasNextPage: hasNextPage ?? this.hasNextPage,
       args: args ?? this.args,
       data: data ?? this.data,
-      error: error ?? this.error,
+      error: nullError ? null : error ?? this.error,
     );
   }
 }
