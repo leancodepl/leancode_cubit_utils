@@ -24,7 +24,7 @@ typedef PaginatedWidgetBuilder<TData, TItem> = Widget Function(
 /// A builder for the error state widget in PaginatedCubitLayout.
 typedef PaginatedErrorBuilder<TItem> = Widget Function(
   BuildContext context,
-  PaginatedStateError error,
+  Object? error,
   VoidCallback? retry,
 );
 
@@ -47,7 +47,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   });
 
   /// The cubit that handles the paginated data.
-  final PaginatedCubit<dynamic, TData, dynamic, TItem> cubit;
+  final PaginatedCubit<TData, dynamic, dynamic, TItem> cubit;
 
   /// A builder for a paginated list item.
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
@@ -84,7 +84,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         if (headerBuilder != null) headerBuilder!(context, cubit.state),
-        BlocBuilder<PaginatedCubit<dynamic, TData, dynamic, TItem>,
+        BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
             PaginatedState<TData, TItem>>(
           bloc: cubit,
           builder: (context, state) {
@@ -149,10 +149,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     );
   }
 
-  Widget _buildFirstPageError(
-    BuildContext context,
-    PaginatedStateError error,
-  ) {
+  Widget _buildFirstPageError(BuildContext context, Object? error) {
     final config = context.read<PaginatedLayoutConfig>();
     final callback = firstPageErrorBuilder ?? config.onFirstPageError;
     return SliverFillRemaining(

@@ -1,23 +1,15 @@
-import 'package:cqrs/src/cqrs_result.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
-import 'package:leancode_cubit_utils/src/paginated/paginated_cubit.dart';
+import 'package:cqrs/cqrs.dart';
+import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 import '../utils/mocked_api.dart';
 
-class TestPaginatedCubit extends PaginatedCubit<void, void, Page<City>, City> {
+class TestPaginatedCubit extends PaginatedQueryCubit<void, Page<City>, City> {
   TestPaginatedCubit(
     this.api, {
     super.config,
   }) : super(loggerTag: 'TestPaginatedCubit');
-  final ApiBase api;
 
-  @override
-  PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
-    return PaginatedResponse.append(
-      items: page.items,
-      hasNextPage: page.hasNextPage,
-    );
-  }
+  final ApiBase api;
 
   @override
   Future<QueryResult<Page<City>>> requestPage(PaginatedArgs args) {
@@ -27,12 +19,28 @@ class TestPaginatedCubit extends PaginatedCubit<void, void, Page<City>, City> {
       searchQuery: args.searchQuery,
     );
   }
+
+  @override
+  PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
+    return PaginatedResponse.append(
+      items: page.items,
+      hasNextPage: page.hasNextPage,
+    );
+  }
 }
 
-class TestPreRequest extends PreRequest<List<CityType>, List<CityType>, City> {
+class TestPreRequest
+    extends QueryPreRequest<List<CityType>, List<CityType>, City> {
   TestPreRequest(this.api);
 
   final ApiBase api;
+
+  @override
+  Future<QueryResult<List<CityType>>> request(
+    PaginatedState<List<CityType>, City> state,
+  ) {
+    return api.getTypes();
+  }
 
   @override
   List<CityType> map(
@@ -41,17 +49,10 @@ class TestPreRequest extends PreRequest<List<CityType>, List<CityType>, City> {
   ) {
     return res;
   }
-
-  @override
-  Future<QueryResult<List<CityType>>> request(
-    PaginatedState<List<CityType>, City> state,
-  ) {
-    return api.getTypes();
-  }
 }
 
 class TestPreRequestPaginatedCubit
-    extends PaginatedCubit<List<CityType>, List<CityType>, Page<City>, City> {
+    extends PaginatedQueryCubit<List<CityType>, Page<City>, City> {
   TestPreRequestPaginatedCubit(
     this.api, {
     super.preRequest,

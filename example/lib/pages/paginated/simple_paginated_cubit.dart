@@ -34,7 +34,7 @@ class AdditionalData with EquatableMixin {
   }
 }
 
-class FiltersPreRequest extends PreRequest<Filters, AdditionalData, User> {
+class FiltersPreRequest extends QueryPreRequest<Filters, AdditionalData, User> {
   FiltersPreRequest({
     required this.api,
   });
@@ -64,7 +64,7 @@ class FiltersPreRequest extends PreRequest<Filters, AdditionalData, User> {
 }
 
 class SimplePaginatedCubit
-    extends PaginatedCubit<Filters, AdditionalData, Page<User>, User> {
+    extends PaginatedQueryCubit<AdditionalData, Page<User>, User> {
   SimplePaginatedCubit(this.api)
       : super(
           loggerTag: 'SimplePaginatedCubit',
