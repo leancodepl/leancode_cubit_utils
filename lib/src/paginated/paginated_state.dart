@@ -1,59 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_args.dart';
-/* 
-/// Base class for all error states of a PaginatedCubit.
-sealed class PaginatedStateError<T> with EquatableMixin implements Exception {
-  /// Creates a new [PaginatedStateError].
-  const PaginatedStateError();
-
-  /// A flag indicating whether the state has an error.
-  bool get hasError;
-}
-
-/// A state indicating that there is no error.
-class PaginatedStateNoneError<T> extends PaginatedStateError<T> {
-  /// Creates a new [PaginatedStateNoneError].
-  const PaginatedStateNoneError();
-
-  @override
-  bool get hasError => false;
-
-  @override
-  List<Object?> get props => [];
-}
-
-/// A state indicating that the query failed.
-class PaginatedStateRequestError<T> extends PaginatedStateError<T> {
-  /// Creates a new [PaginatedStateRequestError].
-  const PaginatedStateRequestError(this.error);
-
-  /// The error.
-  final T error;
-
-  @override
-  bool get hasError => true;
-
-  @override
-  List<Object?> get props => [error];
-}
-
-/// A state indicating that there was an exception.
-class PaginatedStateException<T> extends PaginatedStateError<T> {
-  /// Creates a new [PaginatedStateException].
-  const PaginatedStateException(this.exception, this.stackTrace);
-
-  /// The exception.
-  final Object exception;
-
-  /// The stack trace.
-  final StackTrace stackTrace;
-
-  @override
-  bool get hasError => true;
-
-  @override
-  List<Object?> get props => [exception, stackTrace];
-} */
 
 /// Type of the [PaginatedState].
 enum PaginatedStateType {
