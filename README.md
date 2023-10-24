@@ -125,6 +125,23 @@ RequestLayoutConfigProvider(
   )
 ```
 
+## `useQueryCubit`, `useArgsQueryCubit`
+
+Sometimes, there is no need to map the query response in any way. In such cases, there's no necessity to implement a cubit extending `QueryCubit`/`ArgsQueryCubit`. Instead, you can use one of the provided hooks, `useQueryCubit` or `useArgsQueryCubit`. Simply provide the request to be executed, and you will receive a cubit that you can then use in the same way by passing it to the `RequestCubitBuilder`.
+
+```dart
+final queryCubit = useQueryCubit(
+    () => cqrs.get(ProjectDetails(id: id)),
+);
+
+final argsQueryCubit = useArgsQueryCubit(
+    (args) => cqrs.get(AllProjects(sortByNameDescending: args.isDescending)),
+);
+```
+
+You may still configure `requestMode` and `loggerTag` by passing optional parameters. In `useQueryCubit` you can also define whether you want to invoke the request right away or not by passing `callOnCreate` flag. 
+
+
 ## Pagination Utils
 TODO
 
