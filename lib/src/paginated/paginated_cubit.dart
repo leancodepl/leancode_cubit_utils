@@ -4,7 +4,6 @@ import 'package:async/async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
-import 'package:leancode_cubit_utils/src/paginated/request_result.dart';
 import 'package:logging/logging.dart';
 
 export 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';

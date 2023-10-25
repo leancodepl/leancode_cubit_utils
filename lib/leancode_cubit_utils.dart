@@ -10,6 +10,7 @@ export 'src/paginated/paginated_layout_config.dart';
 export 'src/paginated/paginated_query_cubit.dart';
 export 'src/paginated/pre_request/pre_request.dart';
 export 'src/paginated/pre_request/query_pre_request.dart';
+export 'src/paginated/request_result.dart';
 export 'src/request/query_cubit.dart';
 export 'src/request/request_config_provider.dart';
 export 'src/request/request_cubit.dart';
