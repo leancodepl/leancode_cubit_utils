@@ -3,9 +3,9 @@ import 'package:leancode_cubit_utils/src/query/query_cubit.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
 /// Implementation of [QueryCubit] created in order to be used by [useQueryCubit].
-class SimpleQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
-  /// Creates a new [SimpleQueryCubit].
-  SimpleQueryCubit(
+class _HookQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
+  /// Creates a new [_HookQueryCubit].
+  _HookQueryCubit(
     super.loggerTag,
     this._customRequest, {
     super.requestMode,
@@ -21,7 +21,7 @@ class SimpleQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
   Future<QueryResult<TOut>> request() => _customRequest();
 }
 
-/// Creates a new [SimpleQueryCubit] with the given [loggerTag], [query] and
+/// Creates a new [_HookQueryCubit] with the given [loggerTag], [query] and
 /// [requestMode].
 QueryCubit<TOut, TOut> useQueryCubit<TOut>(
   QueryRequest<TOut> query, {
@@ -32,7 +32,7 @@ QueryCubit<TOut, TOut> useQueryCubit<TOut>(
 }) {
   return useBloc(
     () {
-      final cubit = SimpleQueryCubit<TOut>(
+      final cubit = _HookQueryCubit<TOut>(
         loggerTag,
         query,
         requestMode: requestMode,
