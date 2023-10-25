@@ -41,6 +41,16 @@ class PaginatedResponse<TData, TItem> {
   /// the previous data is replaced in the state.
   final TData? data;
 
+  /// Calculates whether there is a next page.
+  static bool calculateHasNextPage({
+    required int firstPageIndex,
+    required int pageSize,
+    required int pageNumber,
+    required int totalCount,
+  }) {
+    return (pageNumber - firstPageIndex + 1) * pageSize < totalCount;
+  }
+
   /// A flag indicating whether there is a next page.
   final bool hasNextPage;
 }
