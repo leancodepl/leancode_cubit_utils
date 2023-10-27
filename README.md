@@ -28,7 +28,8 @@ The collection of utilities in the package can be divided into two subsets. [Sin
 `QueryCubit` is used to execute a single CQRS query. Example implementation of QueryCubit looks like this:
 
 ```dart
-//QueryCubit has two generic arguments, TRes and TOut. TRes specifies what the Query returns, while TOut determines which model we want to emit as data in the state.
+// QueryCubit has two generic arguments, TRes and TOut. TRes specifies what the Query returns, while TOut determines which model we 
+// want to emit as data in the state.
 class ProjectDetailsCubit extends QueryCubit<ProjectDetailsDTO, ProjectDetailsDTO> {
   ProjectDetailsCubit({
     required this.cqrs,
@@ -39,13 +40,13 @@ class ProjectDetailsCubit extends QueryCubit<ProjectDetailsDTO, ProjectDetailsDT
   final String id;
 
   @override
-  //This method allows to map the given TRes into TOut. 
-  //In this case we don't want to change it, so we simply return the data.
+  // This method allows to map the given TRes into TOut. 
+  // In this case we don't want to change it, so we simply return the data.
   ProjectDetailsDTO map(ProjectDetailsDTO data) => data;
 
   @override
-  //In this method we should perform the query and return it in form of QueryResult<TRes>.
-  //QueryResult<TRes> is then internally handled by QueryCubit.
+  // In this method we should perform the query and return it in form of QueryResult<TRes>.
+  // QueryResult<TRes> is then internally handled by QueryCubit.
   Future<QueryResult<ProjectDetailsDTO>> request() {
     return cqrs.get(ProjectDetails(id: id));
   }
@@ -149,7 +150,7 @@ Pagination Utils were created to facilitate the creation of pages where the main
 
 Example implementation of `PaginatedQueryCubit` can look like this:
 ```dart
-class IdentitiesCubit extends PaginatedQueryCubit<void,
+class IdentitiesCubit extends PaginatedQueryCubit<List<Filter>,
 PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
     super.preRequest,
@@ -177,11 +178,12 @@ PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   PaginatedResponse<void, KratosIdentityDTO> onPageResult(
     PaginatedResult<KratosIdentityDTO> page,
   ) {
-    // Calculate if there is a next page
+    // Use cubit method to calculate if there is a next page
     final args = state.args;
-    final hasNextPage =
-        (args.pageNumber - args.firstPageIndex + 1) * args.pageSize <
-            page.totalCount;
+    final hasNextPage = calculateHasNextPage(
+      pageNumber: args.pageNumber,
+      totalCount: page.totalCount,
+      );
 
     // Return the response with the next page appended
     return PaginatedResponse.append(
@@ -199,13 +201,13 @@ You have to implement a body of two methods: `requestPage` and `onPageResult`. I
 The next step will be to use the `PaginatedCubitLayout` widget. It simplifies the construction of the layout for a paginated page.
 
 ### `PaginatedCubitLayout`
-`PaginatedCubitLayout` is a widget used for building a page featuring a paginated list, and fetching next pages while scrolling. It takes three required arguments:
+`PaginatedCubitLayout` is a widget used for building a page featuring a paginated list, and fetching next pages while scrolling. It takes two required arguments:
 
 - `cubit` - an instance of `PaginatedCubit`,
 - `itemBuilder` - builds a item widget from `TItem` object,
-- `separatorBuilder` - builds a separator widget.
 
 It also takes numerous optional builders:
+- `separatorBuilder` - builds a separator widget.
 - `headerBuilder` - builds a sliver widget on top the list which is scrolled together with the list,
 - `footerBuilder` - builds a sliver widget under the list which is scrolled together with the list,
 - `initialStateBuilder` - builds a widget that is displayed before the request for the first page is executed,
@@ -292,7 +294,7 @@ class IdentitiesCubit extends PaginatedQueryCubit<List<Filter>,
 PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
     super.config,
-    preRequest: FiltersPreRequest(cqrs: cqrs),//<--HERE
+    preRequest: FiltersPreRequest(cqrs: cqrs),// <--HERE
     required this.cqrs,
   }) : super(loggerTag: 'IdentitiesCubit');
 
