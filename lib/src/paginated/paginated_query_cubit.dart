@@ -10,6 +10,7 @@ abstract class PaginatedQueryCubit<TData, TRes, TItem>
     required super.loggerTag,
     super.preRequest,
     super.config,
+    super.initialData,
   });
 
   @override

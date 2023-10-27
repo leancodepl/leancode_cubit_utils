@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 /// A widget that rebuilds when the state of a PaginatedCubit changes.
-class PaginatedCubitBuilder<TData, TItem, TError> extends StatelessWidget {
+class PaginatedCubitBuilder<TData, TItem> extends StatelessWidget {
   /// Creates a new PaginatedCubitBuilder.
   const PaginatedCubitBuilder({
     super.key,

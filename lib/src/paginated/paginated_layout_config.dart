@@ -34,10 +34,7 @@ class PaginatedLayoutConfigProvider extends StatelessWidget {
   /// Creates a PaginatedLayoutConfigProvider.
   const PaginatedLayoutConfigProvider({
     super.key,
-    this.runDebounce,
-    this.pageSize,
-    this.searchBeginAt,
-    this.firstPageIndex,
+    this.config,
     required this.onNextPageLoading,
     required this.onNextPageError,
     required this.onFirstPageLoading,
@@ -47,16 +44,7 @@ class PaginatedLayoutConfigProvider extends StatelessWidget {
   });
 
   /// The default duration for run in PaginatedCubit when withDebounce is used.
-  final Duration? runDebounce;
-
-  /// The default page size used by all PaginatedCubits.
-  final int? pageSize;
-
-  /// The number of characters after which the search query will be sent.
-  final int? searchBeginAt;
-
-  /// The first page index.
-  final int? firstPageIndex;
+  final PaginatedConfig? config;
 
   /// A builder for the loading state of the next page.
   final WidgetBuilder onNextPageLoading;
@@ -78,12 +66,9 @@ class PaginatedLayoutConfigProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    PaginatedConfigProvider.config = PaginatedConfigProvider.config.copyWith(
-      pageSize: pageSize,
-      runDebounce: runDebounce,
-      searchBeginAt: searchBeginAt,
-      firstPageIndex: firstPageIndex,
-    );
+    if (config != null) {
+      PaginatedConfigProvider.config = config!;
+    }
 
     return Provider(
       create: (context) => PaginatedLayoutConfig(

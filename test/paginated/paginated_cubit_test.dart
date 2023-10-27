@@ -613,5 +613,46 @@ void main() {
         ],
       );
     });
+
+    group('calculateHasNextPage', () {
+      test('should use pageSize and firstPageIndex from default config', () {
+        final cubit = TestPaginatedCubit(mockedApi, config: PaginatedConfig());
+
+        //firstPageIndex = 0
+        //pageSize = 20
+        final hasNextPage = cubit.calculateHasNextPage(
+          pageNumber: 3,
+          totalCount: 100,
+        );
+
+        expect(hasNextPage, true);
+      });
+
+      test('correctly return false when all items were fetched', () {
+        final cubit = TestPaginatedCubit(mockedApi, config: PaginatedConfig());
+
+        //firstPageIndex = 0
+        //pageSize = 20
+        final hasNextPage = cubit.calculateHasNextPage(
+          pageNumber: 3,
+          totalCount: 60,
+        );
+
+        expect(hasNextPage, false);
+      });
+
+      test('correctly calculates hasNextPage when pageNumber equals 0', () {
+        final cubit = TestPaginatedCubit(mockedApi, config: PaginatedConfig());
+
+        //firstPageIndex = 0
+        //pageSize = 20
+        final hasNextPage = cubit.calculateHasNextPage(
+          pageNumber: 0,
+          totalCount: 19,
+        );
+
+        expect(hasNextPage, false);
+      });
+    });
   });
 }

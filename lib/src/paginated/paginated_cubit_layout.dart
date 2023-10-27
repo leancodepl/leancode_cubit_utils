@@ -35,7 +35,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     super.key,
     required this.cubit,
     required this.itemBuilder,
-    required this.separatorBuilder,
+    this.separatorBuilder,
     this.headerBuilder,
     this.footerBuilder,
     this.initialStateBuilder,
@@ -53,7 +53,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
 
   /// A builder for a separator between items.
-  final IndexedWidgetBuilder separatorBuilder;
+  final IndexedWidgetBuilder? separatorBuilder;
 
   /// An optional builder for the header.
   final PaginatedWidgetBuilder<TData, TItem>? headerBuilder;
@@ -183,7 +183,7 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
   const _PaginatedLayoutList({
     required this.state,
     required this.itemBuilder,
-    required this.separatorBuilder,
+    this.separatorBuilder,
     required this.fetchNextPage,
     required this.emptyState,
     this.bottom,
@@ -192,7 +192,7 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
 
   final PaginatedState<TData, TItem> state;
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
-  final IndexedWidgetBuilder separatorBuilder;
+  final IndexedWidgetBuilder? separatorBuilder;
 
   final VoidCallback fetchNextPage;
   final Widget emptyState;
@@ -205,13 +205,20 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
   Widget build(BuildContext context) {
     final items = state.items;
 
-    return items.isNotEmpty
-        ? SliverList.separated(
-            itemBuilder: _itemBuilder,
-            separatorBuilder: separatorBuilder,
-            itemCount: items.length + (bottom != null ? 1 : 0),
-          )
-        : emptyState;
+    if (items.isEmpty) {
+      return emptyState;
+    } else if (separatorBuilder != null) {
+      return SliverList.separated(
+        itemBuilder: _itemBuilder,
+        separatorBuilder: separatorBuilder!,
+        itemCount: items.length + (bottom != null ? 1 : 0),
+      );
+    } else {
+      return SliverList.builder(
+        itemBuilder: _itemBuilder,
+        itemCount: items.length + (bottom != null ? 1 : 0),
+      );
+    }
   }
 
   Widget _itemBuilder(

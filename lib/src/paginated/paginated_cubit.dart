@@ -4,7 +4,6 @@ import 'package:async/async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
-import 'package:leancode_cubit_utils/src/paginated/request_result.dart';
 import 'package:logging/logging.dart';
 
 export 'package:leancode_cubit_utils/src/paginated/paginated_state.dart';
@@ -54,6 +53,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
     required String loggerTag,
     PreRequest<dynamic, dynamic, TData, TItem>? preRequest,
     PaginatedConfig? config,
+    TData? initialData,
   })  : logger = Logger(loggerTag),
         _preRequest = preRequest,
         _config = config ?? PaginatedConfigProvider.config,
@@ -63,6 +63,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
             args: PaginatedArgs.fromConfig(
               config ?? PaginatedConfigProvider.config,
             ),
+            data: initialData,
           ),
         );
 
@@ -259,5 +260,14 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
     PaginatedState<TData, TItem> state,
   ) async {
     return state;
+  }
+
+  /// Calculates whether there is a next page.
+  bool calculateHasNextPage({
+    required int pageNumber,
+    required int totalCount,
+  }) {
+    return (pageNumber - _config.firstPageIndex + 1) * _config.pageSize <
+        totalCount;
   }
 }
