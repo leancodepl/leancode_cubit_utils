@@ -53,6 +53,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
     required String loggerTag,
     PreRequest<dynamic, dynamic, TData, TItem>? preRequest,
     PaginatedConfig? config,
+    TData? initialData,
   })  : logger = Logger(loggerTag),
         _preRequest = preRequest,
         _config = config ?? PaginatedConfigProvider.config,
@@ -62,6 +63,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
             args: PaginatedArgs.fromConfig(
               config ?? PaginatedConfigProvider.config,
             ),
+            data: initialData,
           ),
         );
 
