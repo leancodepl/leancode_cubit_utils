@@ -35,6 +35,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     super.key,
     required this.cubit,
     required this.itemBuilder,
+    this.controller,
     this.separatorBuilder,
     this.headerBuilder,
     this.footerBuilder,
@@ -51,6 +52,9 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   /// A builder for a paginated list item.
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
+
+  /// An optional scroll controller.
+  final ScrollController? controller;
 
   /// A builder for a separator between items.
   final IndexedWidgetBuilder? separatorBuilder;
@@ -82,6 +86,7 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
+      controller: controller,
       slivers: [
         if (headerBuilder != null) headerBuilder!(context, cubit.state),
         BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
