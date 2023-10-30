@@ -150,10 +150,8 @@ Pagination Utils were created to facilitate the creation of pages where the main
 
 Example implementation of `PaginatedQueryCubit` can look like this:
 ```dart
-class IdentitiesCubit extends PaginatedQueryCubit<List<Filter>,
-PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
+class IdentitiesCubit extends PaginatedQueryCubit<void, PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
-    super.preRequest,
     super.config,
     required this.cqrs,
   }) : super(loggerTag: 'IdentitiesCubit');
@@ -314,7 +312,6 @@ If you want to use this feature, define type of the data as the first generic ty
 class IdentitiesCubit extends PaginatedQueryCubit<List<KratosIdentityDTO>,
 PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
-    super.preRequest,
     super.config,
     required this.cqrs,
   }) : super(loggerTag: 'IdentitiesCubit');
