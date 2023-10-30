@@ -345,6 +345,7 @@ void main() {
           items: api.cities.take(20).toList(),
           args: defaultArgs,
           hasNextPage: true,
+          data: [],
         ),
         build: () => TestPreRequestPaginatedCubit(
           mockedApi,
@@ -604,11 +605,13 @@ void main() {
           PaginatedState(
             type: PaginatedStateType.firstPageLoading,
             args: defaultArgs,
+            data: [],
           ),
           PaginatedState(
             type: PaginatedStateType.firstPageError,
             args: defaultArgs,
             error: QueryError.network,
+            data: [],
           ),
         ],
       );
