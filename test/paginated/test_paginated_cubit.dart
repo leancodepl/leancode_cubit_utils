@@ -57,7 +57,7 @@ class TestPreRequestPaginatedCubit
     this.api, {
     super.preRequest,
     super.config,
-  }) : super(loggerTag: 'TestPaginatedCubit');
+  }) : super(loggerTag: 'TestPaginatedCubit', initialData: []);
   final ApiBase api;
 
   @override

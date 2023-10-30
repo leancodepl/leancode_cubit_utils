@@ -42,8 +42,12 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     this.hasNextPage = false,
     this.error,
     required this.args,
-    this.data,
-  });
+    TData? data,
+  })  : assert(
+          null is TData || data != null,
+          'You need to set TData to void or nullable type. If you want to use non-nullable type, you need to provide initial data.',
+        ),
+        data = data ?? (null as TData);
 
   /// The type of the state.
   final PaginatedStateType type;
@@ -61,7 +65,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   final PaginatedArgs args;
 
   /// Additional data.
-  final TData? data;
+  final TData data;
 
   /// A flag indicating whether the state has an error.
   bool get hasError => error != null;

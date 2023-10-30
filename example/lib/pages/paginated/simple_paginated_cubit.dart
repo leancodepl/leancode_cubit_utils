@@ -55,10 +55,9 @@ class FiltersPreRequest extends QueryPreRequest<Filters, AdditionalData, User> {
   ) {
     return AdditionalData(
       availableFilters: res.availableFilters,
-      selectedFilters: state.data?.selectedFilters
-              .where((e) => res.availableFilters.contains(e))
-              .toSet() ??
-          {},
+      selectedFilters: state.data.selectedFilters
+          .where((e) => res.availableFilters.contains(e))
+          .toSet(),
     );
   }
 }
@@ -79,7 +78,7 @@ class SimplePaginatedCubit
     return api.getUsers(
       args.pageNumber,
       args.pageSize,
-      selectedFilters: state.data?.selectedFilters.toList() ?? [],
+      selectedFilters: state.data.selectedFilters.toList(),
       searchQuery: args.searchQuery,
     );
   }
@@ -93,14 +92,14 @@ class SimplePaginatedCubit
   }
 
   Future<void> onFilterPressed(Filter filter) async {
-    final selectedFilters = state.data?.selectedFilters;
-    if (selectedFilters == null) {
+    final selectedFilters = state.data.selectedFilters;
+    if (selectedFilters.isEmpty) {
       return;
     }
 
     emit(
       state.copyWith(
-        data: state.data?.copyWith(
+        data: state.data.copyWith(
           selectedFilters: switch (selectedFilters.contains(filter)) {
             true => selectedFilters.difference({filter}),
             false => selectedFilters.union({filter}),
@@ -113,13 +112,13 @@ class SimplePaginatedCubit
   }
 
   void onTilePressed(User user) {
-    final selectedUsers = state.data?.selectedUsers;
-    if (selectedUsers == null) {
+    final selectedUsers = state.data.selectedUsers;
+    if (selectedUsers.isEmpty) {
       return;
     }
     emit(
       state.copyWith(
-        data: state.data?.copyWith(
+        data: state.data.copyWith(
           selectedUsers: switch (selectedUsers.contains(user)) {
             true => selectedUsers.difference({user}),
             false => selectedUsers.union({user}),

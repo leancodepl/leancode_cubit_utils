@@ -70,9 +70,9 @@ class FiltersRow extends StatelessWidget {
     return PaginatedCubitBuilder(
       cubit: context.read<SimplePaginatedCubit>(),
       builder: (context, state) {
-        final availableFilters = state.data?.availableFilters;
-        final selectedFilters = state.data?.selectedFilters ?? {};
-        if (availableFilters == null) {
+        final availableFilters = state.data.availableFilters;
+        final selectedFilters = state.data.selectedFilters;
+        if (availableFilters.isEmpty) {
           return const CircularProgressIndicator();
         } else {
           return Wrap(
