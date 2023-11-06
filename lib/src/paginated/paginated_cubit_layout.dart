@@ -35,7 +35,6 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     super.key,
     required this.cubit,
     required this.itemBuilder,
-    this.padding,
     this.physics,
     this.controller,
     this.separatorBuilder,
@@ -54,9 +53,6 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   /// A builder for a paginated list item.
   final PaginatedItemBuilder<TData, TItem> itemBuilder;
-
-  /// The padding of the layout.
-  final EdgeInsetsGeometry? padding;
 
   /// An optional scroll controller.
   final ScrollController? controller;
@@ -93,41 +89,37 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: padding ?? EdgeInsets.zero,
-      child: CustomScrollView(
-        controller: controller,
-        physics: physics,
-        slivers: [
-          if (headerBuilder != null) headerBuilder!(context, cubit.state),
-          BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
-              PaginatedState<TData, TItem>>(
-            bloc: cubit,
-            builder: (context, state) {
-              return switch (state.type) {
-                PaginatedStateType.initial =>
-                  _buildInitialLoader(context, state),
-                PaginatedStateType.firstPageLoading =>
-                  _buildFirstPageLoader(context, state),
-                PaginatedStateType.firstPageError ||
-                PaginatedStateType.refresh when state.hasError =>
-                  _buildFirstPageError(context, state.error),
-                _ => _PaginatedLayoutList(
-                    state: state,
-                    itemBuilder: itemBuilder,
-                    separatorBuilder: separatorBuilder,
-                    fetchNextPage: () => cubit.fetchNextPage(
-                      state.args.pageNumber + 1,
-                    ),
-                    bottom: _buildListBottom(context, state),
-                    emptyState: _buildEmptyState(context, state),
+    return CustomScrollView(
+      controller: controller,
+      physics: physics,
+      slivers: [
+        if (headerBuilder != null) headerBuilder!(context, cubit.state),
+        BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
+            PaginatedState<TData, TItem>>(
+          bloc: cubit,
+          builder: (context, state) {
+            return switch (state.type) {
+              PaginatedStateType.initial => _buildInitialLoader(context, state),
+              PaginatedStateType.firstPageLoading =>
+                _buildFirstPageLoader(context, state),
+              PaginatedStateType.firstPageError ||
+              PaginatedStateType.refresh when state.hasError =>
+                _buildFirstPageError(context, state.error),
+              _ => _PaginatedLayoutList(
+                  state: state,
+                  itemBuilder: itemBuilder,
+                  separatorBuilder: separatorBuilder,
+                  fetchNextPage: () => cubit.fetchNextPage(
+                    state.args.pageNumber + 1,
                   ),
-              };
-            },
-          ),
-          if (footerBuilder != null) footerBuilder!(context, cubit.state),
-        ],
-      ),
+                  bottom: _buildListBottom(context, state),
+                  emptyState: _buildEmptyState(context, state),
+                ),
+            };
+          },
+        ),
+        if (footerBuilder != null) footerBuilder!(context, cubit.state),
+      ],
     );
   }
 
