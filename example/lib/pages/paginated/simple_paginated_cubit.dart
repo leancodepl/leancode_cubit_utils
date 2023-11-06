@@ -69,6 +69,7 @@ class SimplePaginatedCubit
           loggerTag: 'SimplePaginatedCubit',
           preRequest: FiltersPreRequest(api: api),
           config: PaginatedConfigProvider.config.copyWith(pageSize: 15),
+          initialData: AdditionalData(),
         );
 
   final MockedApi api;
