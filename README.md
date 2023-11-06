@@ -204,7 +204,7 @@ The next step will be to use the `PaginatedCubitLayout` widget. It simplifies th
 - `cubit` - an instance of `PaginatedCubit`,
 - `itemBuilder` - builds a item widget from `TItem` object,
 
-It also takes optional `controller` which is an instance of `ScrollController` and numerous optional builders:
+It also takes optional `controller`, `physics`, `padding` and numerous optional builders:
 - `separatorBuilder` - builds a separator widget.
 - `headerBuilder` - builds a sliver widget on top the list which is scrolled together with the list,
 - `footerBuilder` - builds a sliver widget under the list which is scrolled together with the list,
