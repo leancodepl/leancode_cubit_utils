@@ -50,7 +50,7 @@ abstract class BaseQueryCubit<TRes, TOut> extends Cubit<QueryState<TOut>> {
 
   CancelableOperation<QueryResult<TRes>>? _operation;
 
-  Future<void> _get(
+  Future<void> _run(
     Future<QueryResult<TRes>> Function() callback, {
     bool isRefresh = false,
   }) async {
@@ -144,7 +144,7 @@ abstract class QueryCubit<TRes, TOut> extends BaseQueryCubit<TRes, TOut> {
   });
 
   /// Gets the data from the request and emits the corresponding state.
-  Future<void> get() => _get(request);
+  Future<void> run() => _run(request);
 
   /// A request to be executed.
   Future<QueryResult<TRes>> request();
@@ -152,7 +152,7 @@ abstract class QueryCubit<TRes, TOut> extends BaseQueryCubit<TRes, TOut> {
   /// Refreshes the query.
   @override
   Future<void> refresh() {
-    return _get(request, isRefresh: true);
+    return _run(request, isRefresh: true);
   }
 }
 
@@ -171,9 +171,9 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
   TArgs? get lastFetchArgs => _lastGetArgs;
 
   /// Gets the data from the request and emits the corresponding state.
-  Future<void> get(TArgs args) {
+  Future<void> run(TArgs args) {
     _lastGetArgs = args;
-    return _get(() => request(args));
+    return _run(() => request(args));
   }
 
   /// A request to be executed.
@@ -186,7 +186,7 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
       throw StateError('No query was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      return _get(() => request(_lastGetArgs!), isRefresh: true);
+      return _run(() => request(_lastGetArgs!), isRefresh: true);
     }
   }
 }

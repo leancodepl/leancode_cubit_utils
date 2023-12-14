@@ -74,7 +74,7 @@ class QueryScreen extends StatelessWidget {
       create: (context) => UserQueryCubit(
         cqrs: context.read<Cqrs>(),
         userId: 'success',
-      )..get(),
+      )..run(),
       child: const QueryPage(),
     );
   }

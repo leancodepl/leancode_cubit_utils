@@ -60,7 +60,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Loading...'), findsOneWidget);
-      unawaited(queryCubit.get('1'));
+      unawaited(queryCubit.run('1'));
       await tester.pump();
       expect(find.text('Loading...'), findsOneWidget);
       await tester.pump();
@@ -83,7 +83,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Custom loading...'), findsOneWidget);
-      unawaited(queryCubit.get('1'));
+      unawaited(queryCubit.run('1'));
       await tester.pump();
       expect(find.text('Custom loading...'), findsOneWidget);
       await tester.pump();
@@ -103,7 +103,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      unawaited(queryCubit.get('0'));
+      unawaited(queryCubit.run('0'));
       await tester.pumpAndSettle();
       expect(find.text('Success, data: Result'), findsOneWidget);
     });
@@ -121,7 +121,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await queryCubit.get('0');
+      await queryCubit.run('0');
       await tester.pumpAndSettle();
       expect(find.text('Success, data: Result'), findsOneWidget);
       unawaited(queryCubit.refresh());
