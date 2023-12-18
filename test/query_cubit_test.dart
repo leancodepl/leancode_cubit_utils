@@ -49,7 +49,7 @@ void main() {
           cqrs: cqrs,
           id: '0',
         ),
-        act: (cubit) => cubit.get(),
+        act: (cubit) => cubit.run(),
         verify: (cubit) {
           verify(
             () => cqrs.get(TestQuery(id: '0')),
@@ -64,7 +64,7 @@ void main() {
           cqrs: cqrs,
           id: '0',
         ),
-        act: (cubit) => cubit.get(),
+        act: (cubit) => cubit.run(),
         wait: Duration.zero,
         expect: () => <RequestState<String, QueryError>>[
           RequestLoadingState(),
@@ -98,8 +98,8 @@ void main() {
           id: '0',
         ),
         act: (cubit) async {
-          unawaited(cubit.get());
-          await cubit.get();
+          unawaited(cubit.run());
+          await cubit.run();
         },
         verify: (_) {
           verify(
@@ -121,8 +121,8 @@ void main() {
           requestMode: RequestMode.replace,
         ),
         act: (cubit) async {
-          unawaited(cubit.get());
-          await cubit.get();
+          unawaited(cubit.run());
+          await cubit.run();
         },
         verify: (cubit) {
           verify(
@@ -145,7 +145,7 @@ void main() {
           //cubit with argument '2' will fail processing on cqrs request
           id: '2',
         ),
-        act: (cubit) => cubit.get(),
+        act: (cubit) => cubit.run(),
         expect: () => [
           isA<RequestLoadingState<String, QueryError>>(),
           isA<RequestErrorState<String, QueryError>>(),
@@ -160,7 +160,7 @@ void main() {
           //cubit with argument '1' will throw an exception in map()
           id: '1',
         ),
-        act: (cubit) => cubit.get(),
+        act: (cubit) => cubit.run(),
         wait: Duration.zero,
         expect: () => [
           isA<RequestLoadingState<String, QueryError>>(),
@@ -176,7 +176,7 @@ void main() {
           //cubit with argument '3' will throw exception on onQueryError
           id: '3',
         ),
-        act: (cubit) => cubit.get(),
+        act: (cubit) => cubit.run(),
         wait: Duration.zero,
         expect: () => [
           isA<RequestLoadingState<String, QueryError>>(),
@@ -194,7 +194,7 @@ void main() {
         'TestArgsQueryCubit',
         cqrs: cqrs,
       ),
-      act: (cubit) => cubit.get('0'),
+      act: (cubit) => cubit.run('0'),
       verify: (_) {
         verify(
           () => cqrs.get(TestQuery(id: '0')),
@@ -209,7 +209,7 @@ void main() {
         cqrs: cqrs,
       ),
       act: (cubit) async {
-        await cubit.get('0');
+        await cubit.run('0');
         await cubit.refresh();
       },
       verify: (_) {

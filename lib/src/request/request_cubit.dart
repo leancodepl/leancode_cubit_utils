@@ -52,7 +52,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
 
   CancelableOperation<TRes>? _operation;
 
-  Future<void> _get(
+  Future<void> _run(
     Future<TRes> Function() callback, {
     bool isRefresh = false,
   }) async {
@@ -138,7 +138,7 @@ abstract class RequestCubit<TRes, TData, TOut, TError>
   });
 
   /// Gets the data from the request and emits the corresponding state.
-  Future<void> get() => _get(request);
+  Future<void> run() => _run(request);
 
   /// A request to be executed.
   Future<TRes> request();
@@ -146,7 +146,7 @@ abstract class RequestCubit<TRes, TData, TOut, TError>
   /// Refreshes the request.
   @override
   Future<void> refresh() {
-    return _get(request, isRefresh: true);
+    return _run(request, isRefresh: true);
   }
 }
 
@@ -165,9 +165,9 @@ abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
   TArgs? get lastRequestArgs => _lastRequestArgs;
 
   /// Gets the data from the request and emits the corresponding state.
-  Future<void> get(TArgs args) {
+  Future<void> run(TArgs args) {
     _lastRequestArgs = args;
-    return _get(() => request(args));
+    return _run(() => request(args));
   }
 
   /// A request to be executed.
@@ -180,7 +180,7 @@ abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
       throw StateError('No request was executed yet. Cannot refresh.');
     } else {
       // ignore: null_check_on_nullable_type_parameter
-      return _get(() => request(_lastRequestArgs!), isRefresh: true);
+      return _run(() => request(_lastRequestArgs!), isRefresh: true);
     }
   }
 }

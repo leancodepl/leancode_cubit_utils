@@ -38,7 +38,7 @@ QueryCubit<TOut, TOut> useQueryCubit<TOut>(
         requestMode: requestMode,
       );
       if (callOnCreate) {
-        cubit.get();
+        cubit.run();
       }
       return cubit;
     },

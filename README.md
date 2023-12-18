@@ -80,7 +80,7 @@ RequestCubitBuilder(
       cubit: context.read<ProjectDetailsCubit>(),
       onInitial: (context) => Center(
         child: ElevatedButton(
-          onPressed: context.read<ProjectDetailsCubit>().get,
+          onPressed: context.read<ProjectDetailsCubit>().run,
           child: const AppText('Fetch the data'),
         ),
       ),
@@ -91,7 +91,7 @@ RequestCubitBuilder(
           child: const AppText('Retry'),
         ),
       ),
-      onErrorCallback: context.read<ProjectDetailsCubit>().get,
+      onErrorCallback: context.read<ProjectDetailsCubit>().run,
       builder: (context, data) {
         return ListView.builder(
           itemCount: data.assignments.length,
