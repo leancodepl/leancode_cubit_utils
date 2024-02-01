@@ -41,6 +41,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     this.items = const [],
     this.hasNextPage = false,
     this.error,
+    this.preRequestSuccess = false,
     required this.args,
     TData? data,
   })  : assert(
@@ -57,6 +58,9 @@ class PaginatedState<TData, TItem> with EquatableMixin {
 
   /// A flag indicating whether there is a next page.
   final bool hasNextPage;
+
+  /// A flag indicating whether the last pre-request was successful.
+  final bool preRequestSuccess;
 
   /// The error.
   final Object? error;
@@ -101,12 +105,14 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     PaginatedArgs? args,
     TData? data,
     Object? error,
+    bool? preRequestSuccess,
     bool nullError = false,
   }) {
     return PaginatedState<TData, TItem>(
       type: type ?? this.type,
       items: items ?? this.items,
       hasNextPage: hasNextPage ?? this.hasNextPage,
+      preRequestSuccess: preRequestSuccess ?? this.preRequestSuccess,
       args: args ?? this.args,
       data: data ?? this.data,
       error: nullError ? null : error ?? this.error,

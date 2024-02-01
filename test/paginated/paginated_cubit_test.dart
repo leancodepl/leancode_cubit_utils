@@ -532,6 +532,39 @@ void main() {
           ),
         ],
       );
+
+      blocTest<TestPreRequestPaginatedCubit, TestPreRequestPaginatedState>(
+        'requestPage is called when previous call ends with error',
+        setUp: () {
+          when(() => mockedApi.getCities(0, 20)).thenAnswer(
+            (_) async => QuerySuccess(
+              Page(
+                items: api.cities.take(20).toList(),
+                hasNextPage: true,
+              ),
+            ),
+          );
+
+          when(mockedApi.getTypes).thenAnswer(
+            (_) async => const QuerySuccess(CityType.values),
+          );
+        },
+        build: () => TestPreRequestPaginatedCubit(
+          mockedApi,
+          preRequest: TestPreRequest(mockedApi),
+        ),
+        seed: () => PaginatedState(
+          type: PaginatedStateType.firstPageError,
+          items: api.cities.take(20).toList(),
+          args: defaultArgs,
+          data: CityType.values,
+          error: 'error',
+        ),
+        act: (cubit) => cubit.refresh(),
+        verify: (_) {
+          verify(() => mockedApi.getCities(0, 20)).called(1);
+        },
+      );
     });
 
     group('fails', () {
