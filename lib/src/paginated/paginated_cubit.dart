@@ -255,7 +255,8 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
   PaginatedResponse<TData, TItem> onPageResult(TResData page);
 
   /// Refreshes the list.
-  Future<void> refresh() => fetchNextPage(0, refresh: true);
+  Future<void> refresh() =>
+      fetchNextPage(_config.firstPageIndex, refresh: true);
 
   /// Allows to handle errors in a custom way.
   Future<PaginatedState<TData, TItem>> handleError(
