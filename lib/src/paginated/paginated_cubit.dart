@@ -98,6 +98,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
           state.copyWith(
             type: PaginatedStateType.refresh,
             args: state.args.copyWith(pageNumber: _config.firstPageIndex),
+            preRequestSuccess: false,
           ),
         );
       } else if (pageNumber == _config.firstPageIndex) {
@@ -107,6 +108,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
             type: PaginatedStateType.firstPageLoading,
             args: state.args.copyWith(pageNumber: _config.firstPageIndex),
             items: <TItem>[],
+            preRequestSuccess: false,
           ),
         );
       } else {
@@ -220,7 +222,7 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
         return false;
       }
       emit(result);
-      return !result.hasError;
+      return result.preRequestSuccess;
     } catch (e, s) {
       logger.severe('Error running pre-request, error: $e, stacktrace: $s');
       rethrow;
@@ -253,7 +255,8 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
   PaginatedResponse<TData, TItem> onPageResult(TResData page);
 
   /// Refreshes the list.
-  Future<void> refresh() => fetchNextPage(0, refresh: true);
+  Future<void> refresh() =>
+      fetchNextPage(_config.firstPageIndex, refresh: true);
 
   /// Allows to handle errors in a custom way.
   Future<PaginatedState<TData, TItem>> handleError(

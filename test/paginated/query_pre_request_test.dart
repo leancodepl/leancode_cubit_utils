@@ -51,7 +51,7 @@ void main() {
         requestFunction: (state) async => const QuerySuccess(''),
         errorHandlerFunction: (state) => state,
       );
-      final state = PaginatedState<String, String>(args: defaultArgs);
+      final state = PaginatedState<String, String>(args: defaultArgs, data: '');
       final result = await preRequest.run(state);
       expect(result, isA<PaginatedState<String, String>>());
     });
@@ -68,7 +68,7 @@ void main() {
           return state;
         },
       );
-      final state = PaginatedState<String, String>(args: defaultArgs);
+      final state = PaginatedState<String, String>(args: defaultArgs, data: '');
       await preRequest.run(state);
       expect(errorHandlerCalled, 1);
     });
@@ -85,7 +85,7 @@ void main() {
           throw Exception();
         },
       );
-      final state = PaginatedState<String, String>(args: defaultArgs);
+      final state = PaginatedState<String, String>(args: defaultArgs, data: '');
       await preRequest.run(state);
       expect(errorHandlerCalled, 1);
     });

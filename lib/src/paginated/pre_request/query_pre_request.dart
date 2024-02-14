@@ -12,7 +12,10 @@ abstract class QueryPreRequest<TRes, TData, TItem>
     try {
       final result = await request(state);
       if (result case QuerySuccess(:final data)) {
-        return state.copyWith(data: map(data, state));
+        return state.copyWith(
+          data: map(data, state),
+          preRequestSuccess: true,
+        );
       } else if (result case QueryFailure(:final error)) {
         try {
           return handleError(state.copyWithError(error));
