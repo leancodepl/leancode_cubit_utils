@@ -3,7 +3,7 @@ name: leancode_cubit_utils test
 on:
   push:
     branches: [main]
-    tags-ignore: ['leancode_cubit_utils-v*']
+    tags-ignore: ['v*']
   pull_request:
     branches: [main]
 
@@ -15,7 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['3.19.x']
+        include:
+          - version: '3.13.x'
 
     steps:
       - name: Checkout
