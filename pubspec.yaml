@@ -1,7 +1,7 @@
 name: leancode_cubit_utils
 description: A new Flutter package project.
 version: 0.0.1
-homepage:
+repository: https://github.com/leancodepl/leancode_cubit_utils
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
