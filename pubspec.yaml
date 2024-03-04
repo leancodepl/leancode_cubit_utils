@@ -1,5 +1,5 @@
 name: leancode_cubit_utils
-description: A new Flutter package project.
+description: A collection of cubits and widgets that facilitate the creation of repetitive pages, eliminating boilerplate.
 version: 0.0.1
 repository: https://github.com/leancodepl/leancode_cubit_utils
 
