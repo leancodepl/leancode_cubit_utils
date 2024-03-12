@@ -66,9 +66,12 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
           RequestRefreshState(:final data) => data != null
               ? builder(context, data)
               : onLoading?.call(context) ?? config.onLoading(context),
-          RequestErrorState() =>
-            onError?.call(context, state, onErrorCallback) ??
-                config.onError(context, state, onErrorCallback),
+          RequestErrorState() => onError?.call(
+                context,
+                state,
+                onErrorCallback ?? cubit.refresh,
+              ) ??
+              config.onError(context, state, onErrorCallback ?? cubit.refresh),
         };
       },
     );
