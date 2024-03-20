@@ -13,7 +13,7 @@ typedef RequestWidgetBuilder<TOut> = Widget Function(
 typedef RequestErrorBuilder<TError> = Widget Function(
   BuildContext context,
   RequestErrorState<dynamic, TError> error,
-  VoidCallback? retry,
+  VoidCallback retry,
 );
 
 /// A widget that builds itself based on the latest request state.
