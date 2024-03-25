@@ -25,7 +25,7 @@ typedef PaginatedWidgetBuilder<TData, TItem> = Widget Function(
 typedef PaginatedErrorBuilder<TItem> = Widget Function(
   BuildContext context,
   Object? error,
-  VoidCallback? retry,
+  VoidCallback retry,
 );
 
 /// A layout for a paginated cubit.
