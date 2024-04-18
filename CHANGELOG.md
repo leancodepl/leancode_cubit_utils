@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Make `retry` in `RequestErrorBuilder` and `PaginatedErrorBuilder` non-nullable
+
 ## 0.0.2
 
 * Add default `onErrorCallback` for `RequestCubitBuilder`
