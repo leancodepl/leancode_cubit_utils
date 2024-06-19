@@ -34,7 +34,7 @@ AppHttpClient createMockedHttpClient() {
   ).thenAnswer(
     (invocation) => Future.delayed(
       const Duration(milliseconds: 1000),
-      () => http.Response(jsonEncode(const User('John', 'Doe').toJson()), 200),
+      () => http.Response(jsonEncode(const User('John', 'Doe')), 200),
     ),
   );
   when(
