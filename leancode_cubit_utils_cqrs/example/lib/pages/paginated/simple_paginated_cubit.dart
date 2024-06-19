@@ -95,9 +95,6 @@ class SimplePaginatedCubit
 
   Future<void> onFilterPressed(Filter filter) async {
     final selectedFilters = state.data.selectedFilters;
-    if (selectedFilters.isEmpty) {
-      return;
-    }
 
     emit(
       state.copyWith(
@@ -115,9 +112,7 @@ class SimplePaginatedCubit
 
   void onTilePressed(User user) {
     final selectedUsers = state.data.selectedUsers;
-    if (selectedUsers.isEmpty) {
-      return;
-    }
+
     emit(
       state.copyWith(
         data: state.data.copyWith(
