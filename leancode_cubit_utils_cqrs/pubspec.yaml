@@ -1,0 +1,27 @@
+name: leancode_cubit_utils_cqrs
+description: "A new Flutter package project."
+version: 0.0.1
+repository: https://github.com/leancodepl/leancode_cubit_utils
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  cqrs: ^10.0.1
+  equatable: ^2.0.0
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.0.0
+  leancode_cubit_utils:
+    path: ../leancode_cubit_utils
+  leancode_hooks: ^0.0.6
+
+dev_dependencies:
+  bloc_test: ^9.0.0
+  flutter_test:
+    sdk: flutter
+  leancode_lint: ^9.0.0
+  mocktail: ^1.0.0
+
+flutter:

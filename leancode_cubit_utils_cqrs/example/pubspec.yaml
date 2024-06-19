@@ -1,0 +1,32 @@
+name: example
+description: A new Flutter project.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.1.2 <4.0.0"
+
+dependencies:
+  cqrs: ^10.0.1
+  equatable: ^2.0.5
+  faker: ^2.1.0
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.1.3
+  mocktail: ^1.0.0
+  leancode_cubit_utils_cqrs:
+    path: ..
+  leancode_cubit_utils:
+    path: ../../leancode_cubit_utils
+  provider: ^6.0.5
+  logging: ^1.2.0
+  leancode_hooks: ^0.0.6
+  async: ^2.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
