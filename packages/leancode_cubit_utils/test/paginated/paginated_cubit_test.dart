@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
-import 'package:cqrs/cqrs.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:mocktail/mocktail.dart';
@@ -161,7 +160,7 @@ void main() {
           ).thenAnswer(
             (_) async => QuerySuccess(
               Page<City>(
-                items: api.cities.take(20).toList(),
+                cities: api.cities.take(20).toList(),
                 hasNextPage: true,
               ),
             ),
@@ -293,7 +292,7 @@ void main() {
           when(() => mockedApi.getCities(any(), any())).thenAnswer(
             (_) async => QuerySuccess(
               Page(
-                items: api.cities.take(20).toList(),
+                cities: api.cities.take(20).toList(),
                 hasNextPage: true,
               ),
             ),
@@ -410,7 +409,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => QuerySuccess(
               Page(
-                items: api.cities.take(20).toList(),
+                cities: api.cities.take(20).toList(),
                 hasNextPage: true,
               ),
             ),
@@ -461,7 +460,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => QuerySuccess(
               Page(
-                items: api.cities.take(20).toList(),
+                cities: api.cities.take(20).toList(),
                 hasNextPage: true,
               ),
             ),
@@ -500,7 +499,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => QuerySuccess(
               Page(
-                items: api.cities.take(20).toList(),
+                cities: api.cities.take(20).toList(),
                 hasNextPage: true,
               ),
             ),
@@ -539,7 +538,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => QuerySuccess(
               Page(
-                items: api.cities.take(20).toList(),
+                cities: api.cities.take(20).toList(),
                 hasNextPage: true,
               ),
             ),

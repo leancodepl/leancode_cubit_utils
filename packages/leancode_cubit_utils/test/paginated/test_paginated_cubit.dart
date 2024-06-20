@@ -1,10 +1,6 @@
-import 'package:cqrs/cqrs.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
-import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 
-import '../utils/mocked_api.dart';
-
-class TestPaginatedCubit extends PaginatedQueryCubit<void, Page<City>, City> {
+class TestPaginatedCubit extends PaginatedRequestCubit<void, Page<City>, City> {
   TestPaginatedCubit(
     this.api, {
     super.config,
@@ -24,7 +20,7 @@ class TestPaginatedCubit extends PaginatedQueryCubit<void, Page<City>, City> {
   @override
   PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
     return PaginatedResponse.append(
-      items: page.items,
+      items: page.cities,
       hasNextPage: page.hasNextPage,
     );
   }
@@ -73,7 +69,7 @@ class TestPreRequestPaginatedCubit
   @override
   PaginatedResponse<List<CityType>, City> onPageResult(Page<City> page) {
     return PaginatedResponse.append(
-      items: page.items,
+      items: page.cities,
       hasNextPage: page.hasNextPage,
     );
   }

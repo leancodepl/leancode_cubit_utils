@@ -5,23 +5,35 @@ import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 
+import 'http_status_codes.dart';
+
 typedef Json = Map<String, dynamic>;
 
 /// This is a fake API class as an example of paginated response from an API.
-class Page<T> {
-  Page({required this.hasNextPage, required this.items});
+class Page {
+  Page({required this.hasNextPage, required this.cities});
 
   factory Page.fromJson(Json json) {
-    return Page( 
-      hasNextPage: json['hasNextPage'],
-      items: [
-        for (final user in json['items']) T.fromJson(user),
+    return Page(
+      hasNextPage: json['hasNextPage'] as bool,
+      cities: [
+        for (final city in json['cities'] as Iterable)
+          City.fromJson(city as Json),
       ],
     );
   }
 
   final bool hasNextPage;
-  final List<T> items;
+  final List<City> cities;
+
+  Json toJson() {
+    return {
+      'hasNextPage': hasNextPage,
+      'cities': [
+        for (final city in cities) city.toJson(),
+      ],
+    };
+  }
 }
 
 enum CityType {
@@ -35,6 +47,20 @@ class City with EquatableMixin {
     required this.name,
     required this.type,
   });
+
+  factory City.fromJson(Json json) {
+    return City(
+      name: json['name'] as String,
+      type: json['type'] as CityType,
+    );
+  }
+
+  Json toJson() {
+    return {
+      'name': name,
+      'type': type,
+    };
+  }
 
   final String name;
   final CityType type;
@@ -56,7 +82,7 @@ class ApiBase {
 
   Future<http.Response> getTypes() async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    return http.Response(jsonEncode(CityType.values), 200);
+    return http.Response(jsonEncode(CityType.values), StatusCode.ok.value);
   }
 
   Future<http.Response> getCities(
@@ -67,7 +93,7 @@ class ApiBase {
   }) async {
     await Future<void>.delayed(const Duration(seconds: 1));
     if (searchQuery == 'error') {
-      return http.Response('', 400);
+      return http.Response('', StatusCode.badRequest.value);
     }
     var filteredUsers = cities;
     if (selectedFilters.isNotEmpty) {
@@ -81,10 +107,13 @@ class ApiBase {
         .take(pageSize)
         .toList();
     return http.Response(
-      Page(
-        items: citiesPage,
-        hasNextPage: citiesPage.length >= pageSize,
+      jsonEncode(
+        Page(
+          cities: citiesPage,
+          hasNextPage: citiesPage.length >= pageSize,
+        ),
       ),
+      StatusCode.ok.value,
     );
   }
 

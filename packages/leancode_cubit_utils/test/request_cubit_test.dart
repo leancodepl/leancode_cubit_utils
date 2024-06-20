@@ -2,70 +2,71 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'utils/mocked_cqrs.dart';
-import 'utils/test_query.dart';
-import 'utils/test_query_cubit.dart';
+import 'utils/http_status_codes.dart';
+import 'utils/mocked_http_client.dart';
+import 'utils/test_request_cubit.dart';
 
 void main() {
-  final cqrs = MockedCqrs();
+  final client = MockedHttpClient();
 
   setUpAll(() {
-    registerFallbackValue(TestQuery(id: '0'));
+    registerFallbackValue(Uri.parse('0'));
     when(
-      () => cqrs.get(TestQuery(id: '0')),
+      () => client.get(Uri.parse('0')),
     ).thenAnswer(
-      (_) async => const QuerySuccess('Result'),
+      (_) async => http.Response('Result', StatusCode.ok.value),
     );
 
     when(
-      () => cqrs.get(TestQuery(id: '1')),
+      () => client.get(Uri.parse('1')),
     ).thenAnswer(
-      (_) async => const QuerySuccess('Mapping fails'),
+      (_) async => http.Response('Mapping fails', StatusCode.ok.value),
     );
 
     when(
-      () => cqrs.get(TestQuery(id: '2')),
+      () => client.get(Uri.parse('2')),
     ).thenAnswer(
-      (_) async => const QueryFailure(QueryError.network),
+      (_) async => http.Response('', StatusCode.notFound.value),
     );
 
     when(
-      () => cqrs.get(TestQuery(id: '3')),
+      () => client.get(Uri.parse('3')),
     ).thenAnswer(
-      (_) async => const QueryFailure(QueryError.unknown),
+      (_) async => http.Response('', StatusCode.badRequest.value),
     );
   });
 
-  group('QueryCubit', () {
+  group('RequestCubit', () {
     group('request succeeded', () {
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
+      blocTest<TestRequestCubit, RequestState<String, int>>(
         'get() triggers request',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
           id: '0',
         ),
         act: (cubit) => cubit.run(),
         verify: (cubit) {
           verify(
-            () => cqrs.get(TestQuery(id: '0')),
+            () => client.get(Uri.parse('0')),
           ).called(1);
         },
       );
 
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
-        'emits QueryErrorSuccess when processing succeeds',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'emits RequestSuccessState when processing succeeds',
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
           id: '0',
         ),
         act: (cubit) => cubit.run(),
         wait: Duration.zero,
-        expect: () => <RequestState<String, QueryError>>[
+        expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
           RequestSuccessState('Mapped Result'),
         ],
@@ -73,27 +74,27 @@ void main() {
     });
 
     group('refresh', () {
-      setUp(() => clearInteractions(cqrs));
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
-        'emits QueryRefreshState with the same data when refresh is called',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
+      setUp(() => clearInteractions(client));
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'emits RequestRefreshState with the same data when refresh is called',
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
           id: '0',
         ),
         seed: () => RequestSuccessState('Mapped Result'),
         act: (cubit) => cubit.refresh(),
-        expect: () => <RequestState<String, QueryError>>[
+        expect: () => <RequestState<String, int>>[
           RequestRefreshState('Mapped Result'),
           RequestSuccessState('Mapped Result'),
         ],
       );
 
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
+      blocTest<TestRequestCubit, RequestState<String, int>>(
         'ignores duplicated refresh calls by default',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
           id: '0',
         ),
         act: (cubit) async {
@@ -102,20 +103,20 @@ void main() {
         },
         verify: (_) {
           verify(
-            () => cqrs.get(TestQuery(id: '0')),
+            () => client.get(Uri.parse('0')),
           ).called(1);
         },
-        expect: () => <RequestState<String, QueryError>>[
+        expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
           RequestSuccessState('Mapped Result'),
         ],
       );
 
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
+      blocTest<TestRequestCubit, RequestState<String, int>>(
         'cancels previous call and starts over when requestMode is replace',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
           id: '0',
           requestMode: RequestMode.replace,
         ),
@@ -125,10 +126,10 @@ void main() {
         },
         verify: (cubit) {
           verify(
-            () => cqrs.get(TestQuery(id: '0')),
+            () => client.get(Uri.parse('0')),
           ).called(2);
         },
-        expect: () => <RequestState<String, QueryError>>[
+        expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
           RequestSuccessState('Mapped Result'),
         ],
@@ -136,83 +137,83 @@ void main() {
     });
 
     group('handling errors and exceptions', () {
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
-        'emits QueryErrorState when query fails',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
-          //cubit with argument '2' will fail processing on cqrs request
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'emits RequestErrorState when query fails',
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
+          //cubit with argument '2' will fail processing on http request
           id: '2',
         ),
         act: (cubit) => cubit.run(),
         expect: () => [
-          isA<RequestLoadingState<String, QueryError>>(),
-          isA<RequestErrorState<String, QueryError>>(),
+          isA<RequestLoadingState<String, int>>(),
+          isA<RequestErrorState<String, int>>(),
         ],
       );
 
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
-        'emits QueryErrorState when request mapping fails',
-        build: () => TestQueryCubit(
-          'TestQueryCubit',
-          cqrs: cqrs,
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'emits RequestErrorState when request mapping fails',
+        build: () => TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
           //cubit with argument '1' will throw an exception in map()
           id: '1',
         ),
         act: (cubit) => cubit.run(),
         wait: Duration.zero,
         expect: () => [
-          isA<RequestLoadingState<String, QueryError>>(),
-          isA<RequestErrorState<String, QueryError>>(),
+          isA<RequestLoadingState<String, int>>(),
+          isA<RequestErrorState<String, int>>(),
         ],
       );
 
-      blocTest<TestQueryCubit, RequestState<String, QueryError>>(
-        'emits QueryErrorState when onQueryError fails',
-        build: () => TestQueryCubit(
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'emits RequestErrorState when onQueryError fails',
+        build: () => TestRequestCubit(
           'TestQueryCubit',
-          cqrs: cqrs,
+          client: client,
           //cubit with argument '3' will throw exception on onQueryError
           id: '3',
         ),
         act: (cubit) => cubit.run(),
         wait: Duration.zero,
         expect: () => [
-          isA<RequestLoadingState<String, QueryError>>(),
-          isA<RequestErrorState<String, QueryError>>(),
+          isA<RequestLoadingState<String, int>>(),
+          isA<RequestErrorState<String, int>>(),
         ],
       );
     });
   });
 
-  group('ArgsQueryCubit', () {
-    clearInteractions(cqrs);
-    blocTest<TestArgsQueryCubit, RequestState<String, QueryError>>(
+  group('ArgsRequestCubit', () {
+    clearInteractions(client);
+    blocTest<TestArgsRequestCubit, RequestState<String, int>>(
       'calls request() with passed arguments when get() is called',
-      build: () => TestArgsQueryCubit(
-        'TestArgsQueryCubit',
-        cqrs: cqrs,
+      build: () => TestArgsRequestCubit(
+        'TestArgsRequestCubit',
+        client: client,
       ),
       act: (cubit) => cubit.run('0'),
       verify: (_) {
         verify(
-          () => cqrs.get(TestQuery(id: '0')),
+          () => client.get(Uri.parse('0')),
         ).called(1);
       },
     );
 
-    blocTest<TestArgsQueryCubit, RequestState<String, QueryError>>(
+    blocTest<TestArgsRequestCubit, RequestState<String, int>>(
       'calls refresh with last args when get() was called before',
-      build: () => TestArgsQueryCubit(
-        'TestArgsQueryCubit',
-        cqrs: cqrs,
+      build: () => TestArgsRequestCubit(
+        'TestArgsRequestCubit',
+        client: client,
       ),
       act: (cubit) async {
         await cubit.run('0');
         await cubit.refresh();
       },
       verify: (_) {
-        verify(() => cqrs.get(TestQuery(id: '0'))).called(2);
+        verify(() => client.get(Uri.parse('0'))).called(2);
       },
     );
   });

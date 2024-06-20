@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:cqrs/cqrs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'utils/mocked_cqrs.dart';
-import 'utils/test_query.dart';
-import 'utils/test_query_cubit.dart';
+import 'utils/http_status_codes.dart';
+import 'utils/mocked_http_client.dart';
+import 'utils/test_request_cubit.dart';
 
 class TestPage extends StatelessWidget {
   const TestPage({
@@ -32,23 +32,23 @@ class TestPage extends StatelessWidget {
 
 void main() {
   group('RequestCubitBuilder', () {
-    final cqrs = MockedCqrs();
+    final cqrs = MockedHttpClient();
     when(
-      () => cqrs.get(TestQuery(id: '0')),
+      () => cqrs.get(Uri.parse('0')),
     ).thenAnswer(
-      (_) async => const QuerySuccess('Result'),
+      (_) async => http.Response('Result', 200),
     );
 
     when(
-      () => cqrs.get(TestQuery(id: '1')),
+      () => cqrs.get(Uri.parse('1')),
     ).thenAnswer(
-      (_) async => const QueryFailure(QueryError.network),
+      (_) async => http.Response('', StatusCode.badRequest.value),
     );
 
     testWidgets(
         'shows default loading and error widget when no onLoading and onError provided',
         (tester) async {
-      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+      final queryCubit = TestArgsRequestCubit('TestQueryCubit', client: cqrs);
 
       await tester.pumpWidget(
         TestPage(
@@ -69,7 +69,7 @@ void main() {
 
     testWidgets('shows custom loading and error widget when provided',
         (tester) async {
-      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+      final queryCubit = TestArgsRequestCubit('TestQueryCubit', client: cqrs);
 
       await tester.pumpWidget(
         TestPage(
@@ -92,7 +92,7 @@ void main() {
 
     testWidgets('shows provided success widget when data loaded',
         (tester) async {
-      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+      final queryCubit = TestArgsRequestCubit('TestQueryCubit', client: cqrs);
 
       await tester.pumpWidget(
         TestPage(
@@ -110,7 +110,7 @@ void main() {
 
     testWidgets('keeps showing success widget when data is refreshed',
         (tester) async {
-      final queryCubit = TestArgsQueryCubit('TestQueryCubit', cqrs: cqrs);
+      final queryCubit = TestArgsRequestCubit('TestQueryCubit', client: cqrs);
 
       await tester.pumpWidget(
         TestPage(
