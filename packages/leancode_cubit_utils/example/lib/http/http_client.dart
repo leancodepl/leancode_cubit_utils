@@ -12,7 +12,7 @@ class User {
   const User(this.name, this.surname);
 
   factory User.fromJson(Json json) {
-    return User(json['name'], json['surname']);
+    return User(json['name'] as String, json['surname'] as String);
   }
 
   Json toJson() {

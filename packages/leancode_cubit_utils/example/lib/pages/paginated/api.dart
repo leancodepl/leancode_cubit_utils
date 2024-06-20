@@ -8,16 +8,14 @@ typedef Json = Map<String, dynamic>;
 
 /// This is a fake API class as an example of paginated response from an API.
 class Page {
-  final bool hasNextPage;
-  final List<User> users;
-
   Page({required this.hasNextPage, required this.users});
 
   factory Page.fromJson(Json json) {
     return Page(
-      hasNextPage: json['hasNextPage'],
+      hasNextPage: json['hasNextPage'] as bool,
       users: [
-        for (final user in json['users']) User.fromJson(user),
+        for (final user in json['users'] as Iterable)
+          User.fromJson(user as Json),
       ],
     );
   }
@@ -30,6 +28,9 @@ class Page {
       ],
     };
   }
+
+  final bool hasNextPage;
+  final List<User> users;
 }
 
 class User {
@@ -46,7 +47,10 @@ class User {
   }
 
   factory User.fromJson(Json json) {
-    return User(name: json['name'], jobTitle: json['jobTitle']);
+    return User(
+      name: json['name'] as String,
+      jobTitle: json['jobTitle'] as String,
+    );
   }
 
   Json toJson() {
@@ -63,10 +67,8 @@ class User {
 class Filter {
   Filter({required this.name});
 
-  final String name;
-
   factory Filter.fromJson(Json json) {
-    return Filter(name: json['name']);
+    return Filter(name: json['name'] as String);
   }
 
   Json toJson() {
@@ -74,6 +76,8 @@ class Filter {
       'name': name,
     };
   }
+
+  final String name;
 }
 
 class Filters with EquatableMixin {
@@ -82,16 +86,15 @@ class Filters with EquatableMixin {
     this.selectedFilters = const {},
   });
 
-  final List<Filter> availableFilters;
-  final Set<Filter> selectedFilters;
-
   factory Filters.fromJson(Json json) {
     return Filters(
       availableFilters: [
-        for (final x in json['availableFilters']) Filter.fromJson(x),
+        for (final filter in json['availableFilters'] as Iterable)
+          Filter.fromJson(filter as Json),
       ],
       selectedFilters: {
-        for (final x in json['selectedFilters']) Filter.fromJson(x),
+        for (final filter in json['selectedFilters'] as Iterable)
+          Filter.fromJson(filter as Json),
       },
     );
   }
@@ -106,6 +109,9 @@ class Filters with EquatableMixin {
       ],
     };
   }
+
+  final List<Filter> availableFilters;
+  final Set<Filter> selectedFilters;
 
   @override
   List<Object?> get props => [availableFilters, selectedFilters];

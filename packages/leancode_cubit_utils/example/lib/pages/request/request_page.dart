@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:example/http/http_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
-import 'package:http/http.dart' as http;
 
 class UserRequestCubit extends RequestCubit<http.Response, String, User, int> {
   UserRequestCubit(
@@ -18,7 +18,8 @@ class UserRequestCubit extends RequestCubit<http.Response, String, User, int> {
   Future<http.Response> request() => _request();
 
   @override
-  User map(String data) => User.fromJson(jsonDecode(data));
+  User map(String data) =>
+      User.fromJson(jsonDecode(data) as Map<String, dynamic>);
 
   @override
   Future<RequestState<User, int>> handleResult(
@@ -56,13 +57,9 @@ class RequestHookPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final userCubit = useBloc(
-      () {
-        final cubit = UserRequestCubit(
-          () => context.read<http.Client>().get(Uri.parse('success')),
-        );
-        cubit.run();
-        return cubit;
-      },
+      () => UserRequestCubit(
+        () => context.read<http.Client>().get(Uri.parse('success')),
+      )..run(),
       [],
     );
 
