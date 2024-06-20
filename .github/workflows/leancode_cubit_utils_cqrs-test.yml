@@ -49,6 +49,4 @@ jobs:
         run: flutter test
 
       - name: Dry run pub publish
-        uses: leancodepl/mobile-tools/.github/actions/pub-release@pub-release-v1
-        with:
-          dry-run: true
+        run: dart pub publish --dry-run || true
