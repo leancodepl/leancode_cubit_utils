@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../utils/http_status_codes.dart';
 import '../utils/mocked_api.dart';
 import 'test_paginated_cubit.dart';
 
@@ -158,11 +161,14 @@ void main() {
               searchQuery: any(named: 'searchQuery'),
             ),
           ).thenAnswer(
-            (_) async => QuerySuccess(
-              Page<City>(
-                cities: api.cities.take(20).toList(),
-                hasNextPage: true,
+            (_) async => http.Response(
+              jsonEncode(
+                Page(
+                  cities: api.cities.take(20).toList(),
+                  hasNextPage: true,
+                ),
               ),
+              StatusCode.ok.value,
             ),
           );
         },
@@ -287,14 +293,20 @@ void main() {
         'runs pre-request once before the first page is loaded when preRequestMode is once',
         setUp: () {
           when(mockedApi.getTypes).thenAnswer(
-            (_) async => const QuerySuccess(CityType.values),
+            (_) async => http.Response(
+              jsonEncode(CityType.allToJson()),
+              StatusCode.ok.value,
+            ),
           );
           when(() => mockedApi.getCities(any(), any())).thenAnswer(
-            (_) async => QuerySuccess(
-              Page(
-                cities: api.cities.take(20).toList(),
-                hasNextPage: true,
+            (_) async => http.Response(
+              jsonEncode(
+                Page(
+                  cities: api.cities.take(20).toList(),
+                  hasNextPage: true,
+                ),
               ),
+              StatusCode.ok.value,
             ),
           );
         },
@@ -365,11 +377,14 @@ void main() {
         ),
         act: (cubit) {
           when(mockedApi.getTypes).thenAnswer(
-            (_) async => const QueryFailure(QueryError.network),
+            (_) async => http.Response('', StatusCode.notFound.value),
           );
           cubit.run();
           when(mockedApi.getTypes).thenAnswer(
-            (_) async => const QuerySuccess(CityType.values),
+            (_) async => http.Response(
+              jsonEncode(CityType.allToJson()),
+              StatusCode.ok.value,
+            ),
           );
           cubit.run();
         },
@@ -407,11 +422,14 @@ void main() {
         ),
         setUp: () {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
-            (_) async => QuerySuccess(
-              Page(
-                cities: api.cities.take(20).toList(),
-                hasNextPage: true,
+            (_) async => http.Response(
+              jsonEncode(
+                Page(
+                  cities: api.cities.take(20).toList(),
+                  hasNextPage: true,
+                ),
               ),
+              StatusCode.ok.value,
             ),
           );
         },
@@ -458,11 +476,14 @@ void main() {
         'cancels previous refresh processing when a new refresh is called within short time',
         setUp: () {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
-            (_) async => QuerySuccess(
-              Page(
-                cities: api.cities.take(20).toList(),
-                hasNextPage: true,
+            (_) async => http.Response(
+              jsonEncode(
+                Page(
+                  cities: api.cities.take(20).toList(),
+                  hasNextPage: true,
+                ),
               ),
+              StatusCode.ok.value,
             ),
           );
         },
@@ -497,11 +518,14 @@ void main() {
         'keeps the data when refresh is processed',
         setUp: () {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
-            (_) async => QuerySuccess(
-              Page(
-                cities: api.cities.take(20).toList(),
-                hasNextPage: true,
+            (_) async => http.Response(
+              jsonEncode(
+                Page(
+                  cities: api.cities.take(20).toList(),
+                  hasNextPage: true,
+                ),
               ),
+              StatusCode.ok.value,
             ),
           );
         },
@@ -536,16 +560,22 @@ void main() {
         'requestPage is called when previous call ends with error',
         setUp: () {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
-            (_) async => QuerySuccess(
-              Page(
-                cities: api.cities.take(20).toList(),
-                hasNextPage: true,
+            (_) async => http.Response(
+              jsonEncode(
+                Page(
+                  cities: api.cities.take(20).toList(),
+                  hasNextPage: true,
+                ),
               ),
+              StatusCode.ok.value,
             ),
           );
 
           when(mockedApi.getTypes).thenAnswer(
-            (_) async => const QuerySuccess(CityType.values),
+            (_) async => http.Response(
+              jsonEncode(CityType.allToJson()),
+              StatusCode.ok.value,
+            ),
           );
         },
         build: () => TestPreRequestPaginatedCubit(
@@ -571,7 +601,7 @@ void main() {
         'emits firstPageError when loading first page fails',
         setUp: () {
           when(() => mockedApi.getCities(any(), any())).thenAnswer(
-            (_) async => const QueryFailure(QueryError.network),
+            (_) async => http.Response('', StatusCode.notFound.value),
           );
         },
         build: () => TestPaginatedCubit(mockedApi),
@@ -584,7 +614,7 @@ void main() {
           PaginatedState(
             type: PaginatedStateType.firstPageError,
             args: defaultArgs,
-            error: QueryError.network,
+            error: StatusCode.notFound.value,
           ),
         ],
       );
@@ -593,7 +623,7 @@ void main() {
         'emits nextPageError when loading next page fails',
         setUp: () {
           when(() => mockedApi.getCities(any(), any())).thenAnswer(
-            (_) async => const QueryFailure(QueryError.network),
+            (_) async => http.Response('', StatusCode.notFound.value),
           );
         },
         seed: () => PaginatedState(
@@ -616,7 +646,7 @@ void main() {
             items: api.cities.take(20).toList(),
             args: defaultArgs.copyWith(pageNumber: 1),
             hasNextPage: true,
-            error: QueryError.network,
+            error: StatusCode.notFound.value,
           ),
         ],
       );
@@ -625,7 +655,7 @@ void main() {
         'emits firstPageError when pre-request fails',
         setUp: () {
           when(mockedApi.getTypes).thenAnswer(
-            (_) async => const QueryFailure(QueryError.network),
+            (_) async => http.Response('', StatusCode.notFound.value),
           );
         },
         build: () => TestPreRequestPaginatedCubit(
@@ -642,7 +672,7 @@ void main() {
           PaginatedState(
             type: PaginatedStateType.firstPageError,
             args: defaultArgs,
-            error: QueryError.network,
+            error: StatusCode.notFound.value,
             data: [],
           ),
         ],

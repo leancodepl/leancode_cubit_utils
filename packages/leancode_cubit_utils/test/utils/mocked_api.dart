@@ -23,9 +23,6 @@ class Page {
     );
   }
 
-  final bool hasNextPage;
-  final List<City> cities;
-
   Json toJson() {
     return {
       'hasNextPage': hasNextPage,
@@ -34,12 +31,40 @@ class Page {
       ],
     };
   }
+
+  final bool hasNextPage;
+  final List<City> cities;
 }
 
 enum CityType {
   small,
   medium,
-  large,
+  large;
+
+  factory CityType.fromJson(Json json) {
+    final name = json['name'] as String;
+    for (final type in values) {
+      if (name == type.name) {
+        return type;
+      }
+    }
+    throw ArgumentError('Matching city type not found.');
+  }
+
+  Json toJson() {
+    return {'name': name};
+  }
+
+  static Json allToJson() => {
+        'types': [
+          for (final type in values) type.toJson(),
+        ],
+      };
+
+  static List<CityType> allFromJson(Json json) => [
+        for (final type in json['types'] as Iterable)
+          CityType.fromJson(type as Json),
+      ];
 }
 
 class City with EquatableMixin {
@@ -51,14 +76,14 @@ class City with EquatableMixin {
   factory City.fromJson(Json json) {
     return City(
       name: json['name'] as String,
-      type: json['type'] as CityType,
+      type: CityType.fromJson(json['type'] as Json),
     );
   }
 
   Json toJson() {
     return {
       'name': name,
-      'type': type,
+      'type': type.toJson(),
     };
   }
 
@@ -82,7 +107,10 @@ class ApiBase {
 
   Future<http.Response> getTypes() async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    return http.Response(jsonEncode(CityType.values), StatusCode.ok.value);
+    return http.Response(
+      jsonEncode(CityType.allToJson()),
+      StatusCode.ok.value,
+    );
   }
 
   Future<http.Response> getCities(
