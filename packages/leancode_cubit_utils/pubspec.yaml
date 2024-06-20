@@ -4,11 +4,10 @@ version: 0.0.4
 repository: https://github.com/leancodepl/leancode_cubit_utils
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
+  sdk: '>=3.1.0 <4.0.0'
 
 dependencies:
   async: ^2.0.0
-  # cqrs: ^10.0.1
   equatable: ^2.0.0
   flutter:
     sdk: flutter

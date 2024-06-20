@@ -1,8 +1,8 @@
-name: publish
+name: publish leancode_cubit_utils
 
 on:
   push:
-    tags: ['v*']
+    tags: ['leancode_cubit_utils-v*']
 
 jobs:
   publish:
@@ -13,6 +13,10 @@ jobs:
     permissions:
       id-token: write
       contents: write
+
+    defaults:
+      run:
+        working-directory: packages/leancode_cubit_utils
 
     steps:
       - name: Checkout

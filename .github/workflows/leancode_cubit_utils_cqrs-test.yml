@@ -1,11 +1,15 @@
-name: leancode_cubit_utils test
+name: leancode_cubit_utils_cqrs test
 
 on:
   push:
     branches: [main]
-    tags-ignore: ['v*']
+    tags-ignore: ['leancode_cubit_utils_cqrs-v*']
+    paths:
+      - 'packages/leancode_cubit_utils_cqrs/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'packages/leancode_cubit_utils_cqrs/**'
 
 jobs:
   test:
@@ -17,6 +21,10 @@ jobs:
       matrix:
         include:
           - version: '3.19.x'
+
+    defaults:
+      run:
+        working-directory: packages/leancode_cubit_utils_cqrs
 
     steps:
       - name: Checkout
