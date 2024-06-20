@@ -56,6 +56,7 @@ class QueryHookPage extends HookWidget {
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
           ),
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: userCubit.refresh,
             child: const Text('Refresh'),
@@ -97,6 +98,7 @@ class QueryPage extends StatelessWidget {
               builder: (context, data) => Text('${data.name} ${data.surname}'),
             ),
           ),
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: context.read<UserQueryCubit>().refresh,
             child: const Text('Refresh'),
