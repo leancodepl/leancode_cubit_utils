@@ -36,7 +36,7 @@ void main() {
     when(
       () => client.get(Uri.parse('0')),
     ).thenAnswer(
-      (_) async => http.Response('Result', 200),
+      (_) async => http.Response('Result', StatusCode.ok.value),
     );
 
     when(

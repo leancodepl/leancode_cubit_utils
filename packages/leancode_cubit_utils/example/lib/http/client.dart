@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:example/http/status_codes.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,9 +24,7 @@ class User {
   }
 }
 
-class AppHttpClient extends Mock implements http.Client {
-  AppHttpClient();
-}
+class AppHttpClient extends Mock implements http.Client {}
 
 AppHttpClient createMockedHttpClient() {
   final client = AppHttpClient();
@@ -34,7 +33,10 @@ AppHttpClient createMockedHttpClient() {
   ).thenAnswer(
     (invocation) => Future.delayed(
       const Duration(milliseconds: 1000),
-      () => http.Response(jsonEncode(const User('John', 'Doe')), 200),
+      () => http.Response(
+        jsonEncode(const User('John', 'Doe')),
+        StatusCode.ok.value,
+      ),
     ),
   );
   when(
@@ -42,7 +44,7 @@ AppHttpClient createMockedHttpClient() {
   ).thenAnswer(
     (invocation) => Future.delayed(
       const Duration(milliseconds: 1000),
-      () => http.Response('', 400),
+      () => http.Response('', StatusCode.badRequest.value),
     ),
   );
 
