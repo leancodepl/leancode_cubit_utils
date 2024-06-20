@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:example/http/http_client.dart';
+import 'package:example/http/client.dart';
 import 'package:example/pages/home_page.dart';
 import 'package:example/pages/paginated/paginated_cubit_page.dart';
 import 'package:example/pages/request/request_page.dart';

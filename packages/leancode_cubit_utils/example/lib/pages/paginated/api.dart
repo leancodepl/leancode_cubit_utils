@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:example/http/status_codes.dart';
 import 'package:http/http.dart' as http;
 import 'package:equatable/equatable.dart';
 import 'package:faker/faker.dart';
@@ -142,7 +143,7 @@ class MockedApi {
           selectedFilters: {},
         ),
       ),
-      200,
+      StatusCode.ok.value,
     );
   }
 
@@ -154,7 +155,7 @@ class MockedApi {
   }) async {
     await Future<void>.delayed(const Duration(seconds: 1));
     if (searchQuery == 'error') {
-      return http.Response('', 400);
+      return http.Response('', StatusCode.badRequest.value);
     }
     var filteredUsers = users;
     if (selectedFilters.isNotEmpty) {
@@ -174,7 +175,7 @@ class MockedApi {
           hasNextPage: usersPage.length >= pageSize,
         ),
       ),
-      200,
+      StatusCode.ok.value,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:example/http/status_codes.dart';
 import 'package:http/http.dart' as http;
 import 'package:equatable/equatable.dart';
 import 'package:example/pages/paginated/api.dart';
@@ -69,7 +70,7 @@ class FiltersPreRequest
       PaginatedState<AdditionalData, User> state) async {
     try {
       final result = await request(state);
-      if (result.statusCode == 200) {
+      if (result.statusCode == StatusCode.ok.value) {
         return state.copyWith(
           data: map(
               Filters.fromJson(jsonDecode(result.body) as Map<String, dynamic>),
@@ -155,11 +156,8 @@ class SimplePaginatedCubit
   }
 
   @override
-  RequestResult<Page> handleResponse(http.Response res) {
-    return switch (res.statusCode) {
-      200 =>
-        Success(Page.fromJson(jsonDecode(res.body) as Map<String, dynamic>)),
-      _ => Failure(res.statusCode),
-    };
-  }
+  RequestResult<Page> handleResponse(http.Response res) =>
+      res.statusCode == StatusCode.ok.value
+          ? Success(Page.fromJson(jsonDecode(res.body) as Map<String, dynamic>))
+          : Failure(res.statusCode);
 }

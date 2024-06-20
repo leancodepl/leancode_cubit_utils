@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:example/http/http_client.dart';
+import 'package:example/http/client.dart';
+import 'package:example/http/status_codes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -25,7 +26,7 @@ class UserRequestCubit extends RequestCubit<http.Response, String, User, int> {
   Future<RequestState<User, int>> handleResult(
     http.Response result,
   ) async {
-    if (result.statusCode == 200) {
+    if (result.statusCode == StatusCode.ok.value) {
       logger.info('Request success. Data: ${result.body}');
       return RequestSuccessState(map(result.body));
     } else {
