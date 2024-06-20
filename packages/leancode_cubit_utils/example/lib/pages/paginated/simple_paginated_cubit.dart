@@ -38,7 +38,7 @@ class AdditionalData with EquatableMixin {
 }
 
 class FiltersPreRequest
-    extends PreRequest<http.Response, Filters, AdditionalData, User> {
+    extends PreRequest<http.Response, String, AdditionalData, User> {
   FiltersPreRequest({
     required this.api,
   });
@@ -54,13 +54,15 @@ class FiltersPreRequest
 
   @override
   AdditionalData map(
-    Filters res,
+    String res,
     PaginatedState<AdditionalData, User> state,
   ) {
+    Filters filters = Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
+
     return AdditionalData(
-      availableFilters: res.availableFilters,
+      availableFilters: filters.availableFilters,
       selectedFilters: state.data.selectedFilters
-          .where((e) => res.availableFilters.contains(e))
+          .where((e) => filters.availableFilters.contains(e))
           .toSet(),
     );
   }
@@ -72,9 +74,7 @@ class FiltersPreRequest
       final result = await request(state);
       if (result.statusCode == StatusCode.ok.value) {
         return state.copyWith(
-          data: map(
-              Filters.fromJson(jsonDecode(result.body) as Map<String, dynamic>),
-              state),
+          data: map(result.body, state),
           preRequestSuccess: true,
         );
       } else {

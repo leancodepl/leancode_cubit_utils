@@ -40,7 +40,7 @@ class TestPaginatedCubit
 }
 
 class TestPreRequest
-    extends PreRequest<http.Response, List<CityType>, List<CityType>, City> {
+    extends PreRequest<http.Response, String, List<CityType>, City> {
   TestPreRequest(this.api);
 
   final ApiBase api;
@@ -54,10 +54,12 @@ class TestPreRequest
 
   @override
   List<CityType> map(
-    List<CityType> res,
+    String res,
     PaginatedState<List<CityType>, City> state,
   ) {
-    return res;
+    return CityType.allFromJson(
+      jsonDecode(res) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -69,9 +71,7 @@ class TestPreRequest
       if (result.statusCode == StatusCode.ok.value) {
         return state.copyWith(
           data: map(
-            CityType.allFromJson(
-              jsonDecode(result.body) as Map<String, dynamic>,
-            ),
+            result.body,
             state,
           ),
           preRequestSuccess: true,
