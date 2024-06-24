@@ -1,5 +1,5 @@
-/// A library for building cqrs cubits with less boilerplate code.
-library leancode_cubit_utils;
+/// A library for building cubits for handling CQRS with less boilerplate code.
+library leancode_cubit_utils_cqrs;
 
 export 'src/paginated/paginated_query_cubit.dart';
 export 'src/paginated/pre_request/query_pre_request.dart';

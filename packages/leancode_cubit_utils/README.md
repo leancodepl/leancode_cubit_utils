@@ -1,8 +1,4 @@
-A collection of cubits and widgets that facilitate the creation of repetitive pages, eliminating boilerplate. It contains an implementation that simplifies CQRS query handling, but it's also possible to connect with other API clients.
-
-# Requirements
-
-```cqrs: ">=10.0.1"```
+A collection of cubits and widgets that facilitate the creation of repetitive pages, eliminating boilerplate.
 
 # Installation
 
@@ -19,36 +15,57 @@ Import the package:
 
 The collection of utilities in the package can be divided into two subsets. [Single Request Utils](#single-request-utils) are used for creating pages where a single request is made to retrieve data, which is then displayed. [Pagination Utils](#pagination-utils) are used for creating pages containing paginated lists. 
 
-`leancode_cubit_utils` contains a complete implementation of Cubits for handling [CQRS](https://pub.dev/packages/cqrs) queries but for both cases it is possible to implement variants that use different API clients.
+Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) queries is covered in [`leancode_cubit_utils_cqrs`][leancode_cubit_utils_cqrs] but for both cases it is possible to implement variants that use different API clients.
 
 ## Single Request Utils
 
-### `QueryCubit`
+### `RequestCubit`
 
-`QueryCubit` is used to execute a single CQRS query. Example implementation of QueryCubit looks like this:
+`RequestCubit` is used to execute a single API request. Example implementation of RequestCubit looks like this:
 
 ```dart
-// QueryCubit has two generic arguments, TRes and TOut. TRes specifies what the Query returns, while TOut determines which model we 
-// want to emit as data in the state.
-class ProjectDetailsCubit extends QueryCubit<ProjectDetailsDTO, ProjectDetailsDTO> {
+// RequestCubit has four generic arguments: TRes, TData, TOut and TError. TRes specifies what the request returns, TData specifies what is kept in TRes as response body, TOut determines which model we want to emit as data in the state, TError defines error's type.
+class ProjectDetailsCubit
+    extends RequestCubit<http.Response, String, ProjectDetailsDTO, int> {
   ProjectDetailsCubit({
-    required this.cqrs,
+    required this.client,
     required this.id,
   }) : super('ProjectDetailsCubit');
 
-  final Cqrs cqrs;
+  final http.Client client;
   final String id;
 
   @override
-  // This method allows to map the given TRes into TOut. 
-  // In this case we don't want to change it, so we simply return the data.
-  ProjectDetailsDTO map(ProjectDetailsDTO data) => data;
+  // This method allows to map the given TRes into TOut.
+  ProjectDetailsDTO map(String data) =>
+      ProjectDetailsDTO.fromJson(jsonDecode(data) as Map<String, dynamic>);
 
   @override
-  // In this method we should perform the query and return it in form of QueryResult<TRes>.
-  // QueryResult<TRes> is then internally handled by QueryCubit.
-  Future<QueryResult<ProjectDetailsDTO>> request() {
-    return cqrs.get(ProjectDetails(id: id));
+  // In this method we should perform the request and return it in form of http.Response.
+  // http.Response is then internally handled by handleResult.
+  Future<http.Response> request() {
+    return client.get(Uri.parse('base-url/$id'));
+  }
+
+  @override
+  // In this method we check the request's state
+  // and return the result on success or call handleError on failure.
+  Future<RequestState<ProjectDetailsDTO, int>> handleResult(
+      http.Response result) async {
+    if (result.statusCode == 200) {
+      logger.info('Request success. Data: ${result.body}');
+      return RequestSuccessState(map(result.body));
+    } else {
+      logger.severe('Request error. Status code: ${result.statusCode}');
+      try {
+        return await handleError(RequestErrorState(error: result.statusCode));
+      } catch (e, s) {
+        logger.severe(
+          'Processing error failed. Exception: $e. Stack trace: $s',
+        );
+        return RequestErrorState(exception: e, stackTrace: s);
+      }
+    }
   }
 }
 ```
@@ -59,10 +76,10 @@ The cubit itself handles the things like:
 - refreshing - when you call the refresh() method, the cubit will re-execute the last request. If it already has the most recently retrieved data, it will be available,
 - logging - you can observe what is happening inside of the cubit.
 
-### `ArgsQueryCubit`
-`ArgsQueryCubit<TArgs, TRes, TOut>` is a version of `QueryCubit` in which the request method accepts an argument. `TArgs` determines the type of arguments accepted by the request method. `TRes` and `TOut` serve the same purpose as in `QueryCubit`. 
+### `ArgsRequestCubit`
+`ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>` is a version of `RequestCubit` in which the request method accepts an argument. `TArgs` determines the type of arguments accepted by the request method. `TRes`, `TData`, `TOut` and `TError` serve the same purpose as in `RequestCubit`. 
 
-If you call `refresh()` on `ArgsQueryCubit` it will perform a query with the last used arguments. They are also available under `lastRequestArgs` field.
+If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the last used arguments. They are also available under `lastRequestArgs` field.
 
 ### `RequestCubitBuilder`
 
@@ -121,56 +138,44 @@ RequestLayoutConfigProvider(
   )
 ```
 
-## `useQueryCubit`, `useArgsQueryCubit`
-
-Sometimes, there is no need to map the query response in any way. In such cases, there's no necessity to implement a cubit extending `QueryCubit`/`ArgsQueryCubit`. Instead, you can use one of the provided hooks, `useQueryCubit` or `useArgsQueryCubit`. Simply provide the request to be executed, and you will receive a cubit that you can then use in the same way by passing it to the `RequestCubitBuilder`.
-
-```dart
-final queryCubit = useQueryCubit(
-    () => cqrs.get(ProjectDetails(id: id)),
-);
-
-final argsQueryCubit = useArgsQueryCubit(
-    (args) => cqrs.get(AllProjects(sortByNameDescending: args.isDescending)),
-);
-```
-
-You may still configure `requestMode` and `loggerTag` by passing optional parameters. In `useQueryCubit` you can also define whether you want to invoke the request right away or not by passing `callOnCreate` flag. 
-
-
 ## Pagination Utils
 Pagination Utils were created to facilitate the creation of pages where the main element is a paginated list.
 
-### `PaginatedQueryCubit`
+### `PaginatedCubit`
 
-`PaginatedQueryCubit<TData, TRes, TItem>` is a implementation of `PaginatedCubit` for CQRS. It is used to handle the logic of retrieving the next pages of a paginated list. It has three generic argument:
+`PaginatedCubit` is used to handle the logic of retrieving the next pages of a paginated list. It has four generic arguments:
 - [`TData`](#additional-data) represents additional data that we want to store and process along with the list items,
-- `TRes` represents the structure in which items list are returned from the API,
+- `TRes` specifies what is returned from the API,
+- `TResData` represents the structure in which items are returned from the API,
 - `TItem` corresponds to the model of a single list item (after a potential transformation) that we plan to display as the element on the page. 
 
-Example implementation of `PaginatedQueryCubit` can look like this:
+Example implementation of `PaginatedCubit` can look like this:
 ```dart
-class IdentitiesCubit extends PaginatedQueryCubit<void, PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
+class IdentitiesCubit extends PaginatedCubit<void, http.Response,
+    PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
     super.config,
-    required this.cqrs,
+    required this.api,
   }) : super(loggerTag: 'IdentitiesCubit');
 
-  final Cqrs cqrs;
+  final Api api;
 
   @override
-  Future<QueryResult<PaginatedResult<KratosIdentityDTO>>> requestPage(
-    PaginatedArgs args,
-  ) {
-    return cqrs.get(
-      // Query fetching next page
-      SearchIdentities(
-        pageSize: args.pageSize,
-        pageNumber: args.pageNumber,
-        emailPattern: args.searchQuery,
-      ),
+  Future<http.Response> requestPage(PaginatedArgs args) {
+    return api.getIdentities(
+      args.pageNumber,
+      args.pageSize,
+      args.searchQuery,
     );
   }
+
+  @override
+  RequestResult<PaginatedResult<KratosIdentityDTO>> handleResponse(
+          http.Response res) =>
+      res.statusCode == 200
+          ? Success(PaginatedResult<KratosIdentityDTO>.fromJson(
+              jsonDecode(res.body) as Map<String, dynamic>))
+          : Failure(res.statusCode);
 
   @override
   PaginatedResponse<void, KratosIdentityDTO> onPageResult(
@@ -181,7 +186,7 @@ class IdentitiesCubit extends PaginatedQueryCubit<void, PaginatedResult<KratosId
     final hasNextPage = calculateHasNextPage(
       pageNumber: args.pageNumber,
       totalCount: page.totalCount,
-      );
+    );
 
     // Return the response with the next page appended
     return PaginatedResponse.append(
@@ -192,7 +197,7 @@ class IdentitiesCubit extends PaginatedQueryCubit<void, PaginatedResult<KratosId
 }
 ```
 
-You have to implement a body of two methods: `requestPage` and `onPageResult`. In first one perform the request and return it's result. In the second one, you need to handle te result and return it in form of `PaginatedResponse`. `PaginatedResponse` it's a class which contains a list of elements called `items`, a `hasNextPage` flag determining whether there is a next page or not, and you can also optionally pass updated `data` which corresponds to additional data in this cubit. `PaginatedResponse` have to constructors:
+You have to implement a body of three methods: `requestPage`, `handleResponse` and `onPageResult`. In the first one perform the request and return the response. In the second one, you need to transform the response into a result that can be handled by the third one that should return the result in form of `PaginatedResponse`. `PaginatedResponse` is a class which contains a list of elements called `items`, a `hasNextPage` flag determining whether there is a next page or not, you can optionally pass updated `data` which corresponds to additional data in this cubit. `PaginatedResponse` have to constructors:
 - `PaginatedResponse.append` which will be sufficient in most of the cases. It appends passed items to the already fetched items,
 - `PaginatedResponse.custom` gives you full control over the items. Items which you will pass to this constructor, will replace existing list of items.
 
@@ -259,27 +264,53 @@ You can configure search debounce time and number of characters which needs to b
 ### Pre-request
 Pre-requests allow you to perform an operation before making a request for the first page. This could be, for example, fetching available filters.
 
-#### `QueryPreRequest`
+#### `PreRequest`
 
-`QueryPreRequest` is a class that serves as an implementation of a pre-request specifically designed for CQRS. To utilize the pre-request feature provided by this functionality, create a class that extends `QueryPreRequest`.
+`PreRequest` is a class that serves as an implementation of a pre-request. To utilize it, create a class that extends `PreRequest`.
 
 ```dart
-class FiltersPreRequest extends QueryPreRequest<List<Filter>, List<Filter>, User> {
-  FiltersPreRequest({required this.cqrs});
+class FiltersPreRequest
+    extends PreRequest<http.Response, String, Filters, User> {
+  FiltersPreRequest({required this.api});
 
-  final Cqrs cqrs;
+  final Api api;
 
   @override
-  Future<QueryResult<List<Filter>>> request(PaginatedState<List<Filter>, User> state) {
+  Future<http.Response> request(PaginatedState<Filters, User> state) {
     return api.getFilters();
   }
 
   @override
-  AdditionalData map(
-    List<Filter> res,
-    PaginatedState<List<Filter>, User> state,
-  ) {
-    return res;
+  Filters map(
+    String res,
+    PaginatedState<Filters, User> state,
+  ) =>
+      Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
+
+  @override
+  Future<PaginatedState<Filters, User>> run(
+      PaginatedState<Filters, User> state) async {
+    try {
+      final result = await request(state);
+      if (result.statusCode == 200) {
+        return state.copyWith(
+          data: map(result.body, state),
+          preRequestSuccess: true,
+        );
+      } else {
+        try {
+          return handleError(state.copyWithError(result.statusCode));
+        } catch (e) {
+          return state.copyWithError(e);
+        }
+      }
+    } catch (e) {
+      try {
+        return handleError(state.copyWithError(e));
+      } catch (e) {
+        return state.copyWithError(e);
+      }
+    }
   }
 }
 ```
@@ -288,12 +319,12 @@ Then you need to create an instance of defined `FiltersPreRequest` in `Paginated
 
 
 ```dart 
-class IdentitiesCubit extends PaginatedQueryCubit<List<Filter>,
+class IdentitiesCubit extends PaginatedCubit<Filters, http.Response,
 PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
     super.config,
-    preRequest: FiltersPreRequest(cqrs: cqrs),// <--HERE
-    required this.cqrs,
+    preRequest: FiltersPreRequest(api: api),// <--HERE
+    required this.api,
   }) : super(loggerTag: 'IdentitiesCubit');
 
   /*Rest of the IdentitiesCubit implementation*/
@@ -304,22 +335,25 @@ If you provide a pre-request instance to `PaginatedCubit` it will take care of e
 
 ### Additional Data
 
-If there is a need to store any additional data along with the retrieved list items, `PaginatedCubit` is designed in a way that allows you to implement this within the same cubit. As you may have noticed, `PaginatedQueryCubit` has three generic types. The first one, `TData`, corresponds to additional data which will be stored and processed within this cubit. It can for example be a list of selected filters or a set of selected list items. In case you don't want to use the additional data, you can simply pass `void` as the first generic type.
+If there is a need to store any additional data along with the retrieved list items, `PaginatedCubit` is designed in a way that allows you to implement this within the same cubit. As you may have noticed, `PaginatedCubit` has four generic types. The first one, `TData`, corresponds to additional data which will be stored and processed within this cubit. It can for example be a list of selected filters or a set of selected list items. In case you don't want to use the additional data, you can simply pass `void` as the first generic type.
 
 If you want to use this feature, define type of the data as the first generic type. Then you can access the data through the state. Here is an example implementation of PaginatedCubit with additional data which holds information about selected items:  
 
 ```dart
-class IdentitiesCubit extends PaginatedQueryCubit<List<KratosIdentityDTO>,
+class IdentitiesCubit extends PaginatedCubit<List<KratosIdentityDTO>, http.Response,
 PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   IdentitiesCubit({
     super.config,
-    required this.cqrs,
+    required this.api,
   }) : super(loggerTag: 'IdentitiesCubit');
 
-  final Cqrs cqrs;
+  final Api api;
 
   @override
-  Future<QueryResult<PaginatedResult<KratosIdentityDTO>>> requestPage(PaginatedArgs args) { ... }
+  Future<http.Response> requestPage(PaginatedArgs args) { ... }
+
+  @override
+  RequestResult<PaginatedResult<KratosIdentityDTO>> handleResponse(http.Response res) { ... } 
 
   @override
   PaginatedResponse<void, KratosIdentityDTO> onPageResult(PaginatedResult<KratosIdentityDTO> page) { ... }
@@ -336,3 +370,5 @@ PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
   } 
 }
 ```
+
+[leancode_cubit_utils_cqrs]: https://pub.dev/packages/leancode_cubit_utils_cqrs
