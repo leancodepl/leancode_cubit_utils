@@ -12,22 +12,20 @@ class User {
 
   const User(this.name, this.surname);
 
-  factory User.fromJson(Json json) {
-    return User(json['name'] as String, json['surname'] as String);
-  }
+  factory User.fromJson(Json json) =>
+      User(json['name'] as String, json['surname'] as String);
 
-  Json toJson() {
-    return {
-      'name': name,
-      'surname': surname,
-    };
-  }
+  Json toJson() => {
+        'name': name,
+        'surname': surname,
+      };
 }
 
 class AppHttpClient extends Mock implements http.Client {}
 
 AppHttpClient createMockedHttpClient() {
   final client = AppHttpClient();
+
   when(
     () => client.get(Uri.parse('success')),
   ).thenAnswer(
@@ -39,6 +37,7 @@ AppHttpClient createMockedHttpClient() {
       ),
     ),
   );
+
   when(
     () => client.get(Uri.parse('error')),
   ).thenAnswer(

@@ -47,9 +47,7 @@ class RequestHookScreen extends StatelessWidget {
   const RequestHookScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const RequestHookPage();
-  }
+  Widget build(BuildContext context) => const RequestHookPage();
 }
 
 class RequestHookPage extends HookWidget {
@@ -92,39 +90,36 @@ class RequestScreen extends StatelessWidget {
   const RequestScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => UserRequestCubit(
-        () => context.read<http.Client>().get(Uri.parse('success')),
-      )..run(),
-      child: const RequestPage(),
-    );
-  }
+  Widget build(BuildContext context) => BlocProvider(
+        create: (context) => UserRequestCubit(
+          () => context.read<http.Client>().get(Uri.parse('success')),
+        )..run(),
+        child: const RequestPage(),
+      );
 }
 
 class RequestPage extends StatelessWidget {
   const RequestPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Simple request page')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: RequestCubitBuilder(
-              cubit: context.read<UserRequestCubit>(),
-              builder: (context, data) => Text('${data.name} ${data.surname}'),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Simple request page')),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: RequestCubitBuilder(
+                cubit: context.read<UserRequestCubit>(),
+                builder: (context, data) =>
+                    Text('${data.name} ${data.surname}'),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: context.read<UserRequestCubit>().refresh,
-            child: const Text('Refresh'),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: context.read<UserRequestCubit>().refresh,
+              child: const Text('Refresh'),
+            ),
+          ],
+        ),
+      );
 }

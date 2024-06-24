@@ -28,13 +28,12 @@ class AdditionalData with EquatableMixin {
     List<Filter>? availableFilters,
     Set<Filter>? selectedFilters,
     Set<User>? selectedUsers,
-  }) {
-    return AdditionalData(
-      availableFilters: availableFilters ?? this.availableFilters,
-      selectedFilters: selectedFilters ?? this.selectedFilters,
-      selectedUsers: selectedUsers ?? this.selectedUsers,
-    );
-  }
+  }) =>
+      AdditionalData(
+        availableFilters: availableFilters ?? this.availableFilters,
+        selectedFilters: selectedFilters ?? this.selectedFilters,
+        selectedUsers: selectedUsers ?? this.selectedUsers,
+      );
 }
 
 class FiltersPreRequest
@@ -48,16 +47,15 @@ class FiltersPreRequest
   @override
   Future<http.Response> request(
     PaginatedState<AdditionalData, User> state,
-  ) {
-    return api.getFilters();
-  }
+  ) =>
+      api.getFilters();
 
   @override
   AdditionalData map(
     String res,
     PaginatedState<AdditionalData, User> state,
   ) {
-    Filters filters = Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
+    final filters = Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
 
     return AdditionalData(
       availableFilters: filters.availableFilters,
@@ -72,6 +70,7 @@ class FiltersPreRequest
       PaginatedState<AdditionalData, User> state) async {
     try {
       final result = await request(state);
+
       if (result.statusCode == StatusCode.ok.value) {
         return state.copyWith(
           data: map(result.body, state),
@@ -107,22 +106,19 @@ class SimplePaginatedCubit
   final MockedApi api;
 
   @override
-  Future<http.Response> requestPage(PaginatedArgs args) {
-    return api.getUsers(
-      args.pageNumber,
-      args.pageSize,
-      selectedFilters: state.data.selectedFilters.toList(),
-      searchQuery: args.searchQuery,
-    );
-  }
+  Future<http.Response> requestPage(PaginatedArgs args) => api.getUsers(
+        args.pageNumber,
+        args.pageSize,
+        selectedFilters: state.data.selectedFilters.toList(),
+        searchQuery: args.searchQuery,
+      );
 
   @override
-  PaginatedResponse<AdditionalData, User> onPageResult(Page page) {
-    return PaginatedResponse.append(
-      items: page.users,
-      hasNextPage: page.hasNextPage,
-    );
-  }
+  PaginatedResponse<AdditionalData, User> onPageResult(Page page) =>
+      PaginatedResponse.append(
+        items: page.users,
+        hasNextPage: page.hasNextPage,
+      );
 
   Future<void> onFilterPressed(Filter filter) async {
     final selectedFilters = state.data.selectedFilters;
@@ -143,6 +139,7 @@ class SimplePaginatedCubit
 
   void onTilePressed(User user) {
     final selectedUsers = state.data.selectedUsers;
+
     emit(
       state.copyWith(
         data: state.data.copyWith(

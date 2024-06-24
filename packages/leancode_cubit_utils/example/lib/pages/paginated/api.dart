@@ -11,24 +11,20 @@ typedef Json = Map<String, dynamic>;
 class Page {
   Page({required this.hasNextPage, required this.users});
 
-  factory Page.fromJson(Json json) {
-    return Page(
-      hasNextPage: json['hasNextPage'] as bool,
-      users: [
-        for (final user in json['users'] as Iterable)
-          User.fromJson(user as Json),
-      ],
-    );
-  }
+  factory Page.fromJson(Json json) => Page(
+        hasNextPage: json['hasNextPage'] as bool,
+        users: [
+          for (final user in json['users'] as Iterable)
+            User.fromJson(user as Json),
+        ],
+      );
 
-  Json toJson() {
-    return {
-      'hasNextPage': hasNextPage,
-      'users': [
-        for (final user in users) user.toJson(),
-      ],
-    };
-  }
+  Json toJson() => {
+        'hasNextPage': hasNextPage,
+        'users': [
+          for (final user in users) user.toJson(),
+        ],
+      };
 
   final bool hasNextPage;
   final List<User> users;
@@ -40,26 +36,20 @@ class User {
     required this.jobTitle,
   });
 
-  factory User.fake(Faker faker, String jobTitle) {
-    return User(
-      name: faker.person.name(),
-      jobTitle: jobTitle,
-    );
-  }
+  factory User.fake(Faker faker, String jobTitle) => User(
+        name: faker.person.name(),
+        jobTitle: jobTitle,
+      );
 
-  factory User.fromJson(Json json) {
-    return User(
-      name: json['name'] as String,
-      jobTitle: json['jobTitle'] as String,
-    );
-  }
+  factory User.fromJson(Json json) => User(
+        name: json['name'] as String,
+        jobTitle: json['jobTitle'] as String,
+      );
 
-  Json toJson() {
-    return {
-      'name': name,
-      'jobTitle': jobTitle,
-    };
-  }
+  Json toJson() => {
+        'name': name,
+        'jobTitle': jobTitle,
+      };
 
   final String name;
   final String jobTitle;
@@ -68,15 +58,11 @@ class User {
 class Filter {
   Filter({required this.name});
 
-  factory Filter.fromJson(Json json) {
-    return Filter(name: json['name'] as String);
-  }
+  factory Filter.fromJson(Json json) => Filter(name: json['name'] as String);
 
-  Json toJson() {
-    return {
-      'name': name,
-    };
-  }
+  Json toJson() => {
+        'name': name,
+      };
 
   final String name;
 }
@@ -87,29 +73,25 @@ class Filters with EquatableMixin {
     this.selectedFilters = const {},
   });
 
-  factory Filters.fromJson(Json json) {
-    return Filters(
-      availableFilters: [
-        for (final filter in json['availableFilters'] as Iterable)
-          Filter.fromJson(filter as Json),
-      ],
-      selectedFilters: {
-        for (final filter in json['selectedFilters'] as Iterable)
-          Filter.fromJson(filter as Json),
-      },
-    );
-  }
+  factory Filters.fromJson(Json json) => Filters(
+        availableFilters: [
+          for (final filter in json['availableFilters'] as Iterable)
+            Filter.fromJson(filter as Json),
+        ],
+        selectedFilters: {
+          for (final filter in json['selectedFilters'] as Iterable)
+            Filter.fromJson(filter as Json),
+        },
+      );
 
-  Json toJson() {
-    return {
-      'availableFilters': [
-        for (final filter in availableFilters) filter.toJson(),
-      ],
-      'selectedFilters': [
-        for (final filter in selectedFilters) filter.toJson(),
-      ],
-    };
-  }
+  Json toJson() => {
+        'availableFilters': [
+          for (final filter in availableFilters) filter.toJson(),
+        ],
+        'selectedFilters': [
+          for (final filter in selectedFilters) filter.toJson(),
+        ],
+      };
 
   final List<Filter> availableFilters;
   final Set<Filter> selectedFilters;
@@ -136,6 +118,7 @@ class MockedApi {
 
   Future<http.Response> getFilters() async {
     await Future<void>.delayed(const Duration(seconds: 1));
+
     return http.Response(
       jsonEncode(
         Filters(
@@ -154,13 +137,17 @@ class MockedApi {
     String searchQuery = '',
   }) async {
     await Future<void>.delayed(const Duration(seconds: 1));
+
     if (searchQuery == 'error') {
       return http.Response('', StatusCode.badRequest.value);
     }
+
     var filteredUsers = users;
+
     if (selectedFilters.isNotEmpty) {
       filteredUsers = _filterUsers(users, selectedFilters);
     }
+
     final usersPage = filteredUsers
         .where(
           (user) => user.name.toLowerCase().contains(searchQuery.toLowerCase()),
@@ -168,6 +155,7 @@ class MockedApi {
         .skip(pageNumber * pageSize)
         .take(pageSize)
         .toList();
+
     return http.Response(
       jsonEncode(
         Page(
@@ -179,9 +167,7 @@ class MockedApi {
     );
   }
 
-  List<User> _filterUsers(List<User> users, List<Filter> filters) {
-    return users
-        .where((user) => filters.any((filter) => user.jobTitle == filter.name))
-        .toList();
-  }
+  List<User> _filterUsers(List<User> users, List<Filter> filters) => users
+      .where((user) => filters.any((filter) => user.jobTitle == filter.name))
+      .toList();
 }

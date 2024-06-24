@@ -70,12 +70,11 @@ void main() {
             BuildContext context,
             RequestErrorState<dynamic, dynamic> error,
             VoidCallback? onErrorCallback,
-          ) {
-            return const Text(
-              'Error',
-              style: TextStyle(color: Colors.red),
-            );
-          },
+          ) =>
+              const Text(
+            'Error',
+            style: TextStyle(color: Colors.red),
+          ),
           child: const MainApp(),
         ),
       ),
@@ -87,16 +86,14 @@ class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      routes: <String, WidgetBuilder>{
-        Routes.home: (_) => const HomePage(),
-        Routes.simpleQuery: (_) => const QueryScreen(),
-        Routes.simpleQueryHook: (_) => const QueryHookScreen(),
-        Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
-      },
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        routes: <String, WidgetBuilder>{
+          Routes.home: (_) => const HomePage(),
+          Routes.simpleQuery: (_) => const QueryScreen(),
+          Routes.simpleQueryHook: (_) => const QueryHookScreen(),
+          Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
+        },
+      );
 }
 
 class Error extends StatelessWidget {
@@ -110,15 +107,13 @@ class Error extends StatelessWidget {
   final Object? error;
 
   @override
-  Widget build(BuildContext context) {
-    return retry != null
-        ? Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(error.toString()),
-              ElevatedButton(onPressed: retry, child: const Text('Retry')),
-            ],
-          )
-        : Text(error.toString());
-  }
+  Widget build(BuildContext context) => retry != null
+      ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(error.toString()),
+            ElevatedButton(onPressed: retry, child: const Text('Retry')),
+          ],
+        )
+      : Text(error.toString());
 }

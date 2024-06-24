@@ -8,54 +8,52 @@ class PaginatedCubitScreen extends StatelessWidget {
   const PaginatedCubitScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SimplePaginatedCubit(MockedApi())..run(),
-      child: const PaginatedCubitPage(),
-    );
-  }
+  Widget build(BuildContext context) => BlocProvider(
+        create: (context) => SimplePaginatedCubit(MockedApi())..run(),
+        child: const PaginatedCubitPage(),
+      );
 }
 
 class PaginatedCubitPage extends StatelessWidget {
   const PaginatedCubitPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PaginatedCubit Page'),
-      ),
-      body: Column(
-        children: [
-          const FiltersRow(),
-          TextField(
-            onChanged: context.read<SimplePaginatedCubit>().updateSearchQuery,
-            decoration: const InputDecoration(
-              hintText: 'Search',
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: const Text('PaginatedCubit Page'),
+        ),
+        body: Column(
+          children: [
+            const FiltersRow(),
+            TextField(
+              onChanged: context.read<SimplePaginatedCubit>().updateSearchQuery,
+              decoration: const InputDecoration(
+                hintText: 'Search',
+              ),
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
             ),
-            onTapOutside: (_) => FocusScope.of(context).unfocus(),
-          ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: context.read<SimplePaginatedCubit>().refresh,
-              child: PaginatedCubitLayout(
-                cubit: context.read<SimplePaginatedCubit>(),
-                itemBuilder: (context, additionalData, index, items) {
-                  final user = items[index];
-                  final selectedUsers = additionalData?.selectedUsers ?? {};
-                  return UserTile(
-                    user: user,
-                    isSelected: selectedUsers.contains(user),
-                  );
-                },
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: context.read<SimplePaginatedCubit>().refresh,
+                child: PaginatedCubitLayout(
+                  cubit: context.read<SimplePaginatedCubit>(),
+                  itemBuilder: (context, additionalData, index, items) {
+                    final user = items[index];
+                    final selectedUsers = additionalData?.selectedUsers ?? {};
+
+                    return UserTile(
+                      user: user,
+                      isSelected: selectedUsers.contains(user),
+                    );
+                  },
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }
 
 class FiltersRow extends StatelessWidget {
@@ -72,6 +70,7 @@ class FiltersRow extends StatelessWidget {
       builder: (context, state) {
         final availableFilters = state.data.availableFilters;
         final selectedFilters = state.data.selectedFilters;
+
         if (availableFilters.isEmpty) {
           return const CircularProgressIndicator();
         } else {
@@ -106,14 +105,11 @@ class UserTile extends StatelessWidget {
   final bool isSelected;
 
   @override
-  Widget build(BuildContext context) {
-    return CheckboxListTile(
-      title: Text(user.name),
-      subtitle: Text(user.jobTitle),
-      value: isSelected,
-      onChanged: (_) => context.read<SimplePaginatedCubit>().onTilePressed(
-            user,
-          ),
-    );
-  }
+  Widget build(BuildContext context) => CheckboxListTile(
+        title: Text(user.name),
+        subtitle: Text(user.jobTitle),
+        value: isSelected,
+        onChanged: (_) =>
+            context.read<SimplePaginatedCubit>().onTilePressed(user),
+      );
 }

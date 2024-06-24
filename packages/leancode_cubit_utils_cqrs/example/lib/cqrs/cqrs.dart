@@ -10,16 +10,12 @@ class User {
 
   const User(this.name, this.surname);
 
-  factory User.fromJson(Json json) {
-    return User(json['name'], json['surname']);
-  }
+  factory User.fromJson(Json json) => User(json['name'], json['surname']);
 
-  Json toJson() {
-    return {
-      'name': name,
-      'surname': surname,
-    };
-  }
+  Json toJson() => {
+        'name': name,
+        'surname': surname,
+      };
 }
 
 class UserQuery with EquatableMixin implements Query<User> {
@@ -48,6 +44,7 @@ class AppCqrs extends Mock implements Cqrs {
 
 AppCqrs createMockedCqrs() {
   final cqrs = AppCqrs();
+
   when(
     () => cqrs.get(UserQuery(userId: 'success')),
   ).thenAnswer(
@@ -56,6 +53,7 @@ AppCqrs createMockedCqrs() {
       () => const QuerySuccess(User('John', 'Doe')),
     ),
   );
+
   when(
     () => cqrs.get(UserQuery(userId: 'error')),
   ).thenAnswer(
