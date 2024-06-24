@@ -1,6 +1,7 @@
 ## 0.1.0
 
-* Move `cqrs` support to `leancode_cubit_utils_cqrs`, provide http example
+* Extract `cqrs` support to `leancode_cubit_utils_cqrs`
+* Provide http example
 
 ## 0.0.4
 
