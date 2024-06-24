@@ -1,3 +1,7 @@
+## 0.1.0
+
+* Move `cqrs` support to `leancode_cubit_utils_cqrs`, provide http example
+
 ## 0.0.4
 
 * Remove unused, unexported code from `query` directory
