@@ -2,6 +2,9 @@ import 'package:example/http/status_codes.dart';
 import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
+/// [PreRequestRun] and [RequestHandleResult] can be used repeatedly
+/// in cubits handling http.
+
 mixin PreRequestRun<TData, TItem>
     on PreRequest<http.Response, String, TData, TItem> {
   @override
