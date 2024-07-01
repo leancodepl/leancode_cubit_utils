@@ -1,14 +1,15 @@
 import 'dart:convert';
 
 import 'package:example/http/client.dart';
-import 'package:example/http/status_codes.dart';
+import 'package:example/pages/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
-class UserRequestCubit extends RequestCubit<http.Response, String, User, int> {
+class UserRequestCubit extends RequestCubit<http.Response, String, User, int>
+    with RequestHandleResult {
   UserRequestCubit(
     this._request,
   ) : super('UserRequestCubit');
@@ -21,26 +22,6 @@ class UserRequestCubit extends RequestCubit<http.Response, String, User, int> {
   @override
   User map(String data) =>
       User.fromJson(jsonDecode(data) as Map<String, dynamic>);
-
-  @override
-  Future<RequestState<User, int>> handleResult(
-    http.Response result,
-  ) async {
-    if (result.statusCode == StatusCode.ok.value) {
-      logger.info('Request success. Data: ${result.body}');
-      return RequestSuccessState(map(result.body));
-    } else {
-      logger.severe('Request error. Status code: ${result.statusCode}');
-      try {
-        return await handleError(RequestErrorState(error: result.statusCode));
-      } catch (e, s) {
-        logger.severe(
-          'Processing error failed. Exception: $e. Stack trace: $s',
-        );
-        return RequestErrorState(exception: e, stackTrace: s);
-      }
-    }
-  }
 }
 
 class RequestHookScreen extends StatelessWidget {

@@ -257,7 +257,7 @@ packages:
       path: "../../leancode_cubit_utils"
       relative: true
     source: path
-    version: "0.0.4"
+    version: "0.1.0"
   leancode_cubit_utils_cqrs:
     dependency: "direct main"
     description:
@@ -559,5 +559,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.4.0 <4.0.0"
+  dart: ">=3.3.0 <4.0.0"
   flutter: ">=3.18.0-18.0.pre.54"

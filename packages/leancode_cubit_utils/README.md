@@ -19,6 +19,37 @@ Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) quer
 
 ## Single Request Utils
 
+### `handleResult`
+
+`handleResult` is a client-specific method needed for handling the API response. It can be defined once and used repeatedly as a mixin.
+
+```dart
+mixin HandleResult<TOut>
+    on RequestCubit<http.Response, String, TOut, int> {
+  @override
+  // In this method we check the request's state
+  // and return the result on success or call handleError on failure.
+  Future<RequestState<TOut, int>> handleResult(
+    http.Response result,
+  ) async {
+    if (result.statusCode == 200) {
+      logger.info('Request success. Data: ${result.body}');
+      return RequestSuccessState(map(result.body));
+    } else {
+      logger.severe('Request error. Status code: ${result.statusCode}');
+      try {
+        return await handleError(RequestErrorState(error: result.statusCode));
+      } catch (e, s) {
+        logger.severe(
+          'Processing error failed. Exception: $e. Stack trace: $s',
+        );
+        return RequestErrorState(exception: e, stackTrace: s);
+      }
+    }
+  }
+}
+```
+
 ### `RequestCubit`
 
 `RequestCubit` is used to execute a single API request. Example implementation of RequestCubit looks like this:
@@ -26,7 +57,8 @@ Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) quer
 ```dart
 // RequestCubit has four generic arguments: TRes, TData, TOut and TError. TRes specifies what the request returns, TData specifies what is kept in TRes as response body, TOut determines which model we want to emit as data in the state, TError defines error's type.
 class ProjectDetailsCubit
-    extends RequestCubit<http.Response, String, ProjectDetailsDTO, int> {
+    extends RequestCubit<http.Response, String, ProjectDetailsDTO, int>
+    with HandleResult {
   ProjectDetailsCubit({
     required this.client,
     required this.id,
@@ -45,27 +77,6 @@ class ProjectDetailsCubit
   // http.Response is then internally handled by handleResult.
   Future<http.Response> request() {
     return client.get(Uri.parse('base-url/$id'));
-  }
-
-  @override
-  // In this method we check the request's state
-  // and return the result on success or call handleError on failure.
-  Future<RequestState<ProjectDetailsDTO, int>> handleResult(
-      http.Response result) async {
-    if (result.statusCode == 200) {
-      logger.info('Request success. Data: ${result.body}');
-      return RequestSuccessState(map(result.body));
-    } else {
-      logger.severe('Request error. Status code: ${result.statusCode}');
-      try {
-        return await handleError(RequestErrorState(error: result.statusCode));
-      } catch (e, s) {
-        logger.severe(
-          'Processing error failed. Exception: $e. Stack trace: $s',
-        );
-        return RequestErrorState(exception: e, stackTrace: s);
-      }
-    }
   }
 }
 ```
@@ -262,36 +273,22 @@ In case you need a search functionality you may use the built in support in `Pag
 You can configure search debounce time and number of characters which needs to be inserted to start searching. In order to do it read about [Paginated Cubit Configuration](#paginated-cubit-configuration).
 
 ### Pre-request
+
 Pre-requests allow you to perform an operation before making a request for the first page. This could be, for example, fetching available filters.
 
-#### `PreRequest`
+#### `run`
 
-`PreRequest` is a class that serves as an implementation of a pre-request. To utilize it, create a class that extends `PreRequest`.
+`run` is a client-specific method that performs the pre-request and returns the new state. It can be defined once and used repeatedly as a mixin.
 
 ```dart
-class FiltersPreRequest
-    extends PreRequest<http.Response, String, Filters, User> {
-  FiltersPreRequest({required this.api});
-
-  final Api api;
-
+mixin Run<TData, TItem>
+    on PreRequest<http.Response, String, TData, TItem> {
   @override
-  Future<http.Response> request(PaginatedState<Filters, User> state) {
-    return api.getFilters();
-  }
-
-  @override
-  Filters map(
-    String res,
-    PaginatedState<Filters, User> state,
-  ) =>
-      Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
-
-  @override
-  Future<PaginatedState<Filters, User>> run(
-      PaginatedState<Filters, User> state) async {
+  Future<PaginatedState<TData, TItem>> run(
+      PaginatedState<TData, TItem> state) async {
     try {
       final result = await request(state);
+
       if (result.statusCode == 200) {
         return state.copyWith(
           data: map(result.body, state),
@@ -312,6 +309,31 @@ class FiltersPreRequest
       }
     }
   }
+}
+```
+
+#### `PreRequest`
+
+`PreRequest` is a class that serves as an implementation of a pre-request. To utilize it, create a class that extends `PreRequest`.
+
+```dart
+class FiltersPreRequest extends PreRequest<http.Response, String, Filters, User>
+    with Run {
+  FiltersPreRequest({required this.api});
+
+  final Api api;
+
+  @override
+  Future<http.Response> request(PaginatedState<Filters, User> state) {
+    return api.getFilters();
+  }
+
+  @override
+  Filters map(
+    String res,
+    PaginatedState<Filters, User> state,
+  ) =>
+      Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
 }
 ```
 
