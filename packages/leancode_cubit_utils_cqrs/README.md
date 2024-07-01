@@ -67,7 +67,11 @@ final argsQueryCubit = useArgsQueryCubit(
 );
 ```
 
-You may still configure `requestMode` and `loggerTag` by passing optional parameters. In `useQueryCubit` you can also define whether you want to invoke the request right away or not by passing `callOnCreate` flag. 
+You may still configure `requestMode` and `loggerTag` by passing optional parameters. In `useQueryCubit` you can also define whether you want to invoke the request right away or not by passing `callOnCreate` flag.
+
+## `SimpleQueryCubit`, `SimpleArgsQueryCubit`
+
+`SimpleQueryCubit` and `SimpleArgsQueryCubit` are simplified implementation of `QueryCubit` and `ArgsQueryCubit` in case mapping the response is not needed. They were created for `useQueryCubit` and `useArgsQueryCubit` but can be used independently.
 
 
 ## Pagination Utils
