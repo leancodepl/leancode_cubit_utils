@@ -1,10 +1,9 @@
 import 'package:cqrs/cqrs.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
-import 'package:leancode_cubit_utils_cqrs/src/request/simple_query_cubit.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
-/// Provides a [QueryCubit] specialized for [QueryResult] that is automatically disposed without having
+/// Provides a [SimpleQueryCubit] specialized for [QueryResult] that is automatically disposed without having
 /// to use BlocProvider and does not require any arguments. It is a wrapper of [useBloc] that creates a [SimpleQueryCubit].
 SimpleQueryCubit<TOut> useQueryCubit<TOut>(
   Request<QueryResult<TOut>> request, {
@@ -17,7 +16,7 @@ SimpleQueryCubit<TOut> useQueryCubit<TOut>(
     () {
       final cubit = SimpleQueryCubit<TOut>(
         loggerTag,
-        request,
+        customRequest: request,
         requestMode: requestMode,
       );
       if (callOnCreate) {
@@ -29,7 +28,7 @@ SimpleQueryCubit<TOut> useQueryCubit<TOut>(
   );
 }
 
-/// Provides a [ArgsQueryCubit] specialized for [QueryResult] that is automatically disposed without having
+/// Provides a [SimpleArgsQueryCubit] specialized for [QueryResult] that is automatically disposed without having
 /// to use BlocProvider and requires arguments. It is a wrapper of [useBloc] that creates a [SimpleArgsQueryCubit].
 SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>(
   ArgsRequest<TArgs, QueryResult<TOut>> request, {
@@ -40,7 +39,7 @@ SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>(
   return useBloc(
     () => SimpleArgsQueryCubit<TArgs, TOut>(
       loggerTag,
-      request,
+      customRequest: request,
       requestMode: requestMode,
     ),
     keys,
