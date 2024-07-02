@@ -6,20 +6,17 @@ import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
-class UserQueryCubit extends QueryCubit<User, User> {
+class UserQueryCubit extends SimpleQueryCubit<User> {
   UserQueryCubit({
     required this.cqrs,
     required this.userId,
-  }) : super('UserRequestCubit');
+  }) : super(
+          'UserRequestCubit',
+          customRequest: () => cqrs.get(UserQuery(userId: userId)),
+        );
 
   final Cqrs cqrs;
   final String userId;
-
-  @override
-  Future<QueryResult<User>> request() => cqrs.get(UserQuery(userId: userId));
-
-  @override
-  User map(User data) => data;
 }
 
 class QueryHookScreen extends StatelessWidget {

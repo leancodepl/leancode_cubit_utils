@@ -6,16 +6,16 @@ import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 class SimpleQueryCubit<TOut> extends QueryCubit<TOut, TOut> {
   /// Creates a new [SimpleQueryCubit].
   SimpleQueryCubit(
-    super.loggerTag,
-    this._customRequest, {
+    super.loggerTag, {
+    required this.customRequest,
     super.requestMode,
   });
 
   /// The request to be executed.
-  final Request<QueryResult<TOut>> _customRequest;
+  final Request<QueryResult<TOut>> customRequest;
 
   @override
-  Future<QueryResult<TOut>> request() => _customRequest();
+  Future<QueryResult<TOut>> request() => customRequest();
 
   @override
   TOut map(TOut data) => data;
@@ -26,16 +26,16 @@ class SimpleArgsQueryCubit<TArgs, TOut>
     extends ArgsQueryCubit<TArgs, TOut, TOut> {
   /// Creates a new [SimpleArgsQueryCubit].
   SimpleArgsQueryCubit(
-    super.loggerTag,
-    this._customRequest, {
+    super.loggerTag, {
+    required this.customRequest,
     super.requestMode,
   });
 
   /// The request to be executed.
-  final ArgsRequest<TArgs, QueryResult<TOut>> _customRequest;
+  final ArgsRequest<TArgs, QueryResult<TOut>> customRequest;
 
   @override
-  Future<QueryResult<TOut>> request(TArgs args) => _customRequest(args);
+  Future<QueryResult<TOut>> request(TArgs args) => customRequest(args);
 
   @override
   TOut map(TOut data) => data;
