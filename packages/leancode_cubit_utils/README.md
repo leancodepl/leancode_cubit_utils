@@ -13,15 +13,21 @@ Import the package:
 
 # Usage
 
-The collection of utilities in the package can be divided into two subsets. [Single Request Utils](#single-request-utils) are used for creating pages where a single request is made to retrieve data, which is then displayed. [Pagination Utils](#pagination-utils) are used for creating pages containing paginated lists. 
+The collection of utilities in the package can be divided into two subsets. [Single Request Utils](#single-request-utils) are used for creating pages where a single request is made to retrieve data which is then displayed. [Pagination Utils](#pagination-utils) are used for creating pages containing paginated lists. For both cases it is possible to implement variants that use different API clients. 
 
-Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) queries is covered in [`leancode_cubit_utils_cqrs`][leancode_cubit_utils_cqrs] but for both cases it is possible to implement variants that use different API clients.
+Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) queries is covered in [`leancode_cubit_utils_cqrs`][leancode_cubit_utils_cqrs]. 
 
 ## Single Request Utils
 
 ### `RequestCubit`
 
-`RequestCubit` is used to execute a single API request. It has four generic arguments: TRes, TData, TOut and TError. TRes specifies what the request returns, TData specifies what is kept in TRes as response body, TOut determines which model we want to emit as data in the state, TError defines error's type. In the example below, `HttpRequestCubit` provides the generic http implementation that can be used while defining all needed `RequestCubits`.
+`RequestCubit` is used to execute a single API request. It has four generic arguments:
+- `TRes` specifies what the request returns,
+- `TData` specifies what is kept in TRes as response body,
+- `TOut` determines which model we want to emit as data in the state,
+- `TError` defines error's type. In the example below.
+
+`HttpRequestCubit` in the example below provides the generic http implementation that can be used while defining all needed `RequestCubits`.
 
 ```dart
 /// Base class for http request cubits.
@@ -130,7 +136,7 @@ RequestCubitBuilder(
     )
 ```
 
-As you may see `onInitial`, `onLoading` and `onError` are marked as optional parameter. In many projects each of those widgets are the same for each page. So in order to eliminate even more boilerplate code, instead of passing them all each time you want to use `RequestCubitBuilder`, you can define them globally and provider in the whole app using [`RequestLayoutConfigProvider`](#requestlayoutconfigprovider).
+As you may see `onInitial`, `onLoading` and `onError` are marked as optional parameter. In many projects each of those widgets are the same for each page. So in order to eliminate even more boilerplate code, instead of passing them all each time you want to use `RequestCubitBuilder`, you can define them globally and provide in the whole app using [`RequestLayoutConfigProvider`](#requestlayoutconfigprovider).
 
 ### `RequestLayoutConfigProvider`
 
@@ -227,7 +233,7 @@ It also takes optional `controller`, `physics` and numerous optional builders:
 - `nextPageLoadingBuilder` - builds a widget which is displayed under the last element of the list while next page is being fetched,
 - `nextPageErrorBuilder` - builds a widget which is displayed under the last element of the list if fetching the next page fails.
 
-You can provider most of those builder globally in the whole app using [`PaginatedLayoutConfig`](#paginatedlayoutconfig).
+You can provide most of these builders globally in the whole app using [`PaginatedLayoutConfig`](#paginatedlayoutconfig).
 
 ### `PaginatedCubitBuilder`
 `PaginatedCubitBuilder` is a widget which rebuilds itself when state of the paginated cubit changes. It takes two required parameter:
