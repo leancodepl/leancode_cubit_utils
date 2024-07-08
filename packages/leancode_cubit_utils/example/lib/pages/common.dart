@@ -2,11 +2,37 @@ import 'package:example/http/status_codes.dart';
 import 'package:http/http.dart' as http;
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
-/// [PreRequestRun] and [RequestHandleResult] can be used repeatedly
-/// in cubits handling http.
+/// Base class for http request cubits.
+abstract class HttpRequestCubit<TOut>
+    extends RequestCubit<http.Response, String, TOut, int> {
+  HttpRequestCubit(super.loggerTag, {required this.client});
 
-mixin PreRequestRun<TData, TItem>
-    on PreRequest<http.Response, String, TData, TItem> {
+  final http.Client client;
+
+  @override
+  Future<RequestState<TOut, int>> handleResult(
+    http.Response result,
+  ) async {
+    if (result.statusCode == StatusCode.ok.value) {
+      logger.info('Request success. Data: ${result.body}');
+      return RequestSuccessState(map(result.body));
+    } else {
+      logger.severe('Request error. Status code: ${result.statusCode}');
+      try {
+        return await handleError(RequestErrorState(error: result.statusCode));
+      } catch (e, s) {
+        logger.severe(
+          'Processing error failed. Exception: $e. Stack trace: $s',
+        );
+        return RequestErrorState(exception: e, stackTrace: s);
+      }
+    }
+  }
+}
+
+/// Base class for http pre-request use cases.
+abstract class HttpPreRequest<TData, TItem>
+    extends PreRequest<http.Response, String, TData, TItem> {
   @override
   Future<PaginatedState<TData, TItem>> run(
       PaginatedState<TData, TItem> state) async {
@@ -30,29 +56,6 @@ mixin PreRequestRun<TData, TItem>
         return handleError(state.copyWithError(e));
       } catch (e) {
         return state.copyWithError(e);
-      }
-    }
-  }
-}
-
-mixin RequestHandleResult<TOut>
-    on RequestCubit<http.Response, String, TOut, int> {
-  @override
-  Future<RequestState<TOut, int>> handleResult(
-    http.Response result,
-  ) async {
-    if (result.statusCode == StatusCode.ok.value) {
-      logger.info('Request success. Data: ${result.body}');
-      return RequestSuccessState(map(result.body));
-    } else {
-      logger.severe('Request error. Status code: ${result.statusCode}');
-      try {
-        return await handleError(RequestErrorState(error: result.statusCode));
-      } catch (e, s) {
-        logger.severe(
-          'Processing error failed. Exception: $e. Stack trace: $s',
-        );
-        return RequestErrorState(exception: e, stackTrace: s);
       }
     }
   }

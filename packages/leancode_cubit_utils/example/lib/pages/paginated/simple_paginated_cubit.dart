@@ -37,9 +37,7 @@ class AdditionalData with EquatableMixin {
       );
 }
 
-class FiltersPreRequest
-    extends PreRequest<http.Response, String, AdditionalData, User>
-    with PreRequestRun {
+class FiltersPreRequest extends HttpPreRequest<AdditionalData, User> {
   FiltersPreRequest({
     required this.api,
   });
