@@ -13,7 +13,6 @@ import 'package:provider/provider.dart';
 class Routes {
   static const home = '/';
   static const simpleRequest = '/simple-request';
-  static const simpleRequestHook = '/simple-request-hook';
   static const paginatedCubit = '/paginated-cubit';
 }
 
@@ -90,7 +89,6 @@ class MainApp extends StatelessWidget {
         routes: <String, WidgetBuilder>{
           Routes.home: (_) => const HomePage(),
           Routes.simpleRequest: (_) => const RequestScreen(),
-          Routes.simpleRequestHook: (_) => const RequestHookScreen(),
           Routes.paginatedCubit: (_) => const PaginatedCubitScreen(),
         },
       );

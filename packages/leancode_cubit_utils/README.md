@@ -13,45 +13,35 @@ Import the package:
 
 # Usage
 
-The collection of utilities in the package can be divided into two subsets. [Single Request Utils](#single-request-utils) are used for creating pages where a single request is made to retrieve data, which is then displayed. [Pagination Utils](#pagination-utils) are used for creating pages containing paginated lists. 
+The collection of utilities in the package can be divided into two subsets. [Single Request Utils](#single-request-utils) are used for creating pages where a single request is made to retrieve data which is then displayed. [Pagination Utils](#pagination-utils) are used for creating pages containing paginated lists. For both cases it is possible to implement variants that use different API clients. 
 
-Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) queries is covered in [`leancode_cubit_utils_cqrs`][leancode_cubit_utils_cqrs] but for both cases it is possible to implement variants that use different API clients.
+Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) queries is covered in [`leancode_cubit_utils_cqrs`][leancode_cubit_utils_cqrs]. 
 
 ## Single Request Utils
 
 ### `RequestCubit`
 
-`RequestCubit` is used to execute a single API request. Example implementation of RequestCubit looks like this:
+`RequestCubit` is used to execute a single API request. It has four generic arguments:
+- `TRes` specifies what the request returns,
+- `TData` specifies what is kept in TRes as response body,
+- `TOut` determines which model we want to emit as data in the state,
+- `TError` defines error's type. In the example below.
+
+`HttpRequestCubit` in the example below provides the generic http implementation that can be used while defining all needed `RequestCubits`.
 
 ```dart
-// RequestCubit has four generic arguments: TRes, TData, TOut and TError. TRes specifies what the request returns, TData specifies what is kept in TRes as response body, TOut determines which model we want to emit as data in the state, TError defines error's type.
-class ProjectDetailsCubit
-    extends RequestCubit<http.Response, String, ProjectDetailsDTO, int> {
-  ProjectDetailsCubit({
-    required this.client,
-    required this.id,
-  }) : super('ProjectDetailsCubit');
+/// Base class for http request cubits.
+abstract class HttpRequestCubit<TOut>
+    extends RequestCubit<http.Response, String, TOut, int> {
+  HttpRequestCubit(super.loggerTag, {required this.client});
 
   final http.Client client;
-  final String id;
 
   @override
-  // This method allows to map the given TRes into TOut.
-  ProjectDetailsDTO map(String data) =>
-      ProjectDetailsDTO.fromJson(jsonDecode(data) as Map<String, dynamic>);
-
-  @override
-  // In this method we should perform the request and return it in form of http.Response.
-  // http.Response is then internally handled by handleResult.
-  Future<http.Response> request() {
-    return client.get(Uri.parse('base-url/$id'));
-  }
-
-  @override
-  // In this method we check the request's state
-  // and return the result on success or call handleError on failure.
-  Future<RequestState<ProjectDetailsDTO, int>> handleResult(
-      http.Response result) async {
+  /// Client-specific method needed for handling the API response.
+  Future<RequestState<TOut, int>> handleResult(
+    http.Response result,
+  ) async {
     if (result.statusCode == 200) {
       logger.info('Request success. Data: ${result.body}');
       return RequestSuccessState(map(result.body));
@@ -67,6 +57,29 @@ class ProjectDetailsCubit
       }
     }
   }
+}
+```
+
+Example implementation of `RequestCubit` using defined `HttpRequestCubit` looks like this:
+
+```dart
+class ProjectDetailsCubit extends HttpRequestCubit<ProjectDetailsDTO> {
+  ProjectDetailsCubit({
+    required super.client,
+    required this.id,
+  }) : super('ProjectDetailsCubit');
+
+  final String id;
+
+  @override
+  // This method allows to map the given TRes into TOut.
+  ProjectDetailsDTO map(String data) =>
+      ProjectDetailsDTO.fromJson(jsonDecode(data) as Map<String, dynamic>);
+
+  @override
+  // In this method we should perform the request and return it in form of http.Response
+  // which is then internally handled by handleResult.
+  Future<http.Response> request() => client.get(Uri.parse('base-url/$id'));
 }
 ```
 
@@ -123,7 +136,7 @@ RequestCubitBuilder(
     )
 ```
 
-As you may see `onInitial`, `onLoading` and `onError` are marked as optional parameter. In many projects each of those widgets are the same for each page. So in order to eliminate even more boilerplate code, instead of passing them all each time you want to use `RequestCubitBuilder`, you can define them globally and provider in the whole app using [`RequestLayoutConfigProvider`](#requestlayoutconfigprovider).
+As you may see `onInitial`, `onLoading` and `onError` are marked as optional parameter. In many projects each of those widgets are the same for each page. So in order to eliminate even more boilerplate code, instead of passing them all each time you want to use `RequestCubitBuilder`, you can define them globally and provide in the whole app using [`RequestLayoutConfigProvider`](#requestlayoutconfigprovider).
 
 ### `RequestLayoutConfigProvider`
 
@@ -220,7 +233,7 @@ It also takes optional `controller`, `physics` and numerous optional builders:
 - `nextPageLoadingBuilder` - builds a widget which is displayed under the last element of the list while next page is being fetched,
 - `nextPageErrorBuilder` - builds a widget which is displayed under the last element of the list if fetching the next page fails.
 
-You can provider most of those builder globally in the whole app using [`PaginatedLayoutConfig`](#paginatedlayoutconfig).
+You can provide most of these builders globally in the whole app using [`PaginatedLayoutConfig`](#paginatedlayoutconfig).
 
 ### `PaginatedCubitBuilder`
 `PaginatedCubitBuilder` is a widget which rebuilds itself when state of the paginated cubit changes. It takes two required parameter:
@@ -262,36 +275,24 @@ In case you need a search functionality you may use the built in support in `Pag
 You can configure search debounce time and number of characters which needs to be inserted to start searching. In order to do it read about [Paginated Cubit Configuration](#paginated-cubit-configuration).
 
 ### Pre-request
+
 Pre-requests allow you to perform an operation before making a request for the first page. This could be, for example, fetching available filters.
 
 #### `PreRequest`
 
-`PreRequest` is a class that serves as an implementation of a pre-request. To utilize it, create a class that extends `PreRequest`.
+`PreRequest` is a class that serves as an implementation of a pre-request. To utilize it, create an abstract base class that extends `PreRequest` and then create classes specific for each pre-request. An example base class: 
 
 ```dart
-class FiltersPreRequest
-    extends PreRequest<http.Response, String, Filters, User> {
-  FiltersPreRequest({required this.api});
-
-  final Api api;
-
+/// Base class for http pre-request use cases.
+abstract class HttpPreRequest<TData, TItem>
+    extends PreRequest<http.Response, String, TData, TItem> {
   @override
-  Future<http.Response> request(PaginatedState<Filters, User> state) {
-    return api.getFilters();
-  }
-
-  @override
-  Filters map(
-    String res,
-    PaginatedState<Filters, User> state,
-  ) =>
-      Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
-
-  @override
-  Future<PaginatedState<Filters, User>> run(
-      PaginatedState<Filters, User> state) async {
+  /// This method performs the pre-request and returns the new state.
+  Future<PaginatedState<TData, TItem>> run(
+      PaginatedState<TData, TItem> state) async {
     try {
       final result = await request(state);
+
       if (result.statusCode == 200) {
         return state.copyWith(
           data: map(result.body, state),
@@ -312,6 +313,27 @@ class FiltersPreRequest
       }
     }
   }
+}
+```
+
+Example implementation of `PreRequest` using defined `HttpPreRequest` looks like this:
+
+```dart
+class FiltersPreRequest extends HttpPreRequest<Filters, User> {
+  FiltersPreRequest({required this.api});
+
+  final Api api;
+
+  @override
+  Future<http.Response> request(PaginatedState<Filters, User> state) =>
+      api.getFilters();
+
+  @override
+  Filters map(
+    String res,
+    PaginatedState<Filters, User> state,
+  ) =>
+      Filters.fromJson(jsonDecode(res) as Map<String, dynamic>);
 }
 ```
 
