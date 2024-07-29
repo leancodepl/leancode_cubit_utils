@@ -1,6 +1,5 @@
 import 'package:cqrs/cqrs.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 
 class TestQueryPreRequest extends QueryPreRequest<String, String, String> {
