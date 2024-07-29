@@ -1,7 +1,6 @@
 import 'package:cqrs/cqrs.dart';
 import 'package:equatable/equatable.dart';
 import 'package:example/pages/paginated/api.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 
 class AdditionalData with EquatableMixin {

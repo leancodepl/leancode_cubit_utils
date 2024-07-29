@@ -6,7 +6,7 @@ import 'package:example/pages/home_page.dart';
 import 'package:example/pages/paginated/paginated_cubit_page.dart';
 import 'package:example/pages/query/query_page.dart';
 import 'package:flutter/material.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
+import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 

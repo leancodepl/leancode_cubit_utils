@@ -1,5 +1,4 @@
 import 'package:cqrs/cqrs.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 
 import 'test_query.dart';

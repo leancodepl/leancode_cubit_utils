@@ -2,7 +2,6 @@ import 'package:cqrs/cqrs.dart';
 import 'package:example/cqrs/cqrs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_cubit_utils_cqrs/leancode_cubit_utils_cqrs.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 

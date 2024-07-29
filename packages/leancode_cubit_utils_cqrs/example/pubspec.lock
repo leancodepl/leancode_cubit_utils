@@ -252,11 +252,12 @@ packages:
     source: hosted
     version: "3.0.1"
   leancode_cubit_utils:
-    dependency: "direct main"
+    dependency: transitive
     description:
-      path: "../../leancode_cubit_utils"
-      relative: true
-    source: path
+      name: leancode_cubit_utils
+      sha256: a437577a8f0f854c67b5f76d849721d2d0f468a2d9c9801a1646fb23a0559d16
+      url: "https://pub.dev"
+    source: hosted
     version: "0.1.0"
   leancode_cubit_utils_cqrs:
     dependency: "direct main"
@@ -264,7 +265,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.1.0"
   leancode_hooks:
     dependency: "direct main"
     description:
