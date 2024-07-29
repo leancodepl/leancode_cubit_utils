@@ -5,7 +5,7 @@ repository: https://github.com/leancodepl/leancode_cubit_utils
 publish_to: none
 
 environment:
-  sdk: '>=3.1.0 <4.0.0'
+  sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
   cqrs: ^10.0.1
@@ -13,10 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.0
-  leancode_cubit_utils:
-    # TODO: Change after leancode_cubit_utils' new version is published,
-    # also remove publish_to: none
-    path: ../leancode_cubit_utils
+  leancode_cubit_utils: ^0.1.0
   leancode_hooks: ^0.0.6
 
 dev_dependencies:

@@ -1,10 +1,10 @@
 name: example
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=3.1.2 <4.0.0'
+  sdk: ">=3.1.2 <4.0.0"
 
 dependencies:
   cqrs: ^10.0.1
@@ -16,8 +16,6 @@ dependencies:
   mocktail: ^1.0.0
   leancode_cubit_utils_cqrs:
     path: ..
-  leancode_cubit_utils:
-    path: ../../leancode_cubit_utils
   provider: ^6.0.5
   logging: ^1.2.0
   leancode_hooks: ^0.0.6
