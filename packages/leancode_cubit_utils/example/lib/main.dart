@@ -65,6 +65,7 @@ void main() {
           requestMode: RequestMode.replace,
           onLoading: (BuildContext context) =>
               const CircularProgressIndicator(),
+          onEmpty: (BuildContext context) => const Text('Empty'),
           onError: (
             BuildContext context,
             RequestErrorState<dynamic, dynamic> error,

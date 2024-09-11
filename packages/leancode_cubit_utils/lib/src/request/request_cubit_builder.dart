@@ -26,6 +26,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     required this.builder,
     this.onInitial,
     this.onLoading,
+    this.onEmpty,
     this.onError,
     this.onErrorCallback,
   });
@@ -41,6 +42,9 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
 
   /// The builder that creates a widget when request is loading.
   final WidgetBuilder? onLoading;
+
+  /// The builder that creates a widget when request returns empty data.
+  final WidgetBuilder? onEmpty;
 
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<TError>? onError;
@@ -66,6 +70,9 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
           RequestRefreshState(:final data) => data != null
               ? builder(context, data)
               : onLoading?.call(context) ?? config.onLoading(context),
+          RequestEmptyState() => onEmpty?.call(context) ??
+              config.onEmpty?.call(context) ??
+              const SizedBox(),
           RequestErrorState() => onError?.call(
                 context,
                 state,
