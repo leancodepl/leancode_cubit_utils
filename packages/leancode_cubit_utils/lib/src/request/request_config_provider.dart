@@ -9,11 +9,15 @@ class RequestLayoutConfig {
   /// Creates a new [RequestLayoutConfig].
   RequestLayoutConfig({
     required this.onLoading,
+    required this.onEmpty,
     required this.onError,
   });
 
   /// The builder that creates a widget when request is loading.
   final WidgetBuilder onLoading;
+
+  /// The builder that creates a widget when request returns empty data.
+  final WidgetBuilder? onEmpty;
 
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<dynamic> onError;
@@ -28,6 +32,7 @@ class RequestLayoutConfigProvider extends StatelessWidget {
     required this.onLoading,
     required this.onError,
     required this.child,
+    this.onEmpty,
   });
 
   /// The default request mode used by all [RequestCubit]s.
@@ -35,6 +40,9 @@ class RequestLayoutConfigProvider extends StatelessWidget {
 
   /// The builder that creates a widget when request is loading.
   final WidgetBuilder onLoading;
+
+  /// The builder that creates a widget when request returns empty data.
+  final WidgetBuilder? onEmpty;
 
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<dynamic> onError;
@@ -52,6 +60,7 @@ class RequestLayoutConfigProvider extends StatelessWidget {
     return Provider(
       create: (context) => RequestLayoutConfig(
         onLoading: onLoading,
+        onEmpty: onEmpty,
         onError: onError,
       ),
       child: child,

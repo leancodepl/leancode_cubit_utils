@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Add `isEmpty` to `BaseRequestCubit`
+
 ## 0.1.0
 
 * Extract `cqrs` support to `leancode_cubit_utils_cqrs`

@@ -8,8 +8,13 @@ mixin RequestResultHandler<TOut>
   @override
   Future<RequestState<TOut, int>> handleResult(http.Response result) async {
     if (result.statusCode == StatusCode.ok.value) {
+      final data = map(result.body);
+      if (isEmpty(data)) {
+        logger.warning('Query success but data is empty');
+        return RequestEmptyState();
+      }
       logger.info('Query success. Data: ${result.body}');
-      return RequestSuccessState(map(result.body));
+      return RequestSuccessState(data);
     } else {
       logger.severe('Query error. Status code: ${result.statusCode}');
       try {
@@ -45,6 +50,11 @@ class TestRequestCubit extends RequestCubit<http.Response, String, String, int>
   }
 
   @override
+  bool isEmpty(String data) {
+    return data.isEmpty;
+  }
+
+  @override
   Future<http.Response> request() {
     return client.get(Uri.parse(id));
   }
@@ -73,6 +83,9 @@ class TestArgsRequestCubit
 
   @override
   String map(String data) => data;
+
+  @override
+  bool isEmpty(String data) => data.isEmpty;
 
   @override
   Future<http.Response> request(String args) {

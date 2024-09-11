@@ -15,6 +15,9 @@ typedef ArgsRequest<TArgs, TRes> = Future<TRes> Function(TArgs);
 /// Signature for a function that maps request response of to the output type.
 typedef ResponseMapper<TRes, TOut> = TOut Function(TRes);
 
+/// Signature for a function that checks if the request response is empty.
+typedef EmptyChecker<TRes> = bool Function(TRes);
+
 /// Signature for a function that maps request error to other state.
 typedef ErrorMapper<TOut, TError> = Future<TOut> Function(
   RequestErrorState<TOut, TError>,
@@ -115,6 +118,9 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
 
   /// Maps the given [data] to the output type [TOut].
   TOut map(TData data);
+
+  /// Override this to check if the given [data] is empty.
+  bool isEmpty(TOut data) => false;
 
   /// Handles the given [errorState] and returns the corresponding state.
   Future<RequestErrorState<TOut, TError>> handleError(
@@ -229,6 +235,15 @@ final class RequestSuccessState<TOut, TError>
 
   @override
   List<Object?> get props => [data];
+}
+
+/// Represents a successful request with empty data.
+final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
+  /// Creates a new [RequestEmptyState]..
+  RequestEmptyState();
+
+  @override
+  List<Object?> get props => [];
 }
 
 /// Represents a failed request.

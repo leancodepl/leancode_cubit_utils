@@ -22,6 +22,7 @@ class TestPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return RequestLayoutConfigProvider(
       onLoading: (context) => const Text('Loading...'),
+      onEmpty: (context) => const Text('Empty!'),
       onError: (context, error, onErrorCallback) => const Text('Error!'),
       child: MaterialApp(
         home: Scaffold(body: child),
@@ -45,6 +46,12 @@ void main() {
       (_) async => http.Response('', StatusCode.badRequest.value),
     );
 
+    when(
+      () => client.get(Uri.parse('2')),
+    ).thenAnswer(
+      (_) async => http.Response('', StatusCode.ok.value),
+    );
+
     testWidgets(
         'shows default loading and error widget when no onLoading and onError provided',
         (tester) async {
@@ -65,6 +72,28 @@ void main() {
       expect(find.text('Loading...'), findsOneWidget);
       await tester.pump();
       expect(find.text('Error!'), findsOneWidget);
+    });
+
+    testWidgets(
+        'shows default loading and empty widget when no onLoading and onEmpty provided',
+        (tester) async {
+      final queryCubit = TestArgsRequestCubit('TestQueryCubit', client: client);
+
+      await tester.pumpWidget(
+        TestPage(
+          child: RequestCubitBuilder(
+            cubit: queryCubit,
+            builder: (context, data) => Text(data),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Loading...'), findsOneWidget);
+      unawaited(queryCubit.run('2'));
+      await tester.pump();
+      expect(find.text('Loading...'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('Empty!'), findsOneWidget);
     });
 
     testWidgets('shows custom loading and error widget when provided',
