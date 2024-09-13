@@ -9,8 +9,13 @@ mixin QueryResultHandler<TRes, TOut>
     QueryResult<TRes> result,
   ) async {
     if (result case QuerySuccess(:final data)) {
+      final mappedData = map(data);
+      if (isEmpty(mappedData)) {
+        logger.warning('Query success but data is empty');
+        return RequestEmptyState();
+      }
       logger.info('Query success. Data: $data');
-      return RequestSuccessState(map(data));
+      return RequestSuccessState(mappedData);
     } else if (result case QueryFailure(:final error)) {
       logger.severe('Query error. Error: $error');
       try {
