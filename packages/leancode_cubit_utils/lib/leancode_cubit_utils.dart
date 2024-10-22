@@ -12,3 +12,4 @@ export 'src/paginated/request_result.dart';
 export 'src/request/request_config_provider.dart';
 export 'src/request/request_cubit.dart';
 export 'src/request/request_cubit_builder.dart';
+export 'src/request/request_cubit_config.dart';
