@@ -1,6 +1,6 @@
 name: leancode_cubit_utils_cqrs
 description: An extension of leancode_cubit_utils that provides cqrs support.
-version: 0.2.0
+version: 0.3.0
 repository: https://github.com/leancodepl/leancode_cubit_utils
 
 environment:
@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.0
-  leancode_cubit_utils: ^0.2.0
+  leancode_cubit_utils: ^0.3.0
   leancode_hooks: ^0.0.6
 
 dev_dependencies:
