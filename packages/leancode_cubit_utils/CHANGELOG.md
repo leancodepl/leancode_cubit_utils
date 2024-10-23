@@ -2,7 +2,7 @@
 
 * Export `RequestCubitConfig` from `leancode_cubit_utils.dart`
 
-# 0.2.0
+## 0.2.0
 
 * Add `isEmpty` to `BaseRequestCubit`
 
