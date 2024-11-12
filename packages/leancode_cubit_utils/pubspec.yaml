@@ -1,6 +1,6 @@
 name: leancode_cubit_utils
 description: A collection of cubits and widgets that facilitate the creation of repetitive pages, eliminating boilerplate.
-version: 0.3.0
+version: 0.3.1
 repository: https://github.com/leancodepl/leancode_cubit_utils
 
 environment:

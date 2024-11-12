@@ -1,3 +1,8 @@
+## 0.3.1
+
+* Rename `headerBuilder` and `footerBuilder` to `headerSliverBuilder` and `footerSliverBuilder` in `PaginatedCubitLayout`
+* Rebuild `headerSliverBuilder` and `footerSliverBuilder` on `PaginatedCubit` state change
+
 ## 0.3.0
 
 * Export `RequestCubitConfig` from `leancode_cubit_utils.dart`
