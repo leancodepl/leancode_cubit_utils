@@ -28,6 +28,10 @@ typedef PaginatedErrorBuilder<TItem> = Widget Function(
   VoidCallback retry,
 );
 
+typedef _PaginatedCubitBlocBuilder<TData, TItem> = BlocBuilder<
+    PaginatedCubit<TData, dynamic, dynamic, TItem>,
+    PaginatedState<TData, TItem>>;
+
 /// A layout for a paginated cubit.
 class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   /// Creates a PaginatedCubitLayout.
@@ -94,9 +98,11 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
       physics: physics,
       slivers: [
         if (headerSliverBuilder case final headerSliverBuilder?)
-          headerSliverBuilder(context, cubit.state),
-        BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
-            PaginatedState<TData, TItem>>(
+          _PaginatedCubitBlocBuilder<TData, TItem>(
+            bloc: cubit,
+            builder: headerSliverBuilder,
+          ),
+        _PaginatedCubitBlocBuilder<TData, TItem>(
           bloc: cubit,
           builder: (context, state) {
             return switch (state.type) {
@@ -120,7 +126,10 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
           },
         ),
         if (footerSliverBuilder case final footerSliverBuilder?)
-          footerSliverBuilder(context, cubit.state),
+          _PaginatedCubitBlocBuilder<TData, TItem>(
+            bloc: cubit,
+            builder: footerSliverBuilder,
+          ),
       ],
     );
   }
