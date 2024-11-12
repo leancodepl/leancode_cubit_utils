@@ -38,8 +38,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     this.physics,
     this.controller,
     this.separatorBuilder,
-    this.headerBuilder,
-    this.footerBuilder,
+    this.headerSliverBuilder,
+    this.footerSliverBuilder,
     this.initialStateBuilder,
     this.emptyStateBuilder,
     this.firstPageLoadingBuilder,
@@ -64,10 +64,10 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
   final IndexedWidgetBuilder? separatorBuilder;
 
   /// An optional builder for the header.
-  final PaginatedWidgetBuilder<TData, TItem>? headerBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? headerSliverBuilder;
 
   /// An optional builder for the footer.
-  final PaginatedWidgetBuilder<TData, TItem>? footerBuilder;
+  final PaginatedWidgetBuilder<TData, TItem>? footerSliverBuilder;
 
   /// An optional builder for the initial state.
   final PaginatedWidgetBuilder<TData, TItem>? initialStateBuilder;
@@ -93,7 +93,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
       controller: controller,
       physics: physics,
       slivers: [
-        if (headerBuilder != null) headerBuilder!(context, cubit.state),
+        if (headerSliverBuilder case final headerSliverBuilder?)
+          headerSliverBuilder(context, cubit.state),
         BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
             PaginatedState<TData, TItem>>(
           bloc: cubit,
@@ -118,7 +119,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
             };
           },
         ),
-        if (footerBuilder != null) footerBuilder!(context, cubit.state),
+        if (footerSliverBuilder case final footerSliverBuilder?)
+          footerSliverBuilder(context, cubit.state),
       ],
     );
   }
