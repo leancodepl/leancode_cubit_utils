@@ -1,3 +1,7 @@
+## 0.3.0
+
+* Use `leancode_cubit_utils` version `0.3.1`
+
 ## 0.2.0
 
 * Add:
