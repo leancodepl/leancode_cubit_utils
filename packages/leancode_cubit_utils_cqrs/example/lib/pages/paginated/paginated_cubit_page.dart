@@ -77,15 +77,12 @@ class FiltersRow extends StatelessWidget {
           return Wrap(
             spacing: 8,
             children: [
-              ...availableFilters
-                  .map(
-                    (filter) => FilterChip(
-                      label: Text(filter.name),
-                      selected: selectedFilters.contains(filter),
-                      onSelected: (_) => toggleFilter(filter),
-                    ),
-                  )
-                  .toList(),
+              for (final filter in availableFilters)
+                FilterChip(
+                  label: Text(filter.name),
+                  selected: selectedFilters.contains(filter),
+                  onSelected: (_) => toggleFilter(filter),
+                ),
             ],
           );
         }
