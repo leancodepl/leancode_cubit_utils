@@ -1,3 +1,7 @@
+## 0.3.2
+
+* Upgrade `bloc` to ^9.0.0
+
 ## 0.3.1
 
 * Rename `headerBuilder` and `footerBuilder` to `headerSliverBuilder` and `footerSliverBuilder` in `PaginatedCubitLayout`

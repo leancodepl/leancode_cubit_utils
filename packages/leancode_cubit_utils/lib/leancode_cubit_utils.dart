@@ -1,5 +1,5 @@
 /// A library for building cubits with less boilerplate code.
-library leancode_cubit_utils;
+library;
 
 export 'src/paginated/paginated_args.dart';
 export 'src/paginated/paginated_config.dart';

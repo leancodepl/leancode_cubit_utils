@@ -181,12 +181,11 @@ abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
 
   @override
   Future<void> refresh() {
-    if (_lastRequestArgs == null) {
+    if (_lastRequestArgs case final lastRequestArgs?) {
+      return _run(() => request(lastRequestArgs), isRefresh: true);
+    } else {
       logger.severe('No request was executed yet. Cannot refresh.');
       throw StateError('No request was executed yet. Cannot refresh.');
-    } else {
-      // ignore: null_check_on_nullable_type_parameter
-      return _run(() => request(_lastRequestArgs!), isRefresh: true);
     }
   }
 }
