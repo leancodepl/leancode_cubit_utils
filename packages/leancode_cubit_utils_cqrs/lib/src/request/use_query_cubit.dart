@@ -1,6 +1,7 @@
 import 'package:cqrs/cqrs.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
+
 import 'query_cubit.dart';
 
 /// Simplified implementation of [QueryCubit] created in order to be used by [useQueryCubit].
@@ -44,7 +45,7 @@ SimpleQueryCubit<TOut> useQueryCubit<TOut>(
       }
       return cubit;
     },
-    keys,
+    keys: keys,
   );
 }
 
@@ -99,7 +100,7 @@ SimpleQueryWithEmptyCubit<TOut> useQueryWithEmptyCubit<TOut>(
       }
       return cubit;
     },
-    keys,
+    keys: keys,
   );
 }
 
@@ -137,7 +138,7 @@ SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>(
       request,
       requestMode: requestMode,
     ),
-    keys,
+    keys: keys,
   );
 }
 
@@ -187,6 +188,6 @@ SimpleArgsQueryWithEmptyCubit<TArgs, TOut>
       isEmpty,
       requestMode: requestMode,
     ),
-    keys,
+    keys: keys,
   );
 }
