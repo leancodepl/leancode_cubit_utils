@@ -1,11 +1,10 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 /// A widget that rebuilds when the state of a PaginatedCubit changes.
-class PaginatedCubitBuilder<TData, TItem> extends StatelessWidget {
-  /// Creates a new PaginatedCubitBuilder.
-  const PaginatedCubitBuilder({
+abstract class PaginatedCubitBuilderBase<TData, TItem> extends StatelessWidget {
+  /// Creates a new PaginatedCubitBuilderBase.
+  const PaginatedCubitBuilderBase({
     super.key,
     required this.cubit,
     required this.builder,
@@ -19,13 +18,4 @@ class PaginatedCubitBuilder<TData, TItem> extends StatelessWidget {
     BuildContext context,
     PaginatedState<TData, TItem> state,
   ) builder;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
-        PaginatedState<TData, TItem>>(
-      bloc: cubit,
-      builder: builder,
-    );
-  }
 }

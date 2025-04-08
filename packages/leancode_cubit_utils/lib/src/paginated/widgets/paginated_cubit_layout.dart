@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:leancode_cubit_utils/src/paginated/paginated_cubit.dart';
 import 'package:leancode_hooks/leancode_hooks.dart';
 
-import 'paginated_layout_config.dart';
+import 'paginated_layout_config_provider.dart';
 
 /// A builder for a paginated list item.
 typedef PaginatedItemBuilder<TData, TItem> = Widget Function(
