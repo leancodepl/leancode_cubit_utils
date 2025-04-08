@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:leancode_cubit_utils/src/request/request_cubit.dart';
-import 'package:leancode_cubit_utils/src/request/request_cubit_builder.dart';
 import 'package:leancode_cubit_utils/src/request/request_cubit_config.dart';
+import 'package:leancode_cubit_utils/src/request/widgets/request_cubit_builder.dart';
+import 'package:leancode_cubit_utils/src/request/widgets/request_cubit_builder_base.dart';
 import 'package:provider/provider.dart';
 
 /// A default root config.

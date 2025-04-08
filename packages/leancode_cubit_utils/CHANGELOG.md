@@ -1,3 +1,7 @@
+# 0.4.0
+
+* Add `SliverRequestCubitBuilder` and `SliverPaginatedCubitBuilder`
+
 ## 0.3.2
 
 * Upgrade `bloc` to ^9.0.0
