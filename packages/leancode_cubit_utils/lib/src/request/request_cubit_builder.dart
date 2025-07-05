@@ -19,11 +19,11 @@ typedef RequestErrorBuilder<TError> = Widget Function(
 /// A widget that builds itself based on the latest request state.
 class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   /// Creates a new [RequestCubitBuilder] with the given [cubit] and
-  /// [builder].
+  /// [onSuccess].
   const RequestCubitBuilder({
     super.key,
     required this.cubit,
-    required this.builder,
+    required this.onSuccess,
     this.onInitial,
     this.onLoading,
     this.onEmpty,
@@ -35,7 +35,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   final BaseRequestCubit<dynamic, dynamic, TOut, TError> cubit;
 
   /// The builder that creates a widget when data successfully loaded.
-  final RequestWidgetBuilder<TOut> builder;
+  final RequestWidgetBuilder<TOut> onSuccess;
 
   /// The builder that creates a widget when state is initial.
   final WidgetBuilder? onInitial;
@@ -66,9 +66,9 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
               config.onLoading(context),
           RequestLoadingState() =>
             onLoading?.call(context) ?? config.onLoading(context),
-          RequestSuccessState(:final data) => builder(context, data),
+          RequestSuccessState(:final data) => onSuccess(context, data),
           RequestRefreshState(:final data) => data != null
-              ? builder(context, data)
+              ? onSuccess(context, data)
               : onLoading?.call(context) ?? config.onLoading(context),
           RequestEmptyState() => onEmpty?.call(context) ??
               config.onEmpty?.call(context) ??

@@ -48,7 +48,8 @@ class QueryHookPage extends HookWidget {
           Center(
             child: RequestCubitBuilder(
               cubit: userCubit,
-              builder: (context, data) => Text('${data.name} ${data.surname}'),
+              onSuccess: (context, data) =>
+                  Text('${data.name} ${data.surname}'),
             ),
           ),
           const SizedBox(height: 16),
@@ -87,7 +88,7 @@ class QueryPage extends StatelessWidget {
             Center(
               child: RequestCubitBuilder(
                 cubit: context.read<UserQueryCubit>(),
-                builder: (context, data) =>
+                onSuccess: (context, data) =>
                     Text('${data.name} ${data.surname}'),
               ),
             ),

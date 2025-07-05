@@ -100,7 +100,7 @@ If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the
 - `WidgetBuilder? onInitial` - use it to show a widget before invoking the request for the first time,
 - `WidgetBuilder? onLoading` - use it to show a loader widget while the request is being performed,
 - `WidgetBuilder? onError` - use it to show error widget when processing the request fails,
-- `RequestWidgetBuilder<TOut> builder` - use it to build a page when the data is successfully loaded. 
+- `RequestWidgetBuilder<TOut> onSuccess` - use it to build a page when the data is successfully loaded. 
 
 Other than builders, you also need to provide the cubit based on which the `RequestCubitBuilder` will be rebuilt. And you can also pass `onErrorCallback` which allows you to pass a callback to error widget builder. You may want to use it to implement retry button.
 
@@ -122,7 +122,7 @@ RequestCubitBuilder(
         ),
       ),
       onErrorCallback: context.read<ProjectDetailsCubit>().run,
-      builder: (context, data) {
+      onSuccess: (context, data) {
         return ListView.builder(
           itemCount: data.assignments.length,
           itemBuilder: (context, index) {

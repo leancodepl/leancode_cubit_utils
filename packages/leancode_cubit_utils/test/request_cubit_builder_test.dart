@@ -61,7 +61,7 @@ void main() {
         TestPage(
           child: RequestCubitBuilder(
             cubit: queryCubit,
-            builder: (context, data) => Text(data),
+            onSuccess: (context, data) => Text(data),
           ),
         ),
       );
@@ -83,7 +83,7 @@ void main() {
         TestPage(
           child: RequestCubitBuilder(
             cubit: queryCubit,
-            builder: (context, data) => Text(data),
+            onSuccess: (context, data) => Text(data),
           ),
         ),
       );
@@ -106,7 +106,7 @@ void main() {
             cubit: queryCubit,
             onLoading: (context) => const Text('Custom loading...'),
             onError: (context, error, retry) => const Text('Custom error!'),
-            builder: (context, data) => Text(data),
+            onSuccess: (context, data) => Text(data),
           ),
         ),
       );
@@ -127,7 +127,7 @@ void main() {
         TestPage(
           child: RequestCubitBuilder(
             cubit: queryCubit,
-            builder: (context, data) => Text('Success, data: $data'),
+            onSuccess: (context, data) => Text('Success, data: $data'),
           ),
         ),
       );
@@ -145,7 +145,7 @@ void main() {
         TestPage(
           child: RequestCubitBuilder(
             cubit: queryCubit,
-            builder: (context, data) => Text('Success, data: $data'),
+            onSuccess: (context, data) => Text('Success, data: $data'),
           ),
         ),
       );
