@@ -41,7 +41,7 @@ class RequestPage extends StatelessWidget {
             Center(
               child: RequestCubitBuilder(
                 cubit: context.read<UserRequestCubit>(),
-                builder: (context, data) =>
+                onSuccess: (context, data) =>
                     Text('${data.name} ${data.surname}'),
               ),
             ),

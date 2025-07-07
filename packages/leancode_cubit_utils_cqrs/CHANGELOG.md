@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Update `leancode_cubit_utils` dependency to `^0.4.0` (includes breaking change: `builder` parameter renamed to `onSuccess` in `RequestCubitBuilder`)
+
 ## 0.3.1
 
 * Upgrade `bloc` to ^9.0.0
