@@ -1,3 +1,7 @@
+## 0.4.1
+
+* Upgrade `provider` to ^6.1.5
+
 ## 0.4.0
 
 * **BREAKING CHANGE**: Rename `builder` parameter to `onSuccess` in `RequestCubitBuilder`
