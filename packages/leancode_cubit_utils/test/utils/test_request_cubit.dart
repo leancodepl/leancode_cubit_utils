@@ -74,10 +74,7 @@ class TestRequestCubit extends RequestCubit<http.Response, String, String, int>
 class TestArgsRequestCubit
     extends ArgsRequestCubit<String, http.Response, String, String, int>
     with RequestResultHandler<String> {
-  TestArgsRequestCubit(
-    super.loggerTag, {
-    required this.client,
-  });
+  TestArgsRequestCubit(super.loggerTag, {required this.client});
 
   final http.Client client;
 

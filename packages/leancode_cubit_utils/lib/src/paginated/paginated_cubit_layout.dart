@@ -8,29 +8,27 @@ import 'package:leancode_hooks/leancode_hooks.dart';
 import 'paginated_layout_config.dart';
 
 /// A builder for a paginated list item.
-typedef PaginatedItemBuilder<TData, TItem> = Widget Function(
-  BuildContext context,
-  TData? data,
-  int index,
-  List<TItem> items,
-);
+typedef PaginatedItemBuilder<TData, TItem> =
+    Widget Function(
+      BuildContext context,
+      TData? data,
+      int index,
+      List<TItem> items,
+    );
 
 /// A builder for a widget using the paginated state and data.
-typedef PaginatedWidgetBuilder<TData, TItem> = Widget Function(
-  BuildContext context,
-  PaginatedState<TData, TItem> state,
-);
+typedef PaginatedWidgetBuilder<TData, TItem> =
+    Widget Function(BuildContext context, PaginatedState<TData, TItem> state);
 
 /// A builder for the error state widget in PaginatedCubitLayout.
-typedef PaginatedErrorBuilder<TItem> = Widget Function(
-  BuildContext context,
-  Object? error,
-  VoidCallback retry,
-);
+typedef PaginatedErrorBuilder<TItem> =
+    Widget Function(BuildContext context, Object? error, VoidCallback retry);
 
-typedef _PaginatedCubitBlocBuilder<TData, TItem> = BlocBuilder<
-    PaginatedCubit<TData, dynamic, dynamic, TItem>,
-    PaginatedState<TData, TItem>>;
+typedef _PaginatedCubitBlocBuilder<TData, TItem> =
+    BlocBuilder<
+      PaginatedCubit<TData, dynamic, dynamic, TItem>,
+      PaginatedState<TData, TItem>
+    >;
 
 /// A layout for a paginated cubit.
 class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
@@ -107,21 +105,22 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
           builder: (context, state) {
             return switch (state.type) {
               PaginatedStateType.initial => _buildInitialLoader(context, state),
-              PaginatedStateType.firstPageLoading =>
-                _buildFirstPageLoader(context, state),
-              PaginatedStateType.firstPageError ||
-              PaginatedStateType.refresh when state.hasError =>
+              PaginatedStateType.firstPageLoading => _buildFirstPageLoader(
+                context,
+                state,
+              ),
+              PaginatedStateType.firstPageError || PaginatedStateType.refresh
+                  when state.hasError =>
                 _buildFirstPageError(context, state.error),
               _ => _PaginatedLayoutList(
-                  state: state,
-                  itemBuilder: itemBuilder,
-                  separatorBuilder: separatorBuilder,
-                  fetchNextPage: () => cubit.fetchNextPage(
-                    state.args.pageNumber + 1,
-                  ),
-                  bottom: _buildListBottom(context, state),
-                  emptyState: _buildEmptyState(context, state),
-                ),
+                state: state,
+                itemBuilder: itemBuilder,
+                separatorBuilder: separatorBuilder,
+                fetchNextPage: () =>
+                    cubit.fetchNextPage(state.args.pageNumber + 1),
+                bottom: _buildListBottom(context, state),
+                emptyState: _buildEmptyState(context, state),
+              ),
             };
           },
         ),
@@ -141,7 +140,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     final config = context.read<PaginatedLayoutConfig>();
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: initialStateBuilder?.call(context, state) ??
+      child:
+          initialStateBuilder?.call(context, state) ??
           config.onFirstPageLoading(context),
     );
   }
@@ -153,7 +153,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     final config = context.read<PaginatedLayoutConfig>();
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: firstPageLoadingBuilder?.call(context, state) ??
+      child:
+          firstPageLoadingBuilder?.call(context, state) ??
           config.onFirstPageLoading(context),
     );
   }
@@ -165,7 +166,8 @@ class PaginatedCubitLayout<TData, TItem> extends StatelessWidget {
     final config = context.read<PaginatedLayoutConfig>();
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: emptyStateBuilder?.call(context, state) ??
+      child:
+          emptyStateBuilder?.call(context, state) ??
           config.onEmptyState(context),
     );
   }
@@ -242,10 +244,7 @@ class _PaginatedLayoutList<TData, TItem> extends HookWidget {
     }
   }
 
-  Widget _itemBuilder(
-    BuildContext context,
-    int index,
-  ) {
+  Widget _itemBuilder(BuildContext context, int index) {
     if (bottom != null && index == state.items.length) {
       return bottom!;
     }

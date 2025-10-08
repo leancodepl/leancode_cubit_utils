@@ -8,10 +8,8 @@ import '../utils/mocked_api.dart';
 
 class TestPaginatedCubit
     extends PaginatedCubit<void, http.Response, Page, City> {
-  TestPaginatedCubit(
-    this.api, {
-    super.config,
-  }) : super(loggerTag: 'TestPaginatedCubit');
+  TestPaginatedCubit(this.api, {super.config})
+    : super(loggerTag: 'TestPaginatedCubit');
 
   final ApiBase api;
 
@@ -35,8 +33,8 @@ class TestPaginatedCubit
   @override
   RequestResult<Page> handleResponse(http.Response res) =>
       res.statusCode == StatusCode.ok.value
-          ? Success(Page.fromJson(jsonDecode(res.body) as Json))
-          : Failure(res.statusCode);
+      ? Success(Page.fromJson(jsonDecode(res.body) as Json))
+      : Failure(res.statusCode);
 }
 
 class TestPreRequest
@@ -46,20 +44,13 @@ class TestPreRequest
   final ApiBase api;
 
   @override
-  Future<http.Response> request(
-    PaginatedState<List<CityType>, City> state,
-  ) {
+  Future<http.Response> request(PaginatedState<List<CityType>, City> state) {
     return api.getTypes();
   }
 
   @override
-  List<CityType> map(
-    String res,
-    PaginatedState<List<CityType>, City> state,
-  ) {
-    return CityType.allFromJson(
-      jsonDecode(res) as Map<String, dynamic>,
-    );
+  List<CityType> map(String res, PaginatedState<List<CityType>, City> state) {
+    return CityType.allFromJson(jsonDecode(res) as Map<String, dynamic>);
   }
 
   @override
@@ -70,10 +61,7 @@ class TestPreRequest
       final result = await request(state);
       if (result.statusCode == StatusCode.ok.value) {
         return state.copyWith(
-          data: map(
-            result.body,
-            state,
-          ),
+          data: map(result.body, state),
           preRequestSuccess: true,
         );
       } else {
@@ -95,11 +83,8 @@ class TestPreRequest
 
 class TestPreRequestPaginatedCubit
     extends PaginatedCubit<List<CityType>, http.Response, Page, City> {
-  TestPreRequestPaginatedCubit(
-    this.api, {
-    super.preRequest,
-    super.config,
-  }) : super(loggerTag: 'TestPaginatedCubit', initialData: []);
+  TestPreRequestPaginatedCubit(this.api, {super.preRequest, super.config})
+    : super(loggerTag: 'TestPaginatedCubit', initialData: []);
   final ApiBase api;
 
   @override
@@ -122,6 +107,6 @@ class TestPreRequestPaginatedCubit
   @override
   RequestResult<Page> handleResponse(http.Response res) =>
       res.statusCode == StatusCode.ok.value
-          ? Success(Page.fromJson(jsonDecode(res.body) as Json))
-          : Failure(res.statusCode);
+      ? Success(Page.fromJson(jsonDecode(res.body) as Json))
+      : Failure(res.statusCode);
 }

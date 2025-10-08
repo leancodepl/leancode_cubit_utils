@@ -26,9 +26,7 @@ class Page {
   Json toJson() {
     return {
       'hasNextPage': hasNextPage,
-      'cities': [
-        for (final city in cities) city.toJson(),
-      ],
+      'cities': [for (final city in cities) city.toJson()],
     };
   }
 
@@ -56,22 +54,17 @@ enum CityType {
   }
 
   static Json allToJson() => {
-        'types': [
-          for (final type in values) type.toJson(),
-        ],
-      };
+    'types': [for (final type in values) type.toJson()],
+  };
 
   static List<CityType> allFromJson(Json json) => [
-        for (final type in json['types'] as Iterable)
-          CityType.fromJson(type as Json),
-      ];
+    for (final type in json['types'] as Iterable)
+      CityType.fromJson(type as Json),
+  ];
 }
 
 class City with EquatableMixin {
-  City({
-    required this.name,
-    required this.type,
-  });
+  City({required this.name, required this.type});
 
   factory City.fromJson(Json json) {
     return City(
@@ -81,10 +74,7 @@ class City with EquatableMixin {
   }
 
   Json toJson() {
-    return {
-      'name': name,
-      'type': type.toJson(),
-    };
+    return {'name': name, 'type': type.toJson()};
   }
 
   final String name;
@@ -107,10 +97,7 @@ class ApiBase {
 
   Future<http.Response> getTypes() async {
     await Future<void>.delayed(const Duration(seconds: 1));
-    return http.Response(
-      jsonEncode(CityType.allToJson()),
-      StatusCode.ok.value,
-    );
+    return http.Response(jsonEncode(CityType.allToJson()), StatusCode.ok.value);
   }
 
   Future<http.Response> getCities(
@@ -136,10 +123,7 @@ class ApiBase {
         .toList();
     return http.Response(
       jsonEncode(
-        Page(
-          cities: citiesPage,
-          hasNextPage: citiesPage.length >= pageSize,
-        ),
+        Page(cities: citiesPage, hasNextPage: citiesPage.length >= pageSize),
       ),
       StatusCode.ok.value,
     );

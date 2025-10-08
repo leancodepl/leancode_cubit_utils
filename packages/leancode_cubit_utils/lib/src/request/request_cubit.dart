@@ -19,9 +19,8 @@ typedef ResponseMapper<TRes, TOut> = TOut Function(TRes);
 typedef EmptyChecker<TRes> = bool Function(TRes);
 
 /// Signature for a function that maps request error to other state.
-typedef ErrorMapper<TOut, TError> = Future<TOut> Function(
-  RequestErrorState<TOut, TError>,
-);
+typedef ErrorMapper<TOut, TError> =
+    Future<TOut> Function(RequestErrorState<TOut, TError>);
 
 /// Defines how to handle a new request when the previous one is still running.
 enum RequestMode {
@@ -31,18 +30,16 @@ enum RequestMode {
 
   /// When a new request is triggered while the previous one is still running,
   /// the new request is ignored.
-  ignore;
+  ignore,
 }
 
 /// Base class for all request cubits.
 abstract class BaseRequestCubit<TRes, TData, TOut, TError>
     extends Cubit<RequestState<TOut, TError>> {
   /// Creates a new [BaseRequestCubit] with the given [loggerTag] and [requestMode].
-  BaseRequestCubit(
-    String loggerTag, {
-    this.requestMode,
-  })  : logger = Logger(loggerTag),
-        super(RequestInitialState());
+  BaseRequestCubit(String loggerTag, {this.requestMode})
+    : logger = Logger(loggerTag),
+      super(RequestInitialState());
 
   /// The logger used by this cubit.
   final Logger logger;
@@ -73,13 +70,11 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
       if (isRefresh) {
         logger.info('Refreshing request.');
         emit(
-          RequestRefreshState(
-            switch (state) {
-              RequestSuccessState(:final data) => data,
-              RequestRefreshState(:final data) => data,
-              _ => null,
-            },
-          ),
+          RequestRefreshState(switch (state) {
+            RequestSuccessState(:final data) => data,
+            RequestRefreshState(:final data) => data,
+            _ => null,
+          }),
         );
       } else {
         logger.info('Request started.');
@@ -102,11 +97,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
     } catch (e, s) {
       logger.severe('Request error. Exception: $e. Stack trace: $s');
       try {
-        emit(
-          await handleError(
-            RequestErrorState(exception: e, stackTrace: s),
-          ),
-        );
+        emit(await handleError(RequestErrorState(exception: e, stackTrace: s)));
       } catch (e, s) {
         logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
@@ -138,10 +129,7 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
 abstract class RequestCubit<TRes, TData, TOut, TError>
     extends BaseRequestCubit<TRes, TData, TOut, TError> {
   /// Creates a new [RequestCubit] with the given [requestMode].
-  RequestCubit(
-    super.loggerTag, {
-    super.requestMode,
-  });
+  RequestCubit(super.loggerTag, {super.requestMode});
 
   /// Gets the data from the request and emits the corresponding state.
   Future<void> run() => _run(request);
@@ -160,10 +148,7 @@ abstract class RequestCubit<TRes, TData, TOut, TError>
 abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
     extends BaseRequestCubit<TRes, TData, TOut, TError> {
   /// Creates a new [ArgsRequestCubit] with the given [requestMode].
-  ArgsRequestCubit(
-    super.loggerTag, {
-    super.requestMode,
-  });
+  ArgsRequestCubit(super.loggerTag, {super.requestMode});
 
   TArgs? _lastRequestArgs;
 
@@ -249,11 +234,7 @@ final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
 final class RequestErrorState<TOut, TError> extends RequestState<TOut, TError> {
   /// Creates a new [RequestErrorState] with the given [error], [exception] and
   /// [stackTrace].
-  RequestErrorState({
-    this.error,
-    this.exception,
-    this.stackTrace,
-  });
+  RequestErrorState({this.error, this.exception, this.stackTrace});
 
   /// The error returned by the request.
   final TError? error;

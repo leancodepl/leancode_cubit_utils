@@ -1,3 +1,8 @@
+## 0.4.2
+
+* Upgrade `leancode_hooks` to 0.1.2.
+* Upgrade `leancode_lint` to 18.0.0.
+
 ## 0.4.1
 
 * Upgrade `provider` to ^6.1.5
