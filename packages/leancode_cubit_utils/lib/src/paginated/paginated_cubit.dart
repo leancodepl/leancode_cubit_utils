@@ -54,18 +54,18 @@ abstract class PaginatedCubit<TData, TRes, TResData, TItem>
     PreRequest<dynamic, dynamic, TData, TItem>? preRequest,
     PaginatedConfig? config,
     TData? initialData,
-  })  : logger = Logger(loggerTag),
-        _preRequest = preRequest,
-        _config = config ?? PaginatedConfigProvider.config,
-        super(
-          PaginatedState<TData, TItem>(
-            items: <TItem>[],
-            args: PaginatedArgs.fromConfig(
-              config ?? PaginatedConfigProvider.config,
-            ),
-            data: initialData,
-          ),
-        );
+  }) : logger = Logger(loggerTag),
+       _preRequest = preRequest,
+       _config = config ?? PaginatedConfigProvider.config,
+       super(
+         PaginatedState<TData, TItem>(
+           items: <TItem>[],
+           args: PaginatedArgs.fromConfig(
+             config ?? PaginatedConfigProvider.config,
+           ),
+           data: initialData,
+         ),
+       );
 
   /// The logger.
   final Logger logger;

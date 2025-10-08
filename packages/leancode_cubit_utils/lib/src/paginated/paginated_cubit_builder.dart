@@ -18,14 +18,14 @@ class PaginatedCubitBuilder<TData, TItem> extends StatelessWidget {
   final Widget Function(
     BuildContext context,
     PaginatedState<TData, TItem> state,
-  ) builder;
+  )
+  builder;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PaginatedCubit<TData, dynamic, dynamic, TItem>,
-        PaginatedState<TData, TItem>>(
-      bloc: cubit,
-      builder: builder,
-    );
+    return BlocBuilder<
+      PaginatedCubit<TData, dynamic, dynamic, TItem>,
+      PaginatedState<TData, TItem>
+    >(bloc: cubit, builder: builder);
   }
 }

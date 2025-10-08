@@ -21,10 +21,8 @@ void main() {
 
     test('when TData is non-nullable but initial value is passed', () {
       expect(
-        () => PaginatedState<String, String>(
-          args: defaultArgs,
-          data: 'initial',
-        ),
+        () =>
+            PaginatedState<String, String>(args: defaultArgs, data: 'initial'),
         returnsNormally,
       );
     });

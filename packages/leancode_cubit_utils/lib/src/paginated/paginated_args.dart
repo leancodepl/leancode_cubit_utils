@@ -11,9 +11,9 @@ class PaginatedArgs with EquatableMixin {
     required int searchBeginAt,
     String searchQuery = '',
     this.isRefresh = false,
-  })  : _searchBeginAt = searchBeginAt,
-        _searchQuery = searchQuery,
-        super();
+  }) : _searchBeginAt = searchBeginAt,
+       _searchQuery = searchQuery,
+       super();
 
   /// Creates a new instance of [PaginatedArgs] from the given [config].
   factory PaginatedArgs.fromConfig(PaginatedConfig config) {
@@ -70,11 +70,11 @@ class PaginatedArgs with EquatableMixin {
 
   @override
   List<Object?> get props => [
-        firstPageIndex,
-        pageNumber,
-        pageSize,
-        _searchQuery,
-        _searchBeginAt,
-        isRefresh,
-      ];
+    firstPageIndex,
+    pageNumber,
+    pageSize,
+    _searchQuery,
+    _searchBeginAt,
+    isRefresh,
+  ];
 }

@@ -96,12 +96,8 @@ void main() {
           ..updateSearchQuery('a')
           ..updateSearchQuery('ab'),
         expect: () => <TestPaginatedState>[
-          PaginatedState(
-            args: defaultArgs.copyWith(searchQuery: 'a'),
-          ),
-          PaginatedState(
-            args: defaultArgs.copyWith(searchQuery: 'ab'),
-          ),
+          PaginatedState(args: defaultArgs.copyWith(searchQuery: 'a')),
+          PaginatedState(args: defaultArgs.copyWith(searchQuery: 'ab')),
         ],
       );
 
@@ -122,9 +118,7 @@ void main() {
             () => mockedApi.getCities(
               any(),
               any(),
-              searchQuery: any(
-                named: 'searchQuery',
-              ),
+              searchQuery: any(named: 'searchQuery'),
             ),
           );
         },
@@ -142,11 +136,7 @@ void main() {
         act: (cubit) => cubit.updateSearchQuery('abc'),
         verify: (_) {
           verify(
-            () => mockedApi.getCities(
-              any(),
-              any(),
-              searchQuery: 'abc',
-            ),
+            () => mockedApi.getCities(any(), any(), searchQuery: 'abc'),
           ).called(1);
         },
       );
@@ -163,10 +153,7 @@ void main() {
           ).thenAnswer(
             (_) async => http.Response(
               jsonEncode(
-                Page(
-                  cities: api.cities.take(20).toList(),
-                  hasNextPage: true,
-                ),
+                Page(cities: api.cities.take(20).toList(), hasNextPage: true),
               ),
               StatusCode.ok.value,
             ),
@@ -213,12 +200,7 @@ void main() {
         build: () => TestPaginatedCubit(mockedApi),
         act: (cubit) => cubit.updateSearchQuery('ab'),
         verify: (_) {
-          verify(
-            () => mockedApi.getCities(
-              any(),
-              any(),
-            ),
-          ).called(1);
+          verify(() => mockedApi.getCities(any(), any())).called(1);
         },
       );
 
@@ -241,25 +223,13 @@ void main() {
         wait: const Duration(milliseconds: 600),
         verify: (_) {
           verifyNever(
-            () => mockedApi.getCities(
-              any(),
-              any(),
-              searchQuery: 'abc',
-            ),
+            () => mockedApi.getCities(any(), any(), searchQuery: 'abc'),
           );
           verifyNever(
-            () => mockedApi.getCities(
-              any(),
-              any(),
-              searchQuery: 'abcd',
-            ),
+            () => mockedApi.getCities(any(), any(), searchQuery: 'abcd'),
           );
           verify(
-            () => mockedApi.getCities(
-              any(),
-              any(),
-              searchQuery: 'abcde',
-            ),
+            () => mockedApi.getCities(any(), any(), searchQuery: 'abcde'),
           ).called(1);
         },
       );
@@ -276,13 +246,7 @@ void main() {
       build: () => TestPaginatedCubit(mockedApi),
       act: (cubit) => cubit.fetchNextPage(1),
       verify: (_) {
-        verify(
-          () => mockedApi.getCities(
-            1,
-            20,
-            searchQuery: 'abc',
-          ),
-        ).called(1);
+        verify(() => mockedApi.getCities(1, 20, searchQuery: 'abc')).called(1);
       },
     );
 
@@ -301,19 +265,14 @@ void main() {
           when(() => mockedApi.getCities(any(), any())).thenAnswer(
             (_) async => http.Response(
               jsonEncode(
-                Page(
-                  cities: api.cities.take(20).toList(),
-                  hasNextPage: true,
-                ),
+                Page(cities: api.cities.take(20).toList(), hasNextPage: true),
               ),
               StatusCode.ok.value,
             ),
           );
         },
-        build: () => TestPreRequestPaginatedCubit(
-          mockedApi,
-          preRequest: preRequest,
-        ),
+        build: () =>
+            TestPreRequestPaginatedCubit(mockedApi, preRequest: preRequest),
         act: (cubit) async {
           await cubit.run();
           await cubit.run();
@@ -371,10 +330,8 @@ void main() {
 
       blocTest<TestPreRequestPaginatedCubit, TestPreRequestPaginatedState>(
         'pre-request is re-run when first fails and page is refreshed',
-        build: () => TestPreRequestPaginatedCubit(
-          mockedApi,
-          preRequest: preRequest,
-        ),
+        build: () =>
+            TestPreRequestPaginatedCubit(mockedApi, preRequest: preRequest),
         act: (cubit) {
           when(mockedApi.getTypes).thenAnswer(
             (_) async => http.Response('', StatusCode.notFound.value),
@@ -406,9 +363,7 @@ void main() {
         build: () => TestPaginatedCubit(mockedApi),
         act: (cubit) => cubit.refresh(),
         verify: (_) {
-          verify(
-            () => mockedApi.getCities(0, 20),
-          ).called(1);
+          verify(() => mockedApi.getCities(0, 20)).called(1);
         },
       );
 
@@ -424,10 +379,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => http.Response(
               jsonEncode(
-                Page(
-                  cities: api.cities.take(20).toList(),
-                  hasNextPage: true,
-                ),
+                Page(cities: api.cities.take(20).toList(), hasNextPage: true),
               ),
               StatusCode.ok.value,
             ),
@@ -463,11 +415,7 @@ void main() {
         act: (cubit) => cubit.refresh(),
         verify: (_) {
           verify(
-            () => mockedApi.getCities(
-              0,
-              20,
-              searchQuery: 'abcd',
-            ),
+            () => mockedApi.getCities(0, 20, searchQuery: 'abcd'),
           ).called(1);
         },
       );
@@ -478,10 +426,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => http.Response(
               jsonEncode(
-                Page(
-                  cities: api.cities.take(20).toList(),
-                  hasNextPage: true,
-                ),
+                Page(cities: api.cities.take(20).toList(), hasNextPage: true),
               ),
               StatusCode.ok.value,
             ),
@@ -494,7 +439,7 @@ void main() {
           hasNextPage: true,
         ),
         build: () => TestPaginatedCubit(mockedApi),
-        act: (cubit) async {
+        act: (cubit) {
           unawaited(cubit.refresh());
           unawaited(cubit.refresh());
         },
@@ -520,10 +465,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => http.Response(
               jsonEncode(
-                Page(
-                  cities: api.cities.take(20).toList(),
-                  hasNextPage: true,
-                ),
+                Page(cities: api.cities.take(20).toList(), hasNextPage: true),
               ),
               StatusCode.ok.value,
             ),
@@ -562,10 +504,7 @@ void main() {
           when(() => mockedApi.getCities(0, 20)).thenAnswer(
             (_) async => http.Response(
               jsonEncode(
-                Page(
-                  cities: api.cities.take(20).toList(),
-                  hasNextPage: true,
-                ),
+                Page(cities: api.cities.take(20).toList(), hasNextPage: true),
               ),
               StatusCode.ok.value,
             ),

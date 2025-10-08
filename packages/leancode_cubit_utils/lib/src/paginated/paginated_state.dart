@@ -26,11 +26,11 @@ enum PaginatedStateType {
 
   /// A flag indicating whether the state is loading.
   bool get shouldNotGetNextPage => [
-        PaginatedStateType.firstPageLoading,
-        PaginatedStateType.nextPageLoading,
-        PaginatedStateType.refresh,
-        PaginatedStateType.nextPageError,
-      ].contains(this);
+    PaginatedStateType.firstPageLoading,
+    PaginatedStateType.nextPageLoading,
+    PaginatedStateType.refresh,
+    PaginatedStateType.nextPageError,
+  ].contains(this);
 }
 
 /// Represents the state of a PaginatedCubit.
@@ -44,11 +44,11 @@ class PaginatedState<TData, TItem> with EquatableMixin {
     this.preRequestSuccess = false,
     required this.args,
     TData? data,
-  })  : assert(
-          null is TData || data != null,
-          'You need to set TData to void or nullable type. If you want to use non-nullable type, you need to provide initial data.',
-        ),
-        data = data ?? (null as TData);
+  }) : assert(
+         null is TData || data != null,
+         'You need to set TData to void or nullable type. If you want to use non-nullable type, you need to provide initial data.',
+       ),
+       data = data ?? (null as TData);
 
   /// The type of the state.
   final PaginatedStateType type;
@@ -78,14 +78,7 @@ class PaginatedState<TData, TItem> with EquatableMixin {
   bool get isFirstPage => args.isFirstPage;
 
   @override
-  List<Object?> get props => [
-        type,
-        items,
-        hasNextPage,
-        error,
-        args,
-        data,
-      ];
+  List<Object?> get props => [type, items, hasNextPage, error, args, data];
 
   /// Copies the [PaginatedState] with the given error.
   PaginatedState<TData, TItem> copyWithError([Object? error]) {

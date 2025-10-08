@@ -17,53 +17,37 @@ void main() {
     registerFallbackValue(Uri.parse('0'));
     when(
       () => client.get(Uri.parse('0')),
-    ).thenAnswer(
-      (_) async => http.Response('Result', StatusCode.ok.value),
-    );
+    ).thenAnswer((_) async => http.Response('Result', StatusCode.ok.value));
 
-    when(
-      () => client.get(Uri.parse('1')),
-    ).thenAnswer(
+    when(() => client.get(Uri.parse('1'))).thenAnswer(
       (_) async => http.Response('Mapping fails', StatusCode.ok.value),
     );
 
     when(
       () => client.get(Uri.parse('2')),
-    ).thenAnswer(
-      (_) async => http.Response('', StatusCode.notFound.value),
-    );
+    ).thenAnswer((_) async => http.Response('', StatusCode.notFound.value));
 
     when(
       () => client.get(Uri.parse('3')),
-    ).thenAnswer(
-      (_) async => http.Response('', StatusCode.badRequest.value),
-    );
+    ).thenAnswer((_) async => http.Response('', StatusCode.badRequest.value));
   });
 
   group('RequestCubit', () {
     group('request succeeded', () {
       blocTest<TestRequestCubit, RequestState<String, int>>(
         'get() triggers request',
-        build: () => TestRequestCubit(
-          'TestRequestCubit',
-          client: client,
-          id: '0',
-        ),
+        build: () =>
+            TestRequestCubit('TestRequestCubit', client: client, id: '0'),
         act: (cubit) => cubit.run(),
         verify: (cubit) {
-          verify(
-            () => client.get(Uri.parse('0')),
-          ).called(1);
+          verify(() => client.get(Uri.parse('0'))).called(1);
         },
       );
 
       blocTest<TestRequestCubit, RequestState<String, int>>(
         'emits RequestSuccessState when processing succeeds',
-        build: () => TestRequestCubit(
-          'TestRequestCubit',
-          client: client,
-          id: '0',
-        ),
+        build: () =>
+            TestRequestCubit('TestRequestCubit', client: client, id: '0'),
         act: (cubit) => cubit.run(),
         wait: Duration.zero,
         expect: () => <RequestState<String, int>>[
@@ -77,11 +61,8 @@ void main() {
       setUp(() => clearInteractions(client));
       blocTest<TestRequestCubit, RequestState<String, int>>(
         'emits RequestRefreshState with the same data when refresh is called',
-        build: () => TestRequestCubit(
-          'TestRequestCubit',
-          client: client,
-          id: '0',
-        ),
+        build: () =>
+            TestRequestCubit('TestRequestCubit', client: client, id: '0'),
         seed: () => RequestSuccessState('Mapped Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, int>>[
@@ -92,19 +73,14 @@ void main() {
 
       blocTest<TestRequestCubit, RequestState<String, int>>(
         'ignores duplicated refresh calls by default',
-        build: () => TestRequestCubit(
-          'TestRequestCubit',
-          client: client,
-          id: '0',
-        ),
+        build: () =>
+            TestRequestCubit('TestRequestCubit', client: client, id: '0'),
         act: (cubit) async {
           unawaited(cubit.run());
           await cubit.run();
         },
         verify: (_) {
-          verify(
-            () => client.get(Uri.parse('0')),
-          ).called(1);
+          verify(() => client.get(Uri.parse('0'))).called(1);
         },
         expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
@@ -125,9 +101,7 @@ void main() {
           await cubit.run();
         },
         verify: (cubit) {
-          verify(
-            () => client.get(Uri.parse('0')),
-          ).called(2);
+          verify(() => client.get(Uri.parse('0'))).called(2);
         },
         expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
@@ -190,24 +164,16 @@ void main() {
     clearInteractions(client);
     blocTest<TestArgsRequestCubit, RequestState<String, int>>(
       'calls request() with passed arguments when get() is called',
-      build: () => TestArgsRequestCubit(
-        'TestArgsRequestCubit',
-        client: client,
-      ),
+      build: () => TestArgsRequestCubit('TestArgsRequestCubit', client: client),
       act: (cubit) => cubit.run('0'),
       verify: (_) {
-        verify(
-          () => client.get(Uri.parse('0')),
-        ).called(1);
+        verify(() => client.get(Uri.parse('0'))).called(1);
       },
     );
 
     blocTest<TestArgsRequestCubit, RequestState<String, int>>(
       'calls refresh with last args when get() was called before',
-      build: () => TestArgsRequestCubit(
-        'TestArgsRequestCubit',
-        client: client,
-      ),
+      build: () => TestArgsRequestCubit('TestArgsRequestCubit', client: client),
       act: (cubit) async {
         await cubit.run('0');
         await cubit.refresh();

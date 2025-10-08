@@ -11,18 +11,14 @@ class TestPreRequest extends PreRequest<http.Response, String, String, String> {
     required this.errorHandlerFunction,
   });
 
-  final String Function(
-    String res,
-    PaginatedState<String, String> state,
-  ) mapFunction;
+  final String Function(String res, PaginatedState<String, String> state)
+  mapFunction;
 
-  final Future<http.Response> Function(
-    PaginatedState<String, String> state,
-  ) requestFunction;
+  final Future<http.Response> Function(PaginatedState<String, String> state)
+  requestFunction;
 
-  PaginatedState<String, String> Function(
-    PaginatedState<String, String> state,
-  ) errorHandlerFunction;
+  PaginatedState<String, String> Function(PaginatedState<String, String> state)
+  errorHandlerFunction;
 
   @override
   String map(String res, PaginatedState<String, String> state) {
@@ -73,52 +69,66 @@ void main() {
   final defaultArgs = PaginatedArgs.fromConfig(PaginatedConfigProvider.config);
 
   group('PreRequest', () {
-    test('run returns a state when processing completes without an error',
-        () async {
-      final preRequest = TestPreRequest(
-        mapFunction: (res, state) => res,
-        requestFunction: (state) async =>
-            http.Response('', StatusCode.ok.value),
-        errorHandlerFunction: (state) => state,
-      );
-      final state = PaginatedState<String, String>(args: defaultArgs, data: '');
-      final result = await preRequest.run(state);
-      expect(result, isA<PaginatedState<String, String>>());
-    });
+    test(
+      'run returns a state when processing completes without an error',
+      () async {
+        final preRequest = TestPreRequest(
+          mapFunction: (res, state) => res,
+          requestFunction: (state) async =>
+              http.Response('', StatusCode.ok.value),
+          errorHandlerFunction: (state) => state,
+        );
+        final state = PaginatedState<String, String>(
+          args: defaultArgs,
+          data: '',
+        );
+        final result = await preRequest.run(state);
+        expect(result, isA<PaginatedState<String, String>>());
+      },
+    );
 
     test(
-        'calls error handler only once when both request and map functions fails',
-        () async {
-      var errorHandlerCalled = 0;
-      final preRequest = TestPreRequest(
-        mapFunction: (_, __) => throw Exception(),
-        requestFunction: (_) => throw Exception(),
-        errorHandlerFunction: (state) {
-          errorHandlerCalled++;
-          return state;
-        },
-      );
-      final state = PaginatedState<String, String>(args: defaultArgs, data: '');
-      await preRequest.run(state);
-      expect(errorHandlerCalled, 1);
-    });
+      'calls error handler only once when both request and map functions fails',
+      () async {
+        var errorHandlerCalled = 0;
+        final preRequest = TestPreRequest(
+          mapFunction: (_, _) => throw Exception(),
+          requestFunction: (_) => throw Exception(),
+          errorHandlerFunction: (state) {
+            errorHandlerCalled++;
+            return state;
+          },
+        );
+        final state = PaginatedState<String, String>(
+          args: defaultArgs,
+          data: '',
+        );
+        await preRequest.run(state);
+        expect(errorHandlerCalled, 1);
+      },
+    );
 
     test(
-        'calls error handler only once when request returns failure and handler throws'
-        'an error', () async {
-      var errorHandlerCalled = 0;
-      final preRequest = TestPreRequest(
-        mapFunction: (res, __) => res,
-        requestFunction: (_) async =>
-            http.Response('', StatusCode.notFound.value),
-        errorHandlerFunction: (state) {
-          errorHandlerCalled++;
-          throw Exception();
-        },
-      );
-      final state = PaginatedState<String, String>(args: defaultArgs, data: '');
-      await preRequest.run(state);
-      expect(errorHandlerCalled, 1);
-    });
+      'calls error handler only once when request returns failure and handler throws'
+      'an error',
+      () async {
+        var errorHandlerCalled = 0;
+        final preRequest = TestPreRequest(
+          mapFunction: (res, _) => res,
+          requestFunction: (_) async =>
+              http.Response('', StatusCode.notFound.value),
+          errorHandlerFunction: (state) {
+            errorHandlerCalled++;
+            throw Exception();
+          },
+        );
+        final state = PaginatedState<String, String>(
+          args: defaultArgs,
+          data: '',
+        );
+        await preRequest.run(state);
+        expect(errorHandlerCalled, 1);
+      },
+    );
   });
 }
