@@ -26,6 +26,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     this.onInitial,
     this.onLoading,
     this.onEmpty,
+    this.onRefresh,
     this.onError,
     this.onErrorCallback,
   });
@@ -45,6 +46,9 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   /// The builder that creates a widget when request returns empty data.
   final WidgetBuilder? onEmpty;
 
+  /// The builder that creates a widget when request is refreshing.
+  final RequestWidgetBuilder<TOut>? onRefresh;
+
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<TError>? onError;
 
@@ -55,17 +59,26 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = context.read<RequestLayoutConfig>();
 
+    final effectiveOnLoading = onLoading ?? config.onLoading;
+    final effectiveInitial = onInitial ?? effectiveOnLoading;
+    final effectiveOnEmpty = onEmpty ?? config.onEmpty;
+
     return BlocBuilder<
       BaseRequestCubit<dynamic, TOut, TError>,
       RequestState<TOut, TError>
     >(
       bloc: cubit,
       builder: (context, state) => state.map(
-        onInitial: () => (onInitial ?? onLoading ?? config.onLoading)(context),
-        onLoading: () => (onLoading ?? config.onLoading)(context),
+        onInitial: () => effectiveInitial(context),
+        onLoading: () => effectiveOnLoading(context),
         onSuccess: (data) => onSuccess(context, data),
-        onEmpty: (_) =>
-            (onEmpty ?? config.onEmpty)?.call(context) ?? const SizedBox(),
+        onEmpty: effectiveOnEmpty != null
+            ? (_) => effectiveOnEmpty(context)
+            : null,
+        onRefresh: switch (onRefresh) {
+          final onRefresh? => (data) => onRefresh(context, data),
+          null => null,
+        },
         onError: (err, _, _) {
           final errorState = state as RequestErrorState<dynamic, TError>;
           final callback = onErrorCallback ?? cubit.refresh;
