@@ -5,7 +5,7 @@ import 'package:leancode_cubit_utils/src/request/request_cubit.dart';
 
 /// Signature for a function that creates a widget when data successfully loaded.
 typedef RequestWidgetBuilder<TOut> =
-    Widget Function(BuildContext context, TOut data);
+    Widget Function(BuildContext context, TOut? data);
 
 /// Signature for a function that creates a widget when request is loading.
 typedef RequestErrorBuilder<TError> =
@@ -60,32 +60,19 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
       RequestState<TOut, TError>
     >(
       bloc: cubit,
-      builder: (context, state) {
-        return switch (state) {
-          RequestInitialState() =>
-            onInitial?.call(context) ??
-                onLoading?.call(context) ??
-                config.onLoading(context),
-          RequestLoadingState() =>
-            onLoading?.call(context) ?? config.onLoading(context),
-          RequestSuccessState(:final data) => onSuccess(context, data),
-          RequestRefreshState(:final data) =>
-            data != null
-                ? onSuccess(context, data)
-                : onLoading?.call(context) ?? config.onLoading(context),
-          RequestEmptyState() =>
-            onEmpty?.call(context) ??
-                config.onEmpty?.call(context) ??
-                const SizedBox(),
-          RequestErrorState() =>
-            onError?.call(context, state, onErrorCallback ?? cubit.refresh) ??
-                config.onError(
-                  context,
-                  state,
-                  onErrorCallback ?? cubit.refresh,
-                ),
-        };
-      },
+      builder: (context, state) => state.map(
+        onInitial: () => (onInitial ?? onLoading ?? config.onLoading)(context),
+        onLoading: () => (onLoading ?? config.onLoading)(context),
+        onSuccess: (data) => onSuccess(context, data),
+        onEmpty: (_) =>
+            (onEmpty ?? config.onEmpty)?.call(context) ?? const SizedBox(),
+        onError: (err, _, _) {
+          final errorState = state as RequestErrorState<dynamic, TError>;
+          final callback = onErrorCallback ?? cubit.refresh;
+
+          return (onError ?? config.onError)(context, errorState, callback);
+        },
+      ),
     );
   }
 }
