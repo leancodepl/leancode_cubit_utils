@@ -6,6 +6,8 @@ import 'http_status_codes.dart';
 mixin RequestResultHandler<TOut> on BaseRequestCubit<http.Response, TOut, int> {
   TOut map(String data);
 
+  bool isEmpty(TOut data);
+
   @override
   Future<RequestState<TOut, int>> handleResult(http.Response result) async {
     if (result.statusCode == StatusCode.ok.value) {

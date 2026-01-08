@@ -107,9 +107,6 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
     }
   }
 
-  /// Override this to check if the given [data] is empty.
-  bool isEmpty(TOut data) => false;
-
   /// Handles the given [errorState] and returns the corresponding state.
   Future<RequestErrorState<TOut, TError>> handleError(
     RequestErrorState<TOut, TError> errorState,
