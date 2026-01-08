@@ -62,7 +62,7 @@ void main() {
         seed: () => RequestSuccessState('Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, int>>[
-          RequestRefreshState('Result'),
+          RequestRefreshState(data: 'Result'),
           RequestSuccessState('Result'),
         ],
       );

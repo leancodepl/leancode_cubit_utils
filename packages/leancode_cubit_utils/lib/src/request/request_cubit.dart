@@ -67,15 +67,11 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
           }
       }
 
-      if (isRefresh) {
+      if (state
+          case RequestSuccessState(:final data) ||
+              RequestRefreshState(:final data) when isRefresh) {
         logger.info('Refreshing request.');
-        emit(
-          RequestRefreshState(switch (state) {
-            RequestSuccessState(:final data) => data,
-            RequestRefreshState(:final data) => data,
-            _ => null,
-          }),
-        );
+        emit(RequestRefreshState(data: data));
       } else {
         logger.info('Request started.');
         emit(RequestLoadingState());
@@ -170,7 +166,56 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 }
 
 /// Represents the state of a request.
-sealed class RequestState<TOut, TError> with EquatableMixin {}
+sealed class RequestState<TOut, TError> with EquatableMixin {
+  /// Maps the current request state to a value of type [T].
+  ///
+  /// ## Parameters
+  ///
+  /// * [onInitial] - Builder that creates a [T] value when the request is in its
+  ///   initial state (not yet started). **If not provided, falls back
+  ///   to [onLoading]**.
+  /// * [onLoading] - Builder that creates a [T] value when the request
+  ///   is loading.
+  /// * [onSuccess] - Builder that creates a [T] value when the request
+  ///   completed successfully with data. Data can be null in case of empty
+  ///   state.
+  /// * [onError] - Builder that creates a [T] value when the request failed
+  ///   with an error.
+  /// * [onRefresh] - Builder that creates a [T] value when the request is
+  ///   refreshing with previous data still available. **If not provided, falls
+  ///   back to [onSuccess].**
+  /// * [onEmpty] - Builder that creates a [T] value when the request completed
+  ///   successfully but returned empty data. Data can be null. **If not
+  ///   provided, falls back to [onSuccess].**
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// Scaffold(
+  ///   appBar: state.map<AppBar>(
+  ///     onLoading: () => const LoadingAppBar(),
+  ///     onSuccess: (data) => SuccessAppBar(data: data),
+  ///     onError: (err, exception, st) => const ErrorAppBar(error: err),
+  ///   ),
+  /// );
+  /// ```
+  T map<T>({
+    T Function()? onInitial,
+    required T Function() onLoading,
+    required T Function(TOut? data) onSuccess,
+    required T Function(TError? err, Object? exception, StackTrace? st) onError,
+    T Function(TOut data)? onRefresh,
+    T Function(TOut? data)? onEmpty,
+  }) => switch (this) {
+    RequestInitialState() => (onInitial ?? onLoading).call(),
+    RequestLoadingState() => onLoading.call(),
+    RequestSuccessState(:final data) => onSuccess(data),
+    RequestErrorState(:final error, :final exception, :final stackTrace) =>
+      onError(error, exception, stackTrace),
+    RequestRefreshState(:final data) => (onRefresh ?? onSuccess).call(data),
+    RequestEmptyState(:final data) => (onEmpty ?? onSuccess).call(data),
+  };
+}
 
 /// Represents the initial state of a request.
 final class RequestInitialState<TOut, TError>
@@ -193,10 +238,10 @@ final class RequestLoadingState<TOut, TError>
 final class RequestRefreshState<TOut, TError>
     extends RequestState<TOut, TError> {
   /// Creates a new [RequestRefreshState] with the previous [data].
-  RequestRefreshState([this.data]);
+  RequestRefreshState({required this.data});
 
   /// The previous data.
-  final TOut? data;
+  final TOut data;
 
   @override
   List<Object?> get props => [data];
@@ -218,7 +263,10 @@ final class RequestSuccessState<TOut, TError>
 /// Represents a successful request with empty data.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
   /// Creates a new [RequestEmptyState]..
-  RequestEmptyState();
+  RequestEmptyState(this.data);
+
+  /// The data returned by the request.
+  final TOut? data;
 
   @override
   List<Object?> get props => [];

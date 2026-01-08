@@ -10,7 +10,7 @@ mixin RequestResultHandler<TOut>
     if (result.statusCode == StatusCode.ok.value) {
       if (result.body.isEmpty) {
         logger.warning('Query success but data is empty');
-        return RequestEmptyState();
+        return RequestEmptyState(null);
       }
       logger.info('Query success. Data: ${result.body}');
       return RequestSuccessState(result.body);
