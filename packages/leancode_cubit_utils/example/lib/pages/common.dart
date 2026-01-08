@@ -4,10 +4,12 @@ import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 /// Base class for http request cubits.
 abstract class HttpRequestCubit<TOut>
-    extends RequestCubit<http.Response, String, TOut, int> {
+    extends RequestCubit<http.Response, TOut, int> {
   HttpRequestCubit(super.loggerTag, {required this.client});
 
   final http.Client client;
+
+  TOut map(String data);
 
   @override
   Future<RequestState<TOut, int>> handleResult(

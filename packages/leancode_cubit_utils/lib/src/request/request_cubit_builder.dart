@@ -31,7 +31,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   });
 
   /// The request cubit to which this widget is listening.
-  final BaseRequestCubit<dynamic, dynamic, TOut, TError> cubit;
+  final BaseRequestCubit<dynamic, TOut, TError> cubit;
 
   /// The builder that creates a widget when data successfully loaded.
   final RequestWidgetBuilder<TOut> onSuccess;
@@ -56,7 +56,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     final config = context.read<RequestLayoutConfig>();
 
     return BlocBuilder<
-      BaseRequestCubit<dynamic, dynamic, TOut, TError>,
+      BaseRequestCubit<dynamic, TOut, TError>,
       RequestState<TOut, TError>
     >(
       bloc: cubit,

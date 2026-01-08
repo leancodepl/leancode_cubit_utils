@@ -3,8 +3,9 @@ import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 import 'http_status_codes.dart';
 
-mixin RequestResultHandler<TOut>
-    on BaseRequestCubit<http.Response, String, TOut, int> {
+mixin RequestResultHandler<TOut> on BaseRequestCubit<http.Response, TOut, int> {
+  TOut map(String data);
+
   @override
   Future<RequestState<TOut, int>> handleResult(http.Response result) async {
     if (result.statusCode == StatusCode.ok.value) {
@@ -29,7 +30,7 @@ mixin RequestResultHandler<TOut>
   }
 }
 
-class TestRequestCubit extends RequestCubit<http.Response, String, String, int>
+class TestRequestCubit extends RequestCubit<http.Response, String, int>
     with RequestResultHandler<String> {
   TestRequestCubit(
     super.loggerTag, {
@@ -72,7 +73,7 @@ class TestRequestCubit extends RequestCubit<http.Response, String, String, int>
 }
 
 class TestArgsRequestCubit
-    extends ArgsRequestCubit<String, http.Response, String, String, int>
+    extends ArgsRequestCubit<String, http.Response, String, int>
     with RequestResultHandler<String> {
   TestArgsRequestCubit(super.loggerTag, {required this.client});
 
