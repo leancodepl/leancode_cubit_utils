@@ -21,21 +21,23 @@ Implementation of cubits for handling [CQRS](https://pub.dev/packages/cqrs) quer
 
 ### `RequestCubit`
 
-`RequestCubit` is used to execute a single API request. It has four generic arguments:
+`RequestCubit` is used to execute a single API request. It has three generic arguments:
 - `TRes` specifies what the request returns,
-- `TData` specifies what is kept in TRes as response body,
 - `TOut` determines which model we want to emit as data in the state,
-- `TError` defines error's type. In the example below.
+- `TError` defines error's type.
 
 `HttpRequestCubit` in the example below provides the generic http implementation that can be used while defining all needed `RequestCubits`.
 
 ```dart
 /// Base class for http request cubits.
 abstract class HttpRequestCubit<TOut>
-    extends RequestCubit<http.Response, String, TOut, int> {
+    extends RequestCubit<http.Response, TOut, int> {
   HttpRequestCubit(super.loggerTag, {required this.client});
 
   final http.Client client;
+
+  /// Maps the given [data] to the output type [TOut].
+  TOut map(String data);
 
   @override
   /// Client-specific method needed for handling the API response.
@@ -72,7 +74,7 @@ class ProjectDetailsCubit extends HttpRequestCubit<ProjectDetailsDTO> {
   final String id;
 
   @override
-  // This method allows to map the given TRes into TOut.
+  // This method allows to map the given data into TOut.
   ProjectDetailsDTO map(String data) =>
       ProjectDetailsDTO.fromJson(jsonDecode(data) as Map<String, dynamic>);
 
@@ -90,7 +92,7 @@ The cubit itself handles the things like:
 - logging - you can observe what is happening inside of the cubit.
 
 ### `ArgsRequestCubit`
-`ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>` is a version of `RequestCubit` in which the request method accepts an argument. `TArgs` determines the type of arguments accepted by the request method. `TRes`, `TData`, `TOut` and `TError` serve the same purpose as in `RequestCubit`. 
+`ArgsRequestCubit<TArgs, TRes, TOut, TError>` is a version of `RequestCubit` in which the request method accepts an argument. `TArgs` determines the type of arguments accepted by the request method. `TRes`, `TOut` and `TError` serve the same purpose as in `RequestCubit`. 
 
 If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the last used arguments. They are also available under `lastRequestArgs` field.
 
