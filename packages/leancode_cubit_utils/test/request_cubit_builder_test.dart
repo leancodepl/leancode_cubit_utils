@@ -158,5 +158,45 @@ void main() {
       expect(find.text('Success, data: Result'), findsOneWidget);
       await tester.pumpAndSettle();
     });
+
+    testWidgets('shows custom onRefresh widget when onRefresh is provided', (
+      tester,
+    ) async {
+      final cubit = FakeRequestCubit.refresh();
+
+      await tester.pumpWidget(
+        TestPage(
+          child: RequestCubitBuilder(
+            cubit: cubit,
+            onRefresh: (context, data) => const Text('Refreshing'),
+            onSuccess: (context, data) => const Text('Success'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Refreshing'), findsOneWidget);
+    });
+
+    testWidgets('onRefresh not provided does not cause an error', (
+      tester,
+    ) async {
+      final cubit = FakeRequestCubit.refresh();
+
+      const key = Key('request_cubit_builder');
+
+      await tester.pumpWidget(
+        TestPage(
+          child: RequestCubitBuilder(
+            key: key,
+            cubit: cubit,
+            onSuccess: (context, data) => const SizedBox(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(key), findsOneWidget);
+    });
   });
 }
