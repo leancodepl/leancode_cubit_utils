@@ -169,8 +169,6 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 sealed class RequestState<TOut, TError> with EquatableMixin {
   /// Maps the current request state to a value of type [T].
   ///
-  /// ## Parameters
-  ///
   /// * [onInitial] - Builder that creates a [T] value when the request is in its
   ///   initial state (not yet started). **If not provided, falls back
   ///   to [onLoading]**.
