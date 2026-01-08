@@ -3,21 +3,17 @@ import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 import 'http_status_codes.dart';
 
-mixin RequestResultHandler<TOut> on BaseRequestCubit<http.Response, TOut, int> {
-  TOut map(String data);
-
-  bool isEmpty(TOut data);
-
+mixin RequestResultHandler<TOut>
+    on BaseRequestCubit<http.Response, String, int> {
   @override
-  Future<RequestState<TOut, int>> handleResult(http.Response result) async {
+  Future<RequestState<String, int>> handleResult(http.Response result) async {
     if (result.statusCode == StatusCode.ok.value) {
-      final data = map(result.body);
-      if (isEmpty(data)) {
+      if (result.body.isEmpty) {
         logger.warning('Query success but data is empty');
         return RequestEmptyState();
       }
       logger.info('Query success. Data: ${result.body}');
-      return RequestSuccessState(data);
+      return RequestSuccessState(result.body);
     } else {
       logger.severe('Query error. Status code: ${result.statusCode}');
       try {
@@ -45,19 +41,6 @@ class TestRequestCubit extends RequestCubit<http.Response, String, int>
   final String id;
 
   @override
-  String map(String data) {
-    if (data == 'Mapping fails') {
-      throw Exception('Mapping failed');
-    }
-    return 'Mapped $data';
-  }
-
-  @override
-  bool isEmpty(String data) {
-    return data.isEmpty;
-  }
-
-  @override
   Future<http.Response> request() {
     return client.get(Uri.parse(id));
   }
@@ -80,12 +63,6 @@ class TestArgsRequestCubit
   TestArgsRequestCubit(super.loggerTag, {required this.client});
 
   final http.Client client;
-
-  @override
-  String map(String data) => data;
-
-  @override
-  bool isEmpty(String data) => data.isEmpty;
 
   @override
   Future<http.Response> request(String args) {
