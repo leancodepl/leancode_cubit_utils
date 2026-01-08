@@ -9,6 +9,7 @@ abstract class HttpRequestCubit<TOut>
 
   final http.Client client;
 
+  /// Maps the given [data] to the output type [TOut].
   TOut map(String data);
 
   @override
