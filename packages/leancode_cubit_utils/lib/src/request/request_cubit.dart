@@ -261,7 +261,7 @@ final class RequestSuccessState<TOut, TError>
 /// Represents a successful request with empty data.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
   /// Creates a new [RequestEmptyState]..
-  RequestEmptyState(this.data);
+  RequestEmptyState([this.data]);
 
   /// The data returned by the request.
   final TOut? data;
