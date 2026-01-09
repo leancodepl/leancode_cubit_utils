@@ -12,7 +12,12 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.0.0
-  leancode_cubit_utils: ^0.4.0
+  leancode_cubit_utils:
+    # TODO: Replace with pub.dev version when `leancode_cubit_utils` version `0.5.0` is released.
+    git:
+      url: git@github.com:leancodepl/leancode_cubit_utils.git
+      ref: fix/query-cubit-handling-on-empty-state
+      path: packages/leancode_cubit_utils
   leancode_hooks: ^0.1.1
 
 dev_dependencies:
