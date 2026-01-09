@@ -173,7 +173,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
         onEmpty: (_) => 6,
       );
 
@@ -189,7 +189,7 @@ void main() {
           onLoading: () => 2,
           onSuccess: (_) => 3,
           onError: (_, _, _) => 4,
-          onRefresh: (_) => 5,
+          onRefreshing: (_) => 5,
           onEmpty: (_) => 6,
         );
 
@@ -205,7 +205,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
         onEmpty: (_) => 6,
       );
 
@@ -220,7 +220,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
         onEmpty: (_) => 6,
       );
 
@@ -239,7 +239,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
         onEmpty: (_) => 6,
       );
 
@@ -254,7 +254,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
         onEmpty: (_) => 6,
       );
 
@@ -285,7 +285,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
         onEmpty: (_) => 6,
       );
 
@@ -299,7 +299,7 @@ void main() {
         onLoading: () => 2,
         onSuccess: (_) => 3,
         onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onRefreshing: (_) => 5,
       );
 
       expect(result, 3);

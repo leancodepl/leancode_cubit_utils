@@ -26,7 +26,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     this.onInitial,
     this.onLoading,
     this.onEmpty,
-    this.onRefresh,
+    this.onRefreshing,
     this.onError,
     this.onErrorCallback,
   });
@@ -47,7 +47,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   final WidgetBuilder? onEmpty;
 
   /// The builder that creates a widget when request is refreshing.
-  final RequestWidgetBuilder<TOut>? onRefresh;
+  final RequestWidgetBuilder<TOut>? onRefreshing;
 
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<TError>? onError;
@@ -75,8 +75,8 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
         onEmpty: effectiveOnEmpty != null
             ? (_) => effectiveOnEmpty(context)
             : null,
-        onRefresh: switch (onRefresh) {
-          final onRefresh? => (data) => onRefresh(context, data),
+        onRefreshing: switch (onRefreshing) {
+          final onRefreshing? => (data) => onRefreshing(context, data),
           null => null,
         },
         onError: (err, _, _) {

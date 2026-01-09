@@ -114,7 +114,7 @@ If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the
 - `T Function() onLoading` - called when the request is loading (required),
 - `T Function(TOut? data) onSuccess` - called when the request completed successfully (required),
 - `T Function(TError? err, Object? exception, StackTrace? st) onError` - called when the request failed (required),
-- `T Function(TOut data)? onRefresh` - called when the request is refreshing with previous data. If not provided, falls back to `onSuccess`,
+- `T Function(TOut data)? onRefreshing` - called when the request is refreshing with previous data. If not provided, falls back to `onSuccess`,
 - `T Function(TOut? data)? onEmpty` - called when the request completed successfully but returned empty data. If not provided, falls back to `onSuccess`.
 
 Example usage:
@@ -138,7 +138,7 @@ Scaffold(
 - `WidgetBuilder? onError` - use it to show error widget when processing the request fails,
 - `RequestWidgetBuilder<TOut> onSuccess` - use it to build a page when the data is successfully loaded (required),
 - `WidgetBuilder? onEmpty` - use it to show a widget when the request returns empty data. If not provided, falls back to global config or empty widget,
-- `RequestWidgetBuilder<TOut>? onRefresh` - use it to show a widget while refreshing with previous data still available. If not provided, falls back to `onSuccess`.
+- `RequestWidgetBuilder<TOut>? onRefreshing` - use it to show a widget while refreshing with previous data still available. If not provided, falls back to `onSuccess`.
 
 Other than builders, you also need to provide the cubit based on which the `RequestCubitBuilder` will be rebuilt. You can also pass `onErrorCallback` which allows you to pass a callback to error widget builder. You may want to use it to implement a retry button.
 
@@ -171,7 +171,7 @@ RequestCubitBuilder(
           },
         );
       },
-      onRefresh: (context, data) {top
+      onRefreshing: (context, data) {top
         return Stack(
           children: [
             ListView.builder(

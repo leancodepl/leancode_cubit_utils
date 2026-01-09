@@ -179,7 +179,7 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
   ///   state.
   /// * [onError] - Builder that creates a [T] value when the request failed
   ///   with an error.
-  /// * [onRefresh] - Builder that creates a [T] value when the request is
+  /// * [onRefreshing] - Builder that creates a [T] value when the request is
   ///   refreshing with previous data still available. **If not provided, falls
   ///   back to [onSuccess].**
   /// * [onEmpty] - Builder that creates a [T] value when the request completed
@@ -202,7 +202,7 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
     required T Function() onLoading,
     required T Function(TOut? data) onSuccess,
     required T Function(TError? err, Object? exception, StackTrace? st) onError,
-    T Function(TOut data)? onRefresh,
+    T Function(TOut data)? onRefreshing,
     T Function(TOut? data)? onEmpty,
   }) => switch (this) {
     RequestInitialState() => (onInitial ?? onLoading).call(),
@@ -210,7 +210,7 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
     RequestSuccessState(:final data) => onSuccess(data),
     RequestErrorState(:final error, :final exception, :final stackTrace) =>
       onError(error, exception, stackTrace),
-    RequestRefreshState(:final data) => (onRefresh ?? onSuccess).call(data),
+    RequestRefreshState(:final data) => (onRefreshing ?? onSuccess).call(data),
     RequestEmptyState(:final data) => (onEmpty ?? onSuccess).call(data),
   };
 }
@@ -260,7 +260,7 @@ final class RequestSuccessState<TOut, TError>
 
 /// Represents a successful request with empty data.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
-  /// Creates a new [RequestEmptyState]..
+  /// Creates a new [RequestEmptyState].
   RequestEmptyState([this.data]);
 
   /// The data returned by the request.
