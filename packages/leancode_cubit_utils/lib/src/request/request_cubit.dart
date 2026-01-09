@@ -204,21 +204,15 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
     required T Function(TError? err, Object? exception, StackTrace? st) onError,
     T Function(TOut data)? onRefreshing,
     T Function(TOut? data)? onEmpty,
-  }) {
-    final effectiveOnInitial = onInitial ?? onLoading;
-    final effectiveOnRefreshing = onRefreshing ?? onSuccess;
-    final effectiveOnEmpty = onEmpty ?? onSuccess;
-
-    return switch (this) {
-      RequestInitialState() => effectiveOnInitial(),
-      RequestLoadingState() => onLoading(),
-      RequestSuccessState(:final data) => onSuccess(data),
-      RequestErrorState(:final error, :final exception, :final stackTrace) =>
-        onError(error, exception, stackTrace),
-      RequestRefreshState(:final data) => effectiveOnRefreshing(data),
-      RequestEmptyState(:final data) => effectiveOnEmpty(data),
-    };
-  }
+  }) => switch (this) {
+    RequestInitialState() => (onInitial ?? onLoading)(),
+    RequestLoadingState() => onLoading(),
+    RequestSuccessState(:final data) => onSuccess(data),
+    RequestErrorState(:final error, :final exception, :final stackTrace) =>
+      onError(error, exception, stackTrace),
+    RequestRefreshState(:final data) => (onRefreshing ?? onSuccess)(data),
+    RequestEmptyState(:final data) => (onEmpty ?? onSuccess)(data),
+  };
 }
 
 /// Represents the initial state of a request.
