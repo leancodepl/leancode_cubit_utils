@@ -1,3 +1,8 @@
+## 0.5.0
+
+* **BREAKING CHANGE**: Remove `map` and `isEmpty` methods from `RequestCubit`.
+* **BREAKING CHANGE**: Remove `TData` generic parameter from `RequestCubit`.
+
 ## 0.4.2
 
 * Upgrade `leancode_hooks` to 0.1.2.

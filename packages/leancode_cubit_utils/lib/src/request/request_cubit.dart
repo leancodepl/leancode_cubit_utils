@@ -34,7 +34,7 @@ enum RequestMode {
 }
 
 /// Base class for all request cubits.
-abstract class BaseRequestCubit<TRes, TData, TOut, TError>
+abstract class BaseRequestCubit<TRes, TOut, TError>
     extends Cubit<RequestState<TOut, TError>> {
   /// Creates a new [BaseRequestCubit] with the given [loggerTag] and [requestMode].
   BaseRequestCubit(String loggerTag, {this.requestMode})
@@ -107,12 +107,6 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
     }
   }
 
-  /// Maps the given [data] to the output type [TOut].
-  TOut map(TData data);
-
-  /// Override this to check if the given [data] is empty.
-  bool isEmpty(TOut data) => false;
-
   /// Handles the given [errorState] and returns the corresponding state.
   Future<RequestErrorState<TOut, TError>> handleError(
     RequestErrorState<TOut, TError> errorState,
@@ -126,8 +120,8 @@ abstract class BaseRequestCubit<TRes, TData, TOut, TError>
 }
 
 /// Base class for all request cubits which don't require any arguments.
-abstract class RequestCubit<TRes, TData, TOut, TError>
-    extends BaseRequestCubit<TRes, TData, TOut, TError> {
+abstract class RequestCubit<TRes, TOut, TError>
+    extends BaseRequestCubit<TRes, TOut, TError> {
   /// Creates a new [RequestCubit] with the given [requestMode].
   RequestCubit(super.loggerTag, {super.requestMode});
 
@@ -145,8 +139,8 @@ abstract class RequestCubit<TRes, TData, TOut, TError>
 }
 
 /// Base class for all request cubits which require arguments.
-abstract class ArgsRequestCubit<TArgs, TRes, TData, TOut, TError>
-    extends BaseRequestCubit<TRes, TData, TOut, TError> {
+abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
+    extends BaseRequestCubit<TRes, TOut, TError> {
   /// Creates a new [ArgsRequestCubit] with the given [requestMode].
   ArgsRequestCubit(super.loggerTag, {super.requestMode});
 

@@ -19,10 +19,6 @@ void main() {
       () => client.get(Uri.parse('0')),
     ).thenAnswer((_) async => http.Response('Result', StatusCode.ok.value));
 
-    when(() => client.get(Uri.parse('1'))).thenAnswer(
-      (_) async => http.Response('Mapping fails', StatusCode.ok.value),
-    );
-
     when(
       () => client.get(Uri.parse('2')),
     ).thenAnswer((_) async => http.Response('', StatusCode.notFound.value));
@@ -52,7 +48,7 @@ void main() {
         wait: Duration.zero,
         expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
-          RequestSuccessState('Mapped Result'),
+          RequestSuccessState('Result'),
         ],
       );
     });
@@ -63,11 +59,11 @@ void main() {
         'emits RequestRefreshState with the same data when refresh is called',
         build: () =>
             TestRequestCubit('TestRequestCubit', client: client, id: '0'),
-        seed: () => RequestSuccessState('Mapped Result'),
+        seed: () => RequestSuccessState('Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, int>>[
-          RequestRefreshState('Mapped Result'),
-          RequestSuccessState('Mapped Result'),
+          RequestRefreshState('Result'),
+          RequestSuccessState('Result'),
         ],
       );
 
@@ -84,7 +80,7 @@ void main() {
         },
         expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
-          RequestSuccessState('Mapped Result'),
+          RequestSuccessState('Result'),
         ],
       );
 
@@ -105,7 +101,7 @@ void main() {
         },
         expect: () => <RequestState<String, int>>[
           RequestLoadingState(),
-          RequestSuccessState('Mapped Result'),
+          RequestSuccessState('Result'),
         ],
       );
     });
@@ -120,22 +116,6 @@ void main() {
           id: '2',
         ),
         act: (cubit) => cubit.run(),
-        expect: () => [
-          isA<RequestLoadingState<String, int>>(),
-          isA<RequestErrorState<String, int>>(),
-        ],
-      );
-
-      blocTest<TestRequestCubit, RequestState<String, int>>(
-        'emits RequestErrorState when request mapping fails',
-        build: () => TestRequestCubit(
-          'TestRequestCubit',
-          client: client,
-          //cubit with argument '1' will throw an exception in map()
-          id: '1',
-        ),
-        act: (cubit) => cubit.run(),
-        wait: Duration.zero,
         expect: () => [
           isA<RequestLoadingState<String, int>>(),
           isA<RequestErrorState<String, int>>(),
