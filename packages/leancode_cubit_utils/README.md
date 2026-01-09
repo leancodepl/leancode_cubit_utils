@@ -108,7 +108,7 @@ If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the
 
 #### `map` method
 
-`RequestState` provides a `map` method that allows you to transform the state into a value of any type. This is useful when you need to derive a value based on the current state without building a widget. The method accepts the following mappers:
+`RequestState` provides a `map` method that allows you to transform the state into a value of any type. This is useful when you need to derive a value based on the current state without building a widget. The method accepts the following parameters:
 
 - `T Function()? onInitial` - called when the request is in its initial state. If not provided, falls back to `onLoading`,
 - `T Function() onLoading` - called when the request is loading (required),

@@ -169,22 +169,22 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 sealed class RequestState<TOut, TError> with EquatableMixin {
   /// Maps the current request state to a value of type [T].
   ///
-  /// * [onInitial] - Builder that creates a [T] value when the request is in its
-  ///   initial state (not yet started). **If not provided, falls back
+  /// * [onInitial] - Parameter that creates a [T] value when the request is in
+  ///   its initial state (not yet started). **If not provided, falls back
   ///   to [onLoading]**.
-  /// * [onLoading] - Builder that creates a [T] value when the request
+  /// * [onLoading] - Parameter that creates a [T] value when the request
   ///   is loading.
-  /// * [onSuccess] - Builder that creates a [T] value when the request
+  /// * [onSuccess] - Parameter that creates a [T] value when the request
   ///   completed successfully with data. Data can be null in case of empty
   ///   state.
-  /// * [onError] - Builder that creates a [T] value when the request failed
+  /// * [onError] - Parameter that creates a [T] value when the request failed
   ///   with an error.
-  /// * [onRefreshing] - Builder that creates a [T] value when the request is
+  /// * [onRefreshing] - Parameter that creates a [T] value when the request is
   ///   refreshing with previous data still available. **If not provided, falls
   ///   back to [onSuccess].**
-  /// * [onEmpty] - Builder that creates a [T] value when the request completed
-  ///   successfully but returned empty data. Data can be null. **If not
-  ///   provided, falls back to [onSuccess].**
+  /// * [onEmpty] - Parameter that creates a [T] value when the request
+  ///   completed successfully but returned empty data. Data can be null. **If
+  ///   not provided, falls back to [onSuccess].**
   ///
   /// ## Example
   ///
@@ -267,7 +267,7 @@ final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
   final TOut? data;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [data];
 }
 
 /// Represents a failed request.
