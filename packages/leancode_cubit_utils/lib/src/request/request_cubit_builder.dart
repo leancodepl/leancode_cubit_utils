@@ -62,6 +62,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     final effectiveOnLoading = onLoading ?? config.onLoading;
     final effectiveInitial = onInitial ?? effectiveOnLoading;
     final effectiveOnEmpty = onEmpty ?? config.onEmpty;
+    final effectiveOnError = onError ?? config.onError;
 
     return BlocBuilder<
       BaseRequestCubit<dynamic, TOut, TError>,
@@ -83,7 +84,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
           final errorState = state as RequestErrorState<dynamic, TError>;
           final callback = onErrorCallback ?? cubit.refresh;
 
-          return (onError ?? config.onError)(context, errorState, callback);
+          return effectiveOnError(context, errorState, callback);
         },
       ),
     );
