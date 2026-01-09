@@ -169,22 +169,20 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 sealed class RequestState<TOut, TError> with EquatableMixin {
   /// Maps the current request state to a value of type [T].
   ///
-  /// * [onInitial] - Parameter that creates a [T] value when the request is in
-  ///   its initial state (not yet started). **If not provided, falls back
-  ///   to [onLoading]**.
-  /// * [onLoading] - Parameter that creates a [T] value when the request
-  ///   is loading.
-  /// * [onSuccess] - Parameter that creates a [T] value when the request
-  ///   completed successfully with data. Data can be null in case of empty
+  /// * [onInitial] - creates a [T] value when the request is in
+  ///   its initial state (not yet started). **If not provided, falls back to
+  ///   [onLoading]**.
+  /// * [onLoading] - creates a [T] value when the request is loading.
+  /// * [onSuccess] - creates a [T] value when the request completed
+  ///   successfully with data. Data can be null in case of empty
   ///   state.
-  /// * [onError] - Parameter that creates a [T] value when the request failed
-  ///   with an error.
-  /// * [onRefreshing] - Parameter that creates a [T] value when the request is
-  ///   refreshing with previous data still available. **If not provided, falls
-  ///   back to [onSuccess].**
-  /// * [onEmpty] - Parameter that creates a [T] value when the request
-  ///   completed successfully but returned empty data. Data can be null. **If
-  ///   not provided, falls back to [onSuccess].**
+  /// * [onError] - creates a [T] value when the request failed with an error.
+  /// * [onRefreshing] - creates a [T] value when the request is refreshing with
+  ///   previous data still available. **If not provided, falls back to
+  ///   [onSuccess].**
+  /// * [onEmpty] - creates a [T] value when the request completed successfully
+  ///   but returned empty data. Data can be null. **If not provided, falls back
+  ///   to [onSuccess].**
   ///
   /// ## Example
   ///
