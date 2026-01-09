@@ -231,7 +231,7 @@ void main() {
       final state = RequestErrorState<String, int>(
         error: 123,
         exception: 'Kaboom!',
-        stackTrace: StackTrace.current,
+        stackTrace: StackTrace.empty,
       );
 
       final result = state.map(
