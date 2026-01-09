@@ -10,7 +10,7 @@ mixin RequestResultHandler<TOut>
     if (result.statusCode == StatusCode.ok.value) {
       if (result.body.isEmpty) {
         logger.warning('Query success but data is empty');
-        return RequestEmptyState(null);
+        return RequestEmptyState(result.body);
       }
       logger.info('Query success. Data: ${result.body}');
       return RequestSuccessState(result.body);
@@ -81,7 +81,7 @@ class FakeRequestCubit extends RequestCubit<http.Response, String, int>
   }
 
   FakeRequestCubit.empty() : super('FakeRequestCubit') {
-    emit(RequestEmptyState(null));
+    emit(RequestEmptyState(fakeResult));
   }
 
   FakeRequestCubit.loading() : super('FakeRequestCubit') {

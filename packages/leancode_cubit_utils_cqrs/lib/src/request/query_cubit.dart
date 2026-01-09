@@ -3,13 +3,7 @@ import 'package:leancode_cubit_utils/leancode_cubit_utils.dart';
 
 /// A mixin that handles the result of a CQRS query.
 mixin QueryResultHandler<TRes, TOut>
-    on BaseRequestCubit<QueryResult<TRes>, TOut, QueryError> {
-  /// Maps the given [data] to the output type [TOut].
-  TOut map(TRes data);
-
-  /// Override this to check if the given [data] is empty.
-  bool isEmpty(TOut data) => false;
-
+    on BaseRequestCubit<QueryResult<TRes>, TRes, TOut, QueryError> {
   @override
   Future<RequestState<TOut, QueryError>> handleResult(
     QueryResult<TRes> result,
@@ -41,7 +35,7 @@ mixin QueryResultHandler<TRes, TOut>
 /// Base class for all request cubits that perform a CQRS query
 /// and do not require any arguments.
 abstract class QueryCubit<TRes, TOut>
-    extends RequestCubit<QueryResult<TRes>, TOut, QueryError>
+    extends RequestCubit<QueryResult<TRes>, TRes, TOut, QueryError>
     with QueryResultHandler {
   /// Creates a new [RequestCubit] with the given [requestMode].
   QueryCubit(super.loggerTag, {super.requestMode});
@@ -50,7 +44,7 @@ abstract class QueryCubit<TRes, TOut>
 /// Base class for all request cubits that perform a CQRS query
 /// and require arguments.
 abstract class ArgsQueryCubit<TArgs, TRes, TOut>
-    extends ArgsRequestCubit<TArgs, QueryResult<TRes>, TOut, QueryError>
+    extends ArgsRequestCubit<TArgs, QueryResult<TRes>, TRes, TOut, QueryError>
     with QueryResultHandler {
   /// Creates a new [ArgsRequestCubit] with the given [requestMode].
   ArgsQueryCubit(super.loggerTag, {super.requestMode});

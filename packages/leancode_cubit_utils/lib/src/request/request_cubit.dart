@@ -169,22 +169,19 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 sealed class RequestState<TOut, TError> with EquatableMixin {
   /// Maps the current request state to a value of type [T].
   ///
-  /// * [onInitial] - Builder that creates a [T] value when the request is in its
-  ///   initial state (not yet started). **If not provided, falls back
-  ///   to [onLoading]**.
-  /// * [onLoading] - Builder that creates a [T] value when the request
-  ///   is loading.
-  /// * [onSuccess] - Builder that creates a [T] value when the request
-  ///   completed successfully with data. Data can be null in case of empty
+  /// * [onInitial] - creates a [T] value when the request is in
+  ///   its initial state (not yet started). **If not provided, falls back to
+  ///   [onLoading]**.
+  /// * [onLoading] - creates a [T] value when the request is loading.
+  /// * [onSuccess] - creates a [T] value when the request completed
+  ///   successfully with data. Data can be null in case of empty
   ///   state.
-  /// * [onError] - Builder that creates a [T] value when the request failed
-  ///   with an error.
-  /// * [onRefresh] - Builder that creates a [T] value when the request is
-  ///   refreshing with previous data still available. **If not provided, falls
-  ///   back to [onSuccess].**
-  /// * [onEmpty] - Builder that creates a [T] value when the request completed
-  ///   successfully but returned empty data. Data can be null. **If not
-  ///   provided, falls back to [onSuccess].**
+  /// * [onError] - creates a [T] value when the request failed with an error.
+  /// * [onRefreshing] - creates a [T] value when the request is refreshing with
+  ///   previous data still available. **If not provided, falls back to
+  ///   [onSuccess].**
+  /// * [onEmpty] - creates a [T] value when the request completed successfully
+  ///   but returned empty data. **If not provided, falls back to [onSuccess].**
   ///
   /// ## Example
   ///
@@ -200,18 +197,18 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
   T map<T>({
     T Function()? onInitial,
     required T Function() onLoading,
-    required T Function(TOut? data) onSuccess,
+    required T Function(TOut data) onSuccess,
     required T Function(TError? err, Object? exception, StackTrace? st) onError,
-    T Function(TOut data)? onRefresh,
-    T Function(TOut? data)? onEmpty,
+    T Function(TOut data)? onRefreshing,
+    T Function(TOut data)? onEmpty,
   }) => switch (this) {
-    RequestInitialState() => (onInitial ?? onLoading).call(),
-    RequestLoadingState() => onLoading.call(),
+    RequestInitialState() => (onInitial ?? onLoading)(),
+    RequestLoadingState() => onLoading(),
     RequestSuccessState(:final data) => onSuccess(data),
     RequestErrorState(:final error, :final exception, :final stackTrace) =>
       onError(error, exception, stackTrace),
-    RequestRefreshState(:final data) => (onRefresh ?? onSuccess).call(data),
-    RequestEmptyState(:final data) => (onEmpty ?? onSuccess).call(data),
+    RequestRefreshState(:final data) => (onRefreshing ?? onSuccess)(data),
+    RequestEmptyState(:final data) => (onEmpty ?? onSuccess)(data),
   };
 }
 
@@ -260,14 +257,14 @@ final class RequestSuccessState<TOut, TError>
 
 /// Represents a successful request with empty data.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
-  /// Creates a new [RequestEmptyState]..
+  /// Creates a new [RequestEmptyState].
   RequestEmptyState(this.data);
 
   /// The data returned by the request.
-  final TOut? data;
+  final TOut data;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [data];
 }
 
 /// Represents a failed request.

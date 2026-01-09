@@ -53,7 +53,7 @@ void main() {
           TestPage(
             child: RequestCubitBuilder(
               cubit: queryCubit,
-              onSuccess: (context, data) => Text(data ?? ''),
+              onSuccess: (context, data) => Text(data),
             ),
           ),
         );
@@ -79,7 +79,7 @@ void main() {
           TestPage(
             child: RequestCubitBuilder(
               cubit: queryCubit,
-              onSuccess: (context, data) => Text(data ?? ''),
+              onSuccess: (context, data) => Text(data),
             ),
           ),
         );
@@ -104,7 +104,7 @@ void main() {
             cubit: queryCubit,
             onLoading: (context) => const Text('Custom loading...'),
             onError: (context, error, retry) => const Text('Custom error!'),
-            onSuccess: (context, data) => Text(data ?? ''),
+            onSuccess: (context, data) => Text(data),
           ),
         ),
       );
@@ -159,7 +159,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('shows custom onRefresh widget when onRefresh is provided', (
+    testWidgets('shows custom refresh widget when onRefresh is provided', (
       tester,
     ) async {
       final cubit = FakeRequestCubit.refresh();
@@ -168,7 +168,7 @@ void main() {
         TestPage(
           child: RequestCubitBuilder(
             cubit: cubit,
-            onRefresh: (context, data) => const Text('Refreshing'),
+            onRefreshing: (context, data) => const Text('Refreshing'),
             onSuccess: (context, data) => const Text('Success'),
           ),
         ),
@@ -178,7 +178,7 @@ void main() {
       expect(find.text('Refreshing'), findsOneWidget);
     });
 
-    testWidgets('onRefresh not provided does not cause an error', (
+    testWidgets('onRefreshing not provided does not cause an error', (
       tester,
     ) async {
       final cubit = FakeRequestCubit.refresh();

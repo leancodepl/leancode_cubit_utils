@@ -40,21 +40,18 @@ SimpleQueryCubit<TOut> useQueryCubit<TOut>(
   List<Object?> keys = const [],
   EmptyChecker<TOut>? isEmpty,
 }) {
-  return useBloc(
-    () {
-      final cubit = SimpleQueryCubit<TOut>(
-        loggerTag,
-        request,
-        isEmpty: isEmpty,
-        requestMode: requestMode,
-      );
-      if (callOnCreate) {
-        cubit.run();
-      }
-      return cubit;
-    },
-    keys: keys,
-  );
+  return useBloc(() {
+    final cubit = SimpleQueryCubit<TOut>(
+      loggerTag,
+      request,
+      isEmpty: isEmpty,
+      requestMode: requestMode,
+    );
+    if (callOnCreate) {
+      cubit.run();
+    }
+    return cubit;
+  }, keys: keys);
 }
 
 /// Simplified implementation of [ArgsQueryCubit] created in order to be used by [useArgsQueryCubit].
@@ -70,9 +67,6 @@ class SimpleArgsQueryCubit<TArgs, TOut>
 
   /// The request to be executed.
   final ArgsRequest<TArgs, QueryResult<TOut>> _customRequest;
-
-  /// The function to check if the data is empty.
-  final EmptyChecker<TOut>? _isEmpty;
 
   @override
   Future<QueryResult<TOut>> request(TArgs args) => _customRequest(args);

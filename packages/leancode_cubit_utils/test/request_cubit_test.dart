@@ -169,15 +169,15 @@ void main() {
       final state = RequestInitialState<String, int>();
 
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
-        onEmpty: (_) => 6,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
+        onEmpty: (_) => 'Empty',
       );
 
-      expect(result, 1);
+      expect(result, 'Initial');
     });
 
     test(
@@ -186,14 +186,14 @@ void main() {
         final state = RequestInitialState<String, int>();
 
         final result = state.map(
-          onLoading: () => 2,
-          onSuccess: (_) => 3,
-          onError: (_, _, _) => 4,
-          onRefresh: (_) => 5,
-          onEmpty: (_) => 6,
+          onLoading: () => 'Loading',
+          onSuccess: (_) => 'Success',
+          onError: (_, _, _) => 'Error',
+          onRefreshing: (_) => 'Refreshing',
+          onEmpty: (_) => 'Empty',
         );
 
-        expect(result, 2);
+        expect(result, 'Loading');
       },
     );
 
@@ -201,108 +201,108 @@ void main() {
       final state = RequestLoadingState<String, int>();
 
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
-        onEmpty: (_) => 6,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
+        onEmpty: (_) => 'Empty',
       );
 
-      expect(result, 2);
+      expect(result, 'Loading');
     });
 
     test('maps RequestSuccessState to onSuccess with non-null data', () {
       final state = RequestSuccessState<String, int>('test data');
 
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
-        onEmpty: (_) => 6,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
+        onEmpty: (_) => 'Empty',
       );
 
-      expect(result, 3);
+      expect(result, 'Success');
     });
 
     test('maps RequestErrorState to onError', () {
       final state = RequestErrorState<String, int>(
         error: 123,
         exception: 'Kaboom!',
-        stackTrace: StackTrace.current,
+        stackTrace: StackTrace.empty,
       );
 
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
-        onEmpty: (_) => 6,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
+        onEmpty: (_) => 'Empty',
       );
 
-      expect(result, 4);
+      expect(result, 'Error');
     });
 
-    test('maps RequestRefreshState to onRefresh when provided', () {
+    test('maps RequestRefreshState to onRefreshing when provided', () {
       final state = RequestRefreshState<String, int>(data: 'refreshing data');
 
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
-        onEmpty: (_) => 6,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
+        onEmpty: (_) => 'Empty',
       );
 
-      expect(result, 5);
+      expect(result, 'Refreshing');
     });
 
     test(
-      'maps RequestRefreshState to onSuccess when onRefresh not provided',
+      'maps RequestRefreshState to onSuccess when onRefreshing not provided',
       () {
         final state = RequestRefreshState<String, int>(data: 'refreshing data');
 
         final result = state.map(
-          onInitial: () => 1,
-          onLoading: () => 2,
-          onSuccess: (_) => 3,
-          onError: (_, _, _) => 4,
-          onEmpty: (_) => 6,
+          onInitial: () => 'Initial',
+          onLoading: () => 'Loading',
+          onSuccess: (_) => 'Success',
+          onError: (_, _, _) => 'Error',
+          onEmpty: (_) => 'Empty',
         );
 
-        expect(result, 3);
+        expect(result, 'Success');
       },
     );
 
     test('maps RequestEmptyState to onEmpty when provided', () {
       final state = RequestEmptyState<String?, int>(null);
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
-        onEmpty: (_) => 6,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
+        onEmpty: (_) => 'Empty',
       );
 
-      expect(result, 6);
+      expect(result, 'Empty');
     });
 
     test('maps RequestEmptyState to onSuccess when onEmpty not provided', () {
       final state = RequestEmptyState<String?, int>('empty data');
       final result = state.map(
-        onInitial: () => 1,
-        onLoading: () => 2,
-        onSuccess: (_) => 3,
-        onError: (_, _, _) => 4,
-        onRefresh: (_) => 5,
+        onInitial: () => 'Initial',
+        onLoading: () => 'Loading',
+        onSuccess: (_) => 'Success',
+        onError: (_, _, _) => 'Error',
+        onRefreshing: (_) => 'Refreshing',
       );
 
-      expect(result, 3);
+      expect(result, 'Success');
     });
   });
 }

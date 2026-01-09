@@ -5,7 +5,7 @@ import 'package:leancode_cubit_utils/src/request/request_cubit.dart';
 
 /// Signature for a function that creates a widget when data successfully loaded.
 typedef RequestWidgetBuilder<TOut> =
-    Widget Function(BuildContext context, TOut? data);
+    Widget Function(BuildContext context, TOut data);
 
 /// Signature for a function that creates a widget when request is loading.
 typedef RequestErrorBuilder<TError> =
@@ -26,7 +26,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     this.onInitial,
     this.onLoading,
     this.onEmpty,
-    this.onRefresh,
+    this.onRefreshing,
     this.onError,
     this.onErrorCallback,
   });
@@ -47,7 +47,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   final WidgetBuilder? onEmpty;
 
   /// The builder that creates a widget when request is refreshing.
-  final RequestWidgetBuilder<TOut>? onRefresh;
+  final RequestWidgetBuilder<TOut>? onRefreshing;
 
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<TError>? onError;
@@ -60,8 +60,8 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     final config = context.read<RequestLayoutConfig>();
 
     final effectiveOnLoading = onLoading ?? config.onLoading;
-    final effectiveInitial = onInitial ?? effectiveOnLoading;
     final effectiveOnEmpty = onEmpty ?? config.onEmpty;
+    final effectiveOnError = onError ?? config.onError;
 
     return BlocBuilder<
       BaseRequestCubit<dynamic, TOut, TError>,
@@ -69,21 +69,25 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     >(
       bloc: cubit,
       builder: (context, state) => state.map(
-        onInitial: () => effectiveInitial(context),
+        onInitial: switch (onInitial) {
+          final onInitial? => () => onInitial(context),
+          _ => null,
+        },
         onLoading: () => effectiveOnLoading(context),
         onSuccess: (data) => onSuccess(context, data),
-        onEmpty: effectiveOnEmpty != null
-            ? (_) => effectiveOnEmpty(context)
-            : null,
-        onRefresh: switch (onRefresh) {
-          final onRefresh? => (data) => onRefresh(context, data),
+        onEmpty: switch (effectiveOnEmpty) {
+          final onEmpty? => (_) => onEmpty(context),
+          _ => null,
+        },
+        onRefreshing: switch (onRefreshing) {
+          final onRefreshing? => (data) => onRefreshing(context, data),
           null => null,
         },
         onError: (err, _, _) {
-          final errorState = state as RequestErrorState<dynamic, TError>;
+          final errorState = state as RequestErrorState<TOut, TError>;
           final callback = onErrorCallback ?? cubit.refresh;
 
-          return (onError ?? config.onError)(context, errorState, callback);
+          return effectiveOnError(context, errorState, callback);
         },
       ),
     );

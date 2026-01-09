@@ -42,7 +42,7 @@ class RequestPage extends StatelessWidget {
               child: RequestCubitBuilder(
                 cubit: context.read<UserRequestCubit>(),
                 onSuccess: (context, data) => Text(
-                  data != null ? '${data.name} ${data.surname}' : '—',
+                  '${data.name} ${data.surname}',
                 ),
               ),
             ),
