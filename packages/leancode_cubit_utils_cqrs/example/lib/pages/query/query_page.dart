@@ -49,7 +49,7 @@ class QueryHookPage extends HookWidget {
             child: RequestCubitBuilder(
               cubit: userCubit,
               onSuccess: (context, data) =>
-                  Text(data != null ? '${data.name} ${data.surname}' : '-'),
+                  Text('${data.name} ${data.surname}'),
             ),
           ),
           const SizedBox(height: 16),
@@ -89,7 +89,7 @@ class QueryPage extends StatelessWidget {
               child: RequestCubitBuilder(
                 cubit: context.read<UserQueryCubit>(),
                 onSuccess: (context, data) =>
-                    Text(data != null ? '${data.name} ${data.surname}' : '-'),
+                    Text('${data.name} ${data.surname}'),
               ),
             ),
             const SizedBox(height: 16),

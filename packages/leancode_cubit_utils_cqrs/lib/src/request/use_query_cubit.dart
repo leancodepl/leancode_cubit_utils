@@ -31,6 +31,7 @@ SimpleQueryCubit<TOut> useQueryCubit<TOut>(
   RequestMode? requestMode,
   bool callOnCreate = true,
   List<Object?> keys = const [],
+  EmptyChecker<TOut>? isEmpty,
 }) {
   return useBloc(
     () {
@@ -111,23 +112,16 @@ class SimpleArgsQueryCubit<TArgs, TOut>
     super.loggerTag,
     this._customRequest, {
     super.requestMode,
-    EmptyChecker<TOut>? isEmpty,
-  }) : _isEmpty = isEmpty;
+  });
 
   /// The request to be executed.
   final ArgsRequest<TArgs, QueryResult<TOut>> _customRequest;
-
-  /// The function to check if the data is empty.
-  final EmptyChecker<TOut>? _isEmpty;
 
   @override
   Future<QueryResult<TOut>> request(TArgs args) => _customRequest(args);
 
   @override
   TOut map(TOut data) => data;
-
-  @override
-  bool isEmpty(TOut data) => _isEmpty?.call(data) ?? data == null;
 }
 
 /// Provides a [ArgsQueryCubit] specialized for [QueryResult] that is automatically disposed without having
