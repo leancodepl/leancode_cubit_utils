@@ -181,8 +181,7 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
   ///   previous data still available. **If not provided, falls back to
   ///   [onSuccess].**
   /// * [onEmpty] - creates a [T] value when the request completed successfully
-  ///   but returned empty data. Data can be null. **If not provided, falls back
-  ///   to [onSuccess].**
+  ///   but returned empty data. **If not provided, falls back to [onSuccess].**
   ///
   /// ## Example
   ///
@@ -198,10 +197,10 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
   T map<T>({
     T Function()? onInitial,
     required T Function() onLoading,
-    required T Function(TOut? data) onSuccess,
+    required T Function(TOut data) onSuccess,
     required T Function(TError? err, Object? exception, StackTrace? st) onError,
     T Function(TOut data)? onRefreshing,
-    T Function(TOut? data)? onEmpty,
+    T Function(TOut data)? onEmpty,
   }) => switch (this) {
     RequestInitialState() => (onInitial ?? onLoading)(),
     RequestLoadingState() => onLoading(),
@@ -259,10 +258,10 @@ final class RequestSuccessState<TOut, TError>
 /// Represents a successful request with empty data.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
   /// Creates a new [RequestEmptyState].
-  RequestEmptyState([this.data]);
+  RequestEmptyState(this.data);
 
   /// The data returned by the request.
-  final TOut? data;
+  final TOut data;
 
   @override
   List<Object?> get props => [data];

@@ -5,7 +5,7 @@
 * Add `map` method to `RequestState`.
 * Add `onRefreshing` callback to `RequestCubitBuilder`.
 * **BREAKING CHANGE**: Make `data` in `RequestRefreshState` non-nullable.
-* **BREAKING CHANGE**: Add nullable `data` to `RequestEmptyState`.
+* **BREAKING CHANGE**: Add `data` to `RequestEmptyState`.
 
 ## 0.4.2
 

@@ -279,7 +279,7 @@ void main() {
     );
 
     test('maps RequestEmptyState to onEmpty when provided', () {
-      final state = RequestEmptyState<String?, int>();
+      final state = RequestEmptyState<String?, int>(null);
       final result = state.map(
         onInitial: () => 'Initial',
         onLoading: () => 'Loading',
