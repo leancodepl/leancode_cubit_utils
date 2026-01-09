@@ -18,7 +18,7 @@ mixin QueryResultHandler<TRes, TOut>
       final mappedData = map(data);
       if (isEmpty(mappedData)) {
         logger.warning('Query success but data is empty');
-        return RequestEmptyState();
+        return RequestEmptyState(mappedData);
       }
       logger.info('Query success. Data: $data');
       return RequestSuccessState(mappedData);
