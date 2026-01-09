@@ -96,15 +96,51 @@ The cubit itself handles the things like:
 
 If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the last used arguments. They are also available under `lastRequestArgs` field.
 
+### `RequestState`
+
+`RequestState` represents the state of a request and can be one of the following:
+- `RequestInitialState` - the request has not been started yet,
+- `RequestLoadingState` - the request is currently being performed,
+- `RequestSuccessState<TOut>` - the request completed successfully with data,
+- `RequestErrorState<TError>` - the request failed with an error,
+- `RequestRefreshState<TOut>` - the request is being refreshed while previous data is still available,
+- `RequestEmptyState<TOut>` - the request completed successfully but returned empty data.
+
+#### `map` method
+
+`RequestState` provides a `map` method that allows you to transform the state into a value of any type. This is useful when you need to derive a value based on the current state without building a widget. The method accepts the following builders:
+
+- `T Function()? onInitial` - called when the request is in its initial state. If not provided, falls back to `onLoading`,
+- `T Function() onLoading` - called when the request is loading (required),
+- `T Function(TOut? data) onSuccess` - called when the request completed successfully (required),
+- `T Function(TError? err, Object? exception, StackTrace? st) onError` - called when the request failed (required),
+- `T Function(TOut data)? onRefresh` - called when the request is refreshing with previous data. If not provided, falls back to `onSuccess`,
+- `T Function(TOut? data)? onEmpty` - called when the request completed successfully but returned empty data. If not provided, falls back to `onSuccess`.
+
+Example usage:
+
+```dart
+Scaffold(
+  appBar: state.map<AppBar>(
+    onLoading: () => const LoadingAppBar(),
+    onSuccess: (data) => SuccessAppBar(data: data),
+    onError: (err, exception, st) => const ErrorAppBar(error: err),
+  ),
+  body: YourPageContent(),
+)
+```
+
 ### `RequestCubitBuilder`
 
-`RequestCubitBuilder` is a widget that builds a widget based on the current state of `BaseRequestCubit`. It takes a numerous builders for each state:
-- `WidgetBuilder? onInitial` - use it to show a widget before invoking the request for the first time,
+`RequestCubitBuilder` is a widget that builds a widget based on the current state of `BaseRequestCubit`. It takes numerous builders for each state:
+- `WidgetBuilder? onInitial` - use it to show a widget before invoking the request for the first time.
 - `WidgetBuilder? onLoading` - use it to show a loader widget while the request is being performed,
 - `WidgetBuilder? onError` - use it to show error widget when processing the request fails,
-- `RequestWidgetBuilder<TOut> onSuccess` - use it to build a page when the data is successfully loaded. 
+- `RequestWidgetBuilder<TOut> onSuccess` - use it to build a page when the data is successfully loaded (required),
+- `WidgetBuilder? onEmpty` - use it to show a widget when the request returns empty data. If not provided, falls back to global config or empty widget,
+- `RequestWidgetBuilder<TOut>? onRefresh` - use it to show a widget while refreshing with previous data still available. If not provided, falls back to `onSuccess`.
 
-Other than builders, you also need to provide the cubit based on which the `RequestCubitBuilder` will be rebuilt. And you can also pass `onErrorCallback` which allows you to pass a callback to error widget builder. You may want to use it to implement retry button.
+Other than builders, you also need to provide the cubit based on which the `RequestCubitBuilder` will be rebuilt. You can also pass `onErrorCallback` which allows you to pass a callback to error widget builder. You may want to use it to implement a retry button.
 
 Example usage of `RequestCubitBuilder`:
 ```dart
@@ -135,10 +171,31 @@ RequestCubitBuilder(
           },
         );
       },
+      onRefresh: (context, data) {top
+        return Stack(
+          children: [
+            ListView.builder(
+              itemCount: data.assignments.length,
+              itemBuilder: (context, index) {
+                final assignment = data.assignments[index];
+                return ListTile(
+                  title: AppText(assignment.id),
+                );
+              },
+            ),
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: LinearProgressIndicator(),
+            ),
+          ],
+        );
+      },
     )
 ```
 
-As you may see `onInitial`, `onLoading` and `onError` are marked as optional parameter. In many projects each of those widgets are the same for each page. So in order to eliminate even more boilerplate code, instead of passing them all each time you want to use `RequestCubitBuilder`, you can define them globally and provide in the whole app using [`RequestLayoutConfigProvider`](#requestlayoutconfigprovider).
+As you may see `onLoading`, `onEmpty` and `onError` are marked as optional parameters. In many projects each of those widgets are the same for each page. So in order to eliminate even more boilerplate code, instead of passing them all each time you want to use `RequestCubitBuilder`, you can define them globally and provide in the whole app using [`RequestLayoutConfigProvider`](#requestlayoutconfigprovider).
 
 ### `RequestLayoutConfigProvider`
 
