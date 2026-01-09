@@ -1,3 +1,13 @@
+## 0.5.0
+
+* Remove:
+    - `useQueryWithEmptyCubit` and `SimpleQueryWithEmptyCubit`.
+    - `useArgsQueryWithEmptyCubit`and `ArgsQueryWithEmptyCubit`.
+* Update:
+    - Add `onEmpty` handler to `useQueryCubit` and `SimpleQueryCubit`
+    - Add `onEmpty` handler to `useArgsQueryWithEmptyCubit`and `ArgsQueryWithEmptyCubit`.
+    
+
 ## 0.4.0
 
 * Update `leancode_cubit_utils` dependency to `^0.4.0` (includes breaking change: `builder` parameter renamed to `onSuccess` in `RequestCubitBuilder`)
