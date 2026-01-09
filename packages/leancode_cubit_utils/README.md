@@ -171,7 +171,7 @@ RequestCubitBuilder(
           },
         );
       },
-      onRefreshing: (context, data) {top
+      onRefreshing: (context, data) {
         return Stack(
           children: [
             ListView.builder(
