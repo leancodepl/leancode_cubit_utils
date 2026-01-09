@@ -1,6 +1,6 @@
 name: leancode_cubit_utils_cqrs
 description: An extension of leancode_cubit_utils that provides cqrs support.
-version: 0.4.0
+version: 0.5.0
 repository: https://github.com/leancodepl/leancode_cubit_utils
 
 environment:
