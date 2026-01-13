@@ -110,21 +110,21 @@ If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the
 
 `RequestState` provides a `map` method that allows you to transform the state into a value of any type. This is useful when you need to derive a value based on the current state without building a widget. The method accepts the following parameters:
 
-- `T Function()? onInitial` - called when the request is in its initial state. If not provided, falls back to `onLoading`,
-- `T Function() onLoading` - called when the request is loading (required),
-- `T Function(TOut? data) onSuccess` - called when the request completed successfully (required),
-- `T Function(TError? err, Object? exception, StackTrace? st) onError` - called when the request failed (required),
-- `T Function(TOut data)? onRefreshing` - called when the request is refreshing with previous data. If not provided, falls back to `onSuccess`,
-- `T Function(TOut? data)? onEmpty` - called when the request completed successfully but returned empty data. If not provided, falls back to `onSuccess`.
+- `T Function()? initial` - called when the request is in its initial state. If not provided, falls back to `loading`,
+- `T Function() loading` - called when the request is loading (required),
+- `T Function(TOut? data) success` - called when the request completed successfully (required),
+- `T Function(TError? err, Object? exception, StackTrace? st) error` - called when the request failed (required),
+- `T Function(TOut data)? refreshing` - called when the request is refreshing with previous data. If not provided, falls back to `success`,
+- `T Function(TOut? data)? empty` - called when the request completed successfully but returned empty data. If not provided, falls back to `success`.
 
 Example usage:
 
 ```dart
 Scaffold(
   appBar: state.map<AppBar>(
-    onLoading: () => const LoadingAppBar(),
-    onSuccess: (data) => SuccessAppBar(data: data),
-    onError: (err, exception, st) => const ErrorAppBar(error: err),
+    loading: () => const LoadingAppBar(),
+    success: (data) => SuccessAppBar(data: data),
+    error: (err, exception, st) => const ErrorAppBar(error: err),
   ),
   body: YourPageContent(),
 )
