@@ -69,21 +69,21 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     >(
       bloc: cubit,
       builder: (context, state) => state.map(
-        onInitial: switch (onInitial) {
+        initial: switch (onInitial) {
           final onInitial? => () => onInitial(context),
           _ => null,
         },
-        onLoading: () => effectiveOnLoading(context),
-        onSuccess: (data) => onSuccess(context, data),
-        onEmpty: switch (effectiveOnEmpty) {
+        loading: () => effectiveOnLoading(context),
+        success: (data) => onSuccess(context, data),
+        empty: switch (effectiveOnEmpty) {
           final onEmpty? => (_) => onEmpty(context),
           _ => null,
         },
-        onRefreshing: switch (onRefreshing) {
+        refreshing: switch (onRefreshing) {
           final onRefreshing? => (data) => onRefreshing(context, data),
           null => null,
         },
-        onError: (err, _, _) {
+        error: (err, _, _) {
           final errorState = state as RequestErrorState<TOut, TError>;
           final callback = onErrorCallback ?? cubit.refresh;
 
