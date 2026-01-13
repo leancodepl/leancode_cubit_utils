@@ -169,19 +169,19 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 sealed class RequestState<TOut, TError> with EquatableMixin {
   /// Maps the current request state to a value of type [T].
   ///
-  /// * [onInitial] - creates a [T] value when the request is in
+  /// * [initial] - creates a [T] value when the request is in
   ///   its initial state (not yet started). **If not provided, falls back to
-  ///   [onLoading]**.
-  /// * [onLoading] - creates a [T] value when the request is loading.
-  /// * [onSuccess] - creates a [T] value when the request completed
+  ///   [loading]**.
+  /// * [loading] - creates a [T] value when the request is loading.
+  /// * [success] - creates a [T] value when the request completed
   ///   successfully with data. Data can be null in case of empty
   ///   state.
-  /// * [onError] - creates a [T] value when the request failed with an error.
-  /// * [onRefreshing] - creates a [T] value when the request is refreshing with
+  /// * [error] - creates a [T] value when the request failed with an error.
+  /// * [refreshing] - creates a [T] value when the request is refreshing with
   ///   previous data still available. **If not provided, falls back to
-  ///   [onSuccess].**
-  /// * [onEmpty] - creates a [T] value when the request completed successfully
-  ///   but returned empty data. **If not provided, falls back to [onSuccess].**
+  ///   [success].**
+  /// * [empty] - creates a [T] value when the request completed successfully
+  ///   but returned empty data. **If not provided, falls back to [success].**
   ///
   /// ## Example
   ///
@@ -195,20 +195,20 @@ sealed class RequestState<TOut, TError> with EquatableMixin {
   /// );
   /// ```
   T map<T>({
-    T Function()? onInitial,
-    required T Function() onLoading,
-    required T Function(TOut data) onSuccess,
-    required T Function(TError? err, Object? exception, StackTrace? st) onError,
-    T Function(TOut data)? onRefreshing,
-    T Function(TOut data)? onEmpty,
+    T Function()? initial,
+    required T Function() loading,
+    required T Function(TOut data) success,
+    required T Function(TError? err, Object? exception, StackTrace? st) error,
+    T Function(TOut data)? refreshing,
+    T Function(TOut data)? empty,
   }) => switch (this) {
-    RequestInitialState() => (onInitial ?? onLoading)(),
-    RequestLoadingState() => onLoading(),
-    RequestSuccessState(:final data) => onSuccess(data),
-    RequestErrorState(:final error, :final exception, :final stackTrace) =>
-      onError(error, exception, stackTrace),
-    RequestRefreshState(:final data) => (onRefreshing ?? onSuccess)(data),
-    RequestEmptyState(:final data) => (onEmpty ?? onSuccess)(data),
+    RequestInitialState() => (initial ?? loading)(),
+    RequestLoadingState() => loading(),
+    RequestSuccessState(:final data) => success(data),
+    RequestErrorState(error: final err, :final exception, :final stackTrace) =>
+      error(err, exception, stackTrace),
+    RequestRefreshState(:final data) => (refreshing ?? success)(data),
+    RequestEmptyState(:final data) => (empty ?? success)(data),
   };
 }
 
