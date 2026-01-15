@@ -103,7 +103,7 @@ If you call `refresh()` on `ArgsRequestCubit` it will perform a request with the
 - `RequestLoadingState` - the request is currently being performed,
 - `RequestSuccessState<TOut>` - the request completed successfully with data,
 - `RequestErrorState<TError>` - the request failed with an error,
-- `RequestRefreshState<TOut>` - the request is being refreshed while previous data is still available,
+- `RequestRefreshingState<TOut>` - the request is being refreshed while previous data is still available,
 - `RequestEmptyState<TOut>` - the request completed successfully but returned empty data.
 
 #### `map` method

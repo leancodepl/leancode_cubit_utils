@@ -89,7 +89,7 @@ class FakeRequestCubit extends RequestCubit<http.Response, String, int>
   }
 
   FakeRequestCubit.refresh() : super('FakeRequestCubit') {
-    emit(RequestRefreshState(fakeResult));
+    emit(RequestRefreshingState(fakeResult));
   }
 
   static const fakeResult = 'Result';
