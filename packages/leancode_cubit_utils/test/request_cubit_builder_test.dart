@@ -159,7 +159,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('shows custom refresh widget when onRefresh is provided', (
+    testWidgets('shows custom refresh widget when onRefreshing is provided', (
       tester,
     ) async {
       final cubit = FakeRequestCubit.refresh();
@@ -199,4 +199,32 @@ void main() {
       expect(find.byKey(key), findsOneWidget);
     });
   });
+}
+
+class FakeRequestCubit extends RequestCubit<http.Response, String, int>
+    with RequestResultHandler<String> {
+  FakeRequestCubit.success() : super('FakeRequestCubit') {
+    emit(RequestSuccessState(fakeResult));
+  }
+
+  FakeRequestCubit.error() : super('FakeRequestCubit') {
+    emit(RequestErrorState(error: 1));
+  }
+
+  FakeRequestCubit.empty() : super('FakeRequestCubit') {
+    emit(RequestEmptyState(fakeResult));
+  }
+
+  FakeRequestCubit.loading() : super('FakeRequestCubit') {
+    emit(RequestLoadingState());
+  }
+
+  FakeRequestCubit.refresh() : super('FakeRequestCubit') {
+    emit(RequestRefreshingState(fakeResult));
+  }
+
+  static const fakeResult = 'Result';
+
+  @override
+  Future<http.Response> request() async => http.Response('', 1);
 }

@@ -69,31 +69,3 @@ class TestArgsRequestCubit
     return client.get(Uri.parse(args));
   }
 }
-
-class FakeRequestCubit extends RequestCubit<http.Response, String, int>
-    with RequestResultHandler<String> {
-  FakeRequestCubit.success() : super('FakeRequestCubit') {
-    emit(RequestSuccessState(fakeResult));
-  }
-
-  FakeRequestCubit.error() : super('FakeRequestCubit') {
-    emit(RequestErrorState(error: 1));
-  }
-
-  FakeRequestCubit.empty() : super('FakeRequestCubit') {
-    emit(RequestEmptyState(fakeResult));
-  }
-
-  FakeRequestCubit.loading() : super('FakeRequestCubit') {
-    emit(RequestLoadingState());
-  }
-
-  FakeRequestCubit.refresh() : super('FakeRequestCubit') {
-    emit(RequestRefreshingState(fakeResult));
-  }
-
-  static const fakeResult = 'Result';
-
-  @override
-  Future<http.Response> request() async => http.Response('', 1);
-}
