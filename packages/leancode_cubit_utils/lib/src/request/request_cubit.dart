@@ -255,7 +255,8 @@ final class RequestSuccessState<TOut, TError>
   List<Object?> get props => [data];
 }
 
-/// Represents a successful request with empty data.
+/// Represents a successful request with empty data. [TOut] has to be nullable
+/// if you cannot provide any meaningful data for the empty state.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
   /// Creates a new [RequestEmptyState].
   RequestEmptyState(this.data);
