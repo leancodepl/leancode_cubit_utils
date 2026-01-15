@@ -71,7 +71,7 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
           case RequestSuccessState(:final data) ||
               RequestRefreshState(:final data) when isRefresh) {
         logger.info('Refreshing request.');
-        emit(RequestRefreshState(data: data));
+        emit(RequestRefreshState(data));
       } else {
         logger.info('Request started.');
         emit(RequestLoadingState());
@@ -233,7 +233,7 @@ final class RequestLoadingState<TOut, TError>
 final class RequestRefreshState<TOut, TError>
     extends RequestState<TOut, TError> {
   /// Creates a new [RequestRefreshState] with the previous [data].
-  RequestRefreshState({required this.data});
+  RequestRefreshState(this.data);
 
   /// The previous data.
   final TOut data;

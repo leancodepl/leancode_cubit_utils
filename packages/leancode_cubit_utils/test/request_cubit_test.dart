@@ -62,7 +62,7 @@ void main() {
         seed: () => RequestSuccessState('Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, int>>[
-          RequestRefreshState(data: 'Result'),
+          RequestRefreshState('Result'),
           RequestSuccessState('Result'),
         ],
       );
@@ -244,7 +244,7 @@ void main() {
     });
 
     test('maps RequestRefreshState to refreshing when provided', () {
-      final state = RequestRefreshState<String, int>(data: 'refreshing data');
+      final state = RequestRefreshState<String, int>('refreshing data');
 
       final result = state.map(
         initial: () => 'Initial',
@@ -261,7 +261,7 @@ void main() {
     test(
       'maps RequestRefreshState to success when refreshing not provided',
       () {
-        final state = RequestRefreshState<String, int>(data: 'refreshing data');
+        final state = RequestRefreshState<String, int>('refreshing data');
 
         final result = state.map(
           initial: () => 'Initial',
