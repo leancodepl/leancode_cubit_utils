@@ -209,7 +209,7 @@ void main() {
       expect(result, 'Loading');
     });
 
-    test('maps RequestSuccessState to success with non-null data', () {
+    test('maps RequestSuccessState to success', () {
       final state = RequestSuccessState<String, int>('test data');
 
       final result = state.map(
