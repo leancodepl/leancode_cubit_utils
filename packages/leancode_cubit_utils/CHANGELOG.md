@@ -3,9 +3,10 @@
 * **BREAKING CHANGE**: Remove `map` and `isEmpty` methods from `RequestCubit`.
 * **BREAKING CHANGE**: Remove `TData` generic parameter from `RequestCubit`.
 * Add `map` method to `RequestState`.
-* Add `refreshing` callback to `RequestCubitBuilder`.
+* Add `onRefreshing` callback to `RequestCubitBuilder`.
 * **BREAKING CHANGE**: Make `data` in `RequestRefreshingState` non-nullable.
 * **BREAKING CHANGE**: Add `data` to `RequestEmptyState`.
+* **BREAKING CHANGE**: Rename `RequestRefreshState` to `RequestRefreshingState`
 
 ## 0.4.2
 
