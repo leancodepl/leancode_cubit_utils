@@ -1,9 +1,9 @@
 ## 0.5.0
 
-* **BREAKING CHANGES:** Remove `useQueryWithEmptyCubit` and `SimpleQueryWithEmptyCubit`.
-* **BREAKING CHANGES:** Remove `useArgsQueryWithEmptyCubit` and `SimpleArgsQueryWithEmptyCubit`.
-* **BREAKING CHANGES:** Start using `isEmpty` checker of `useQueryCubit` and pass it `SimpleQueryCubit`.
-* **BREAKING CHANGES:** Add `isEmpty` checker to `useArgsQueryCubit` and `SimpleArgsQueryCubit`.
+* **BREAKING CHANGE:** Remove `useQueryWithEmptyCubit` and `SimpleQueryWithEmptyCubit`.
+* **BREAKING CHANGE:** Remove `useArgsQueryWithEmptyCubit` and `SimpleArgsQueryWithEmptyCubit`.
+* Start using `isEmpty` checker of `useQueryCubit` and pass it `SimpleQueryCubit`.
+* Add `isEmpty` checker to `useArgsQueryCubit` and `SimpleArgsQueryCubit`.
 
 ## 0.4.0
 
