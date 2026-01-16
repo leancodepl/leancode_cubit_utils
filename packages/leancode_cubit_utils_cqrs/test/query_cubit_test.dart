@@ -85,7 +85,7 @@ void main() {
         seed: () => RequestSuccessState('Mapped Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, QueryError>>[
-          RequestRefreshState(data: 'Mapped Result'),
+          RequestRefreshingState('Mapped Result'),
           RequestSuccessState('Mapped Result'),
         ],
       );
