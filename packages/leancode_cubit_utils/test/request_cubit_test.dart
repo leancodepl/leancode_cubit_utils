@@ -56,13 +56,13 @@ void main() {
     group('refresh', () {
       setUp(() => clearInteractions(client));
       blocTest<TestRequestCubit, RequestState<String, int>>(
-        'emits RequestRefreshState with the same data when refresh is called',
+        'emits RequestRefreshingState with the same data when refresh is called',
         build: () =>
             TestRequestCubit('TestRequestCubit', client: client, id: '0'),
         seed: () => RequestSuccessState('Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, int>>[
-          RequestRefreshState(data: 'Result'),
+          RequestRefreshingState('Result'),
           RequestSuccessState('Result'),
         ],
       );
@@ -209,7 +209,7 @@ void main() {
       expect(result, 'Loading');
     });
 
-    test('maps RequestSuccessState to success with non-null data', () {
+    test('maps RequestSuccessState to success', () {
       final state = RequestSuccessState<String, int>('test data');
 
       final result = state.map(
@@ -243,8 +243,8 @@ void main() {
       expect(result, 'Error');
     });
 
-    test('maps RequestRefreshState to refreshing when provided', () {
-      final state = RequestRefreshState<String, int>(data: 'refreshing data');
+    test('maps RequestRefreshingState to refreshing when provided', () {
+      final state = RequestRefreshingState<String, int>('refreshing data');
 
       final result = state.map(
         initial: () => 'Initial',
@@ -259,9 +259,9 @@ void main() {
     });
 
     test(
-      'maps RequestRefreshState to success when refreshing not provided',
+      'maps RequestRefreshingState to success when refreshing not provided',
       () {
-        final state = RequestRefreshState<String, int>(data: 'refreshing data');
+        final state = RequestRefreshingState<String, int>('refreshing data');
 
         final result = state.map(
           initial: () => 'Initial',

@@ -10,6 +10,34 @@ import 'utils/http_status_codes.dart';
 import 'utils/mocked_http_client.dart';
 import 'utils/test_request_cubit.dart';
 
+class FakeRequestCubit extends RequestCubit<http.Response, String, int>
+    with RequestResultHandler<String> {
+  FakeRequestCubit.success() : super('FakeRequestCubit') {
+    emit(RequestSuccessState(fakeResult));
+  }
+
+  FakeRequestCubit.error() : super('FakeRequestCubit') {
+    emit(RequestErrorState(error: 1));
+  }
+
+  FakeRequestCubit.empty() : super('FakeRequestCubit') {
+    emit(RequestEmptyState(fakeResult));
+  }
+
+  FakeRequestCubit.loading() : super('FakeRequestCubit') {
+    emit(RequestLoadingState());
+  }
+
+  FakeRequestCubit.refresh() : super('FakeRequestCubit') {
+    emit(RequestRefreshingState(fakeResult));
+  }
+
+  static const fakeResult = 'Result';
+
+  @override
+  Future<http.Response> request() async => http.Response('', 1);
+}
+
 class TestPage extends StatelessWidget {
   const TestPage({super.key, required this.child});
 
@@ -159,7 +187,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('shows custom refresh widget when onRefresh is provided', (
+    testWidgets('shows custom refresh widget when onRefreshing is provided', (
       tester,
     ) async {
       final cubit = FakeRequestCubit.refresh();
