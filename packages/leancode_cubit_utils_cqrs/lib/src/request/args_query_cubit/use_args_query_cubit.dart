@@ -12,8 +12,8 @@ import 'args_query_cubit.dart';
 SimpleArgsQueryCubit<TArgs, TOut> useArgsQueryCubit<TArgs, TOut>(
   ArgsRequest<TArgs, QueryResult<TOut>> request, {
   String loggerTag = 'SimpleArgsQueryCubit',
-  RequestMode? requestMode,
   EmptyChecker<TOut>? isEmpty,
+  RequestMode? requestMode,
   List<Object?> keys = const [],
 }) {
   return useBloc(

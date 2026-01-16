@@ -9,9 +9,9 @@ import 'package:leancode_hooks/leancode_hooks.dart';
 SimpleQueryCubit<TOut> useQueryCubit<TOut>(
   Request<QueryResult<TOut>> request, {
   String loggerTag = 'SimpleQueryWithEmptyCubit',
-  RequestMode? requestMode,
   bool callOnCreate = true,
   EmptyChecker<TOut>? isEmpty,
+  RequestMode? requestMode,
   List<Object?> keys = const [],
 }) {
   return useBloc(
