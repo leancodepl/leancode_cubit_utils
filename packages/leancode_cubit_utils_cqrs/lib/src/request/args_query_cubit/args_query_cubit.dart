@@ -7,7 +7,7 @@ import 'package:leancode_cubit_utils_cqrs/src/request/query_result_handler.dart'
 abstract class ArgsQueryCubit<TArgs, TRes, TOut>
     extends ArgsRequestCubit<TArgs, QueryResult<TRes>, TOut, QueryError>
     with QueryResultHandler<TRes, TOut> {
-  /// Creates a new [ArgsRequestCubit] with the given [requestMode].
+  /// Creates a new [ArgsQueryCubit] with the given [requestMode].
   ArgsQueryCubit(
     super.loggerTag, {
     EmptyChecker<TOut>? isEmpty,
