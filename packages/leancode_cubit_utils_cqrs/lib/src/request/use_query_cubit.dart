@@ -37,8 +37,8 @@ SimpleQueryCubit<TOut> useQueryCubit<TOut>(
   String loggerTag = 'SimpleQueryWithEmptyCubit',
   RequestMode? requestMode,
   bool callOnCreate = true,
-  List<Object?> keys = const [],
   EmptyChecker<TOut>? isEmpty,
+  List<Object?> keys = const [],
 }) {
   return useBloc(
     () {
