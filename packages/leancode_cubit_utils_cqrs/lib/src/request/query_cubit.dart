@@ -7,7 +7,8 @@ mixin QueryResultHandler<TRes, TOut>
   /// Maps the given [data] to the output type [TOut].
   TOut map(TRes data);
 
-  /// Override this to check if the given [data] is empty.
+  /// Override this to implement logic to check if the given [data] is empty.
+  /// When this method returns true, the cubit will emit an [RequestEmptyState]
   bool isEmpty(TOut data) => false;
 
   @override
