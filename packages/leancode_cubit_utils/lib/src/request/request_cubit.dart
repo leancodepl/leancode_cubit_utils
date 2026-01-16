@@ -67,15 +67,11 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
           }
       }
 
-      if (isRefresh) {
+      if (state
+          case RequestSuccessState(:final data) ||
+              RequestRefreshingState(:final data) when isRefresh) {
         logger.info('Refreshing request.');
-        emit(
-          RequestRefreshState(switch (state) {
-            RequestSuccessState(:final data) => data,
-            RequestRefreshState(:final data) => data,
-            _ => null,
-          }),
-        );
+        emit(RequestRefreshingState(data));
       } else {
         logger.info('Request started.');
         emit(RequestLoadingState());
@@ -170,7 +166,50 @@ abstract class ArgsRequestCubit<TArgs, TRes, TOut, TError>
 }
 
 /// Represents the state of a request.
-sealed class RequestState<TOut, TError> with EquatableMixin {}
+sealed class RequestState<TOut, TError> with EquatableMixin {
+  /// Maps the current request state to a value of type [T].
+  ///
+  /// * [initial] - returns a [T] value when the request is in
+  ///   its initial state (not yet started). **If not provided, falls back to
+  ///   [loading]**.
+  /// * [loading] - returns a [T] value when the request is loading.
+  /// * [success] - returns a [T] value when the request completed
+  ///   successfully with data.
+  /// * [error] - returns a [T] value when the request failed with an error.
+  /// * [refreshing] - returns a [T] value when the request is refreshing with
+  ///   previous data still available. **If not provided, falls back to
+  ///   [success].**
+  /// * [empty] - returns a [T] value when the request completed successfully
+  ///   but returned empty data. **If not provided, falls back to [success].**
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// Scaffold(
+  ///   appBar: state.map<AppBar>(
+  ///     onLoading: () => const LoadingAppBar(),
+  ///     onSuccess: (data) => SuccessAppBar(data: data),
+  ///     onError: (err, exception, st) => const ErrorAppBar(error: err),
+  ///   ),
+  /// );
+  /// ```
+  T map<T>({
+    T Function()? initial,
+    required T Function() loading,
+    required T Function(TOut data) success,
+    required T Function(TError? err, Object? exception, StackTrace? st) error,
+    T Function(TOut data)? refreshing,
+    T Function(TOut data)? empty,
+  }) => switch (this) {
+    RequestInitialState() => (initial ?? loading)(),
+    RequestLoadingState() => loading(),
+    RequestSuccessState(:final data) => success(data),
+    RequestErrorState(error: final err, :final exception, :final stackTrace) =>
+      error(err, exception, stackTrace),
+    RequestRefreshingState(:final data) => (refreshing ?? success)(data),
+    RequestEmptyState(:final data) => (empty ?? success)(data),
+  };
+}
 
 /// Represents the initial state of a request.
 final class RequestInitialState<TOut, TError>
@@ -190,13 +229,13 @@ final class RequestLoadingState<TOut, TError>
 }
 
 /// Represents the refresh state of a request.
-final class RequestRefreshState<TOut, TError>
+final class RequestRefreshingState<TOut, TError>
     extends RequestState<TOut, TError> {
-  /// Creates a new [RequestRefreshState] with the previous [data].
-  RequestRefreshState([this.data]);
+  /// Creates a new [RequestRefreshingState] with the previous [data].
+  RequestRefreshingState(this.data);
 
   /// The previous data.
-  final TOut? data;
+  final TOut data;
 
   @override
   List<Object?> get props => [data];
@@ -215,13 +254,17 @@ final class RequestSuccessState<TOut, TError>
   List<Object?> get props => [data];
 }
 
-/// Represents a successful request with empty data.
+/// Represents a successful request with empty data. [TOut] has to be nullable
+/// if you cannot provide any meaningful data for the empty state.
 final class RequestEmptyState<TOut, TError> extends RequestState<TOut, TError> {
-  /// Creates a new [RequestEmptyState]..
-  RequestEmptyState();
+  /// Creates a new [RequestEmptyState].
+  RequestEmptyState(this.data);
+
+  /// The data returned by the request.
+  final TOut data;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [data];
 }
 
 /// Represents a failed request.

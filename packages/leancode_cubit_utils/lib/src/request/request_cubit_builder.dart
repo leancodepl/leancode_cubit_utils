@@ -26,6 +26,7 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
     this.onInitial,
     this.onLoading,
     this.onEmpty,
+    this.onRefreshing,
     this.onError,
     this.onErrorCallback,
   });
@@ -45,6 +46,9 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   /// The builder that creates a widget when request returns empty data.
   final WidgetBuilder? onEmpty;
 
+  /// The builder that creates a widget when request is refreshing.
+  final RequestWidgetBuilder<TOut>? onRefreshing;
+
   /// The builder that creates a widget when request failed.
   final RequestErrorBuilder<TError>? onError;
 
@@ -55,37 +59,37 @@ class RequestCubitBuilder<TOut, TError> extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = context.read<RequestLayoutConfig>();
 
+    final effectiveOnLoading = onLoading ?? config.onLoading;
+    final effectiveOnEmpty = onEmpty ?? config.onEmpty;
+    final effectiveOnError = onError ?? config.onError;
+
     return BlocBuilder<
       BaseRequestCubit<dynamic, TOut, TError>,
       RequestState<TOut, TError>
     >(
       bloc: cubit,
-      builder: (context, state) {
-        return switch (state) {
-          RequestInitialState() =>
-            onInitial?.call(context) ??
-                onLoading?.call(context) ??
-                config.onLoading(context),
-          RequestLoadingState() =>
-            onLoading?.call(context) ?? config.onLoading(context),
-          RequestSuccessState(:final data) => onSuccess(context, data),
-          RequestRefreshState(:final data) =>
-            data != null
-                ? onSuccess(context, data)
-                : onLoading?.call(context) ?? config.onLoading(context),
-          RequestEmptyState() =>
-            onEmpty?.call(context) ??
-                config.onEmpty?.call(context) ??
-                const SizedBox(),
-          RequestErrorState() =>
-            onError?.call(context, state, onErrorCallback ?? cubit.refresh) ??
-                config.onError(
-                  context,
-                  state,
-                  onErrorCallback ?? cubit.refresh,
-                ),
-        };
-      },
+      builder: (context, state) => state.map(
+        initial: switch (onInitial) {
+          final onInitial? => () => onInitial(context),
+          _ => null,
+        },
+        loading: () => effectiveOnLoading(context),
+        success: (data) => onSuccess(context, data),
+        empty: switch (effectiveOnEmpty) {
+          final onEmpty? => (_) => onEmpty(context),
+          _ => null,
+        },
+        refreshing: switch (onRefreshing) {
+          final onRefreshing? => (data) => onRefreshing(context, data),
+          null => null,
+        },
+        error: (err, _, _) {
+          final errorState = state as RequestErrorState<TOut, TError>;
+          final callback = onErrorCallback ?? cubit.refresh;
+
+          return effectiveOnError(context, errorState, callback);
+        },
+      ),
     );
   }
 }

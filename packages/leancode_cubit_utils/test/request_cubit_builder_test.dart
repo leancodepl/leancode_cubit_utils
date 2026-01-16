@@ -10,6 +10,34 @@ import 'utils/http_status_codes.dart';
 import 'utils/mocked_http_client.dart';
 import 'utils/test_request_cubit.dart';
 
+class FakeRequestCubit extends RequestCubit<http.Response, String, int>
+    with RequestResultHandler<String> {
+  FakeRequestCubit.success() : super('FakeRequestCubit') {
+    emit(RequestSuccessState(fakeResult));
+  }
+
+  FakeRequestCubit.error() : super('FakeRequestCubit') {
+    emit(RequestErrorState(error: 1));
+  }
+
+  FakeRequestCubit.empty() : super('FakeRequestCubit') {
+    emit(RequestEmptyState(fakeResult));
+  }
+
+  FakeRequestCubit.loading() : super('FakeRequestCubit') {
+    emit(RequestLoadingState());
+  }
+
+  FakeRequestCubit.refresh() : super('FakeRequestCubit') {
+    emit(RequestRefreshingState(fakeResult));
+  }
+
+  static const fakeResult = 'Result';
+
+  @override
+  Future<http.Response> request() async => http.Response('', 1);
+}
+
 class TestPage extends StatelessWidget {
   const TestPage({super.key, required this.child});
 
@@ -157,6 +185,46 @@ void main() {
       await tester.pump();
       expect(find.text('Success, data: Result'), findsOneWidget);
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('shows custom refresh widget when onRefreshing is provided', (
+      tester,
+    ) async {
+      final cubit = FakeRequestCubit.refresh();
+
+      await tester.pumpWidget(
+        TestPage(
+          child: RequestCubitBuilder(
+            cubit: cubit,
+            onRefreshing: (context, data) => const Text('Refreshing'),
+            onSuccess: (context, data) => const Text('Success'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Refreshing'), findsOneWidget);
+    });
+
+    testWidgets('onRefreshing not provided does not cause an error', (
+      tester,
+    ) async {
+      final cubit = FakeRequestCubit.refresh();
+
+      const key = Key('request_cubit_builder');
+
+      await tester.pumpWidget(
+        TestPage(
+          child: RequestCubitBuilder(
+            key: key,
+            cubit: cubit,
+            onSuccess: (context, data) => const SizedBox(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(key), findsOneWidget);
     });
   });
 }

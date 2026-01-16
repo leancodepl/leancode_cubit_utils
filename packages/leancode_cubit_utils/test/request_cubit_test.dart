@@ -56,13 +56,13 @@ void main() {
     group('refresh', () {
       setUp(() => clearInteractions(client));
       blocTest<TestRequestCubit, RequestState<String, int>>(
-        'emits RequestRefreshState with the same data when refresh is called',
+        'emits RequestRefreshingState with the same data when refresh is called',
         build: () =>
             TestRequestCubit('TestRequestCubit', client: client, id: '0'),
         seed: () => RequestSuccessState('Result'),
         act: (cubit) => cubit.refresh(),
         expect: () => <RequestState<String, int>>[
-          RequestRefreshState('Result'),
+          RequestRefreshingState('Result'),
           RequestSuccessState('Result'),
         ],
       );
@@ -162,5 +162,144 @@ void main() {
         verify(() => client.get(Uri.parse('0'))).called(2);
       },
     );
+  });
+
+  group('RequestState.map', () {
+    test('maps RequestInitialState to initial when provided', () {
+      final state = RequestInitialState<String, int>();
+
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Initial');
+    });
+
+    test('maps RequestInitialState to loading when initial not provided', () {
+      final state = RequestInitialState<String, int>();
+
+      final result = state.map(
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Loading');
+    });
+
+    test('maps RequestLoadingState to loading', () {
+      final state = RequestLoadingState<String, int>();
+
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Loading');
+    });
+
+    test('maps RequestSuccessState to success', () {
+      final state = RequestSuccessState<String, int>('test data');
+
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Success');
+    });
+
+    test('maps RequestErrorState to error', () {
+      final state = RequestErrorState<String, int>(
+        error: 123,
+        exception: 'Kaboom!',
+        stackTrace: StackTrace.empty,
+      );
+
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Error');
+    });
+
+    test('maps RequestRefreshingState to refreshing when provided', () {
+      final state = RequestRefreshingState<String, int>('refreshing data');
+
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Refreshing');
+    });
+
+    test(
+      'maps RequestRefreshingState to success when refreshing not provided',
+      () {
+        final state = RequestRefreshingState<String, int>('refreshing data');
+
+        final result = state.map(
+          initial: () => 'Initial',
+          loading: () => 'Loading',
+          success: (_) => 'Success',
+          error: (_, _, _) => 'Error',
+          empty: (_) => 'Empty',
+        );
+
+        expect(result, 'Success');
+      },
+    );
+
+    test('maps RequestEmptyState to empty when provided', () {
+      final state = RequestEmptyState<String?, int>(null);
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+        empty: (_) => 'Empty',
+      );
+
+      expect(result, 'Empty');
+    });
+
+    test('maps RequestEmptyState to success when empty not provided', () {
+      final state = RequestEmptyState<String?, int>('empty data');
+      final result = state.map(
+        initial: () => 'Initial',
+        loading: () => 'Loading',
+        success: (_) => 'Success',
+        error: (_, _, _) => 'Error',
+        refreshing: (_) => 'Refreshing',
+      );
+
+      expect(result, 'Success');
+    });
   });
 }
