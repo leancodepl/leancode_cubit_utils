@@ -10,8 +10,8 @@ abstract class ArgsQueryCubit<TArgs, TRes, TOut>
   /// Creates a new [ArgsRequestCubit] with the given [requestMode].
   ArgsQueryCubit(
     super.loggerTag, {
-    super.requestMode,
     EmptyChecker<TOut>? isEmpty,
+    super.requestMode,
   }) : _isEmpty = isEmpty;
 
   /// The function to check if the data is empty.
