@@ -1,3 +1,9 @@
+<a href="https://leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils" align="center">
+  <img alt="leancode_cubit_utils" src="https://github.com/user-attachments/assets/ea875b7f-f20d-484d-a28e-ea8c39f86c5a" />
+</a>
+
+# leancode_cubit_utils
+
 A collection of cubits and widgets that facilitate the creation of repetitive pages, eliminating boilerplate.
 
 # Installation
