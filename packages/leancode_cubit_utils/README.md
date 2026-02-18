@@ -1,6 +1,8 @@
-<a href="https://leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils" align="center">
-  <img alt="leancode_cubit_utils" src="https://github.com/user-attachments/assets/ea875b7f-f20d-484d-a28e-ea8c39f86c5a" />
-</a>
+<div align="center">
+
+[![Banner][banner-img]][leancode-landing]
+
+</div>
 
 # leancode_cubit_utils
 
@@ -461,19 +463,18 @@ PaginatedResult<KratosIdentityDTO>, KratosIdentityDTO> {
 ---
 
 ## 🛠️ Maintained by LeanCode
-
 <div align="center">
-  <a href="https://leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils">
-    <img src="https://leancodepublic.blob.core.windows.net/public/wide.png" alt="LeanCode Logo" height="100" />
-  </a>
+
+  [<img src="https://leancodepublic.blob.core.windows.net/public/wide.png" alt="LeanCode Logo" height="100" />][leancode-landing]
+
 </div>
 
-This package is built with 💙 by **[LeanCode](https://leancode.co?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils)**.
+This package is built with 💙 by **[LeanCode][leancode-landing]**.
 We are **top-tier experts** focused on Flutter Enterprise solutions.
 
 ### Why LeanCode?
 
-- **Creators of [Patrol](https://patrol.leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils)** – the next-gen testing framework for Flutter.
+- **Creators of [Patrol][patrol-landing]** – the next-gen testing framework for Flutter.
 
 - **Production-Ready** – We use this package in apps with millions of users.
 - **Full-Cycle Product Development** – We take your product from scratch to long-term maintenance.
@@ -483,11 +484,16 @@ We are **top-tier experts** focused on Flutter Enterprise solutions.
 
   **Need help with your Flutter project?**
 
-  [**👉 Hire our team**](https://leancode.co/get-estimate?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils)
+  [**👉 Hire our team**][leancode-estimate]
   &nbsp;&nbsp;•&nbsp;&nbsp;
-  [Check our other packages](https://pub.dev/packages?q=publisher%3Aleancode.co&sort=downloads)
+  [Check our other packages][leancode-packages]
 
 </div>
 
 
 [leancode_cubit_utils_cqrs]: https://pub.dev/packages/leancode_cubit_utils_cqrs
+[banner-img]: https://raw.githubusercontent.com/leancodepl/leancode_cubit_utils/refs/heads/main/packages/leancode_cubit_utils/docs/imgs/banner.png
+[leancode-landing]: https://leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils
+[leancode-estimate]: https://leancode.co/get-estimate?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils
+[leancode-packages]: https://pub.dev/packages?q=publisher%3Aleancode.co&sort=downloads
+[patrol-landing]: https://patrol.leancode.co/?utm_source=github.com&utm_medium=referral&utm_campaign=leancode-cubit-utils
