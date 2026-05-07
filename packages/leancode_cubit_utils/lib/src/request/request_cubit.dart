@@ -103,10 +103,18 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
         return;
       }
 
+      if (isClosed) {
+        return;
+      }
+
       final handledResult = await handleResult(result);
       _emitIfOpen(handledResult);
     } catch (e, s) {
       logger.severe('Request error. Exception: $e. Stack trace: $s');
+      if (isClosed) {
+        return;
+      }
+
       try {
         final handledError = await handleError(
           RequestErrorState(exception: e, stackTrace: s),
@@ -116,6 +124,10 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
         logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
         );
+        if (isClosed) {
+          return;
+        }
+
         _emitIfOpen(
           RequestErrorState<TOut, TError>(exception: e, stackTrace: s),
         );

@@ -16,6 +16,7 @@ class _DelayedResultCubit extends RequestCubit<String, String, Object?> {
 
   final Completer<RequestState<String, Object?>> resultState;
   final handleResultStarted = Completer<void>();
+  bool handleErrorCalled = false;
 
   @override
   Future<String> request() async => 'Result';
@@ -27,6 +28,14 @@ class _DelayedResultCubit extends RequestCubit<String, String, Object?> {
     }
 
     return resultState.future;
+  }
+
+  @override
+  Future<RequestErrorState<String, Object?>> handleError(
+    RequestErrorState<String, Object?> errorState,
+  ) async {
+    handleErrorCalled = true;
+    return errorState;
   }
 }
 
@@ -195,6 +204,24 @@ void main() {
           await runFuture;
         },
         expect: () => <RequestState<String, Object?>>[RequestLoadingState()],
+      );
+
+      blocTest<_DelayedResultCubit, RequestState<String, Object?>>(
+        'does not handle errors after close',
+        build: () => _DelayedResultCubit(
+          resultState: Completer<RequestState<String, Object?>>(),
+        ),
+        act: (cubit) async {
+          final runFuture = cubit.run();
+          await cubit.handleResultStarted.future;
+          await cubit.close();
+          cubit.resultState.completeError(Exception('Error'));
+          await runFuture;
+        },
+        expect: () => <RequestState<String, Object?>>[RequestLoadingState()],
+        verify: (cubit) {
+          expect(cubit.handleErrorCalled, isFalse);
+        },
       );
     });
   });
