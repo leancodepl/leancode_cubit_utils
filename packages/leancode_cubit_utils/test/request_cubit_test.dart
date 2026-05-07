@@ -15,16 +15,16 @@ class _DelayedResultCubit extends RequestCubit<String, String, Object?> {
     : super('_DelayedResultCubit');
 
   final Completer<RequestState<String, Object?>> resultState;
-  final handleResultStarted = Completer<void>();
-  bool handleErrorCalled = false;
+  final resultHandlingStartedCompleter = Completer<void>();
+  bool errorHandlingWasCalled = false;
 
   @override
   Future<String> request() async => 'Result';
 
   @override
   Future<RequestState<String, Object?>> handleResult(String result) {
-    if (!handleResultStarted.isCompleted) {
-      handleResultStarted.complete();
+    if (!resultHandlingStartedCompleter.isCompleted) {
+      resultHandlingStartedCompleter.complete();
     }
 
     return resultState.future;
@@ -34,7 +34,7 @@ class _DelayedResultCubit extends RequestCubit<String, String, Object?> {
   Future<RequestErrorState<String, Object?>> handleError(
     RequestErrorState<String, Object?> errorState,
   ) async {
-    handleErrorCalled = true;
+    errorHandlingWasCalled = true;
     return errorState;
   }
 }
@@ -198,7 +198,7 @@ void main() {
         ),
         act: (cubit) async {
           final runFuture = cubit.run();
-          await cubit.handleResultStarted.future;
+          await cubit.resultHandlingStartedCompleter.future;
           await cubit.close();
           cubit.resultState.complete(RequestSuccessState('Result'));
           await runFuture;
@@ -213,14 +213,14 @@ void main() {
         ),
         act: (cubit) async {
           final runFuture = cubit.run();
-          await cubit.handleResultStarted.future;
+          await cubit.resultHandlingStartedCompleter.future;
           await cubit.close();
           cubit.resultState.completeError(Exception('Error'));
           await runFuture;
         },
         expect: () => <RequestState<String, Object?>>[RequestLoadingState()],
         verify: (cubit) {
-          expect(cubit.handleErrorCalled, isFalse);
+          expect(cubit.errorHandlingWasCalled, isFalse);
         },
       );
     });
