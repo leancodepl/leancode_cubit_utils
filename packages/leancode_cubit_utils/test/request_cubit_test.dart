@@ -160,52 +160,42 @@ void main() {
     });
 
     group('close', () {
-      test('cancels an ongoing request without emitting after close', () async {
-        final request = Completer<http.Response>();
-        when(
-          () => client.get(Uri.parse('delayed')),
-        ).thenAnswer((_) => request.future);
-        final cubit = TestRequestCubit(
-          'TestRequestCubit',
-          client: client,
-          id: 'delayed',
-        );
-        final states = <RequestState<String, int>>[];
-        final subscription = cubit.stream.listen(states.add);
+      late Completer<http.Response> request;
 
-        final runFuture = cubit.run();
-        await pumpEventQueue();
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'cancels an ongoing request without emitting after close',
+        setUp: () {
+          request = Completer<http.Response>();
+          when(
+            () => client.get(Uri.parse('delayed')),
+          ).thenAnswer((_) => request.future);
+        },
+        build: () =>
+            TestRequestCubit('TestRequestCubit', client: client, id: 'delayed'),
+        act: (cubit) async {
+          final runFuture = cubit.run();
+          await pumpEventQueue();
+          await cubit.close();
+          request.complete(http.Response('Result', StatusCode.ok.value));
+          await runFuture;
+        },
+        expect: () => <RequestState<String, int>>[RequestLoadingState()],
+      );
 
-        expect(states, hasLength(1));
-        expect(states.single, isA<RequestLoadingState<String, int>>());
-
-        await cubit.close();
-        request.complete(http.Response('Result', StatusCode.ok.value));
-
-        await expectLater(runFuture, completes);
-        expect(states, hasLength(1));
-
-        await subscription.cancel();
-      });
-
-      test('does not emit when closed while handling a result', () async {
-        final resultState = Completer<RequestState<String, Object?>>();
-        final cubit = _DelayedResultCubit(resultState: resultState);
-        final states = <RequestState<String, Object?>>[];
-        final subscription = cubit.stream.listen(states.add);
-
-        final runFuture = cubit.run();
-        await cubit.handleResultStarted.future;
-
-        await cubit.close();
-        resultState.complete(RequestSuccessState('Result'));
-
-        await expectLater(runFuture, completes);
-        expect(states, hasLength(1));
-        expect(states.single, isA<RequestLoadingState<String, Object?>>());
-
-        await subscription.cancel();
-      });
+      blocTest<_DelayedResultCubit, RequestState<String, Object?>>(
+        'does not emit when closed while handling a result',
+        build: () => _DelayedResultCubit(
+          resultState: Completer<RequestState<String, Object?>>(),
+        ),
+        act: (cubit) async {
+          final runFuture = cubit.run();
+          await cubit.handleResultStarted.future;
+          await cubit.close();
+          cubit.resultState.complete(RequestSuccessState('Result'));
+          await runFuture;
+        },
+        expect: () => <RequestState<String, Object?>>[RequestLoadingState()],
+      );
     });
   });
 
