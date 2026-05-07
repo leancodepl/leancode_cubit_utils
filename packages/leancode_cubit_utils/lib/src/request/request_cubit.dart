@@ -52,11 +52,21 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
 
   CancelableOperation<TRes>? _operation;
 
+  void _emitIfOpen(RequestState<TOut, TError> state) {
+    if (!isClosed) {
+      emit(state);
+    }
+  }
+
   Future<void> _run(
     Future<TRes> Function() callback, {
     bool isRefresh = false,
   }) async {
     try {
+      if (isClosed) {
+        return;
+      }
+
       switch (requestMode ?? RequestCubitConfig.requestMode) {
         case RequestMode.replace:
           await _operation?.cancel();
@@ -67,14 +77,18 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
           }
       }
 
+      if (isClosed) {
+        return;
+      }
+
       if (state
           case RequestSuccessState(:final data) ||
               RequestRefreshingState(:final data) when isRefresh) {
         logger.info('Refreshing request.');
-        emit(RequestRefreshingState(data));
+        _emitIfOpen(RequestRefreshingState(data));
       } else {
         logger.info('Request started.');
-        emit(RequestLoadingState());
+        _emitIfOpen(RequestLoadingState());
       }
 
       _operation = CancelableOperation.fromFuture(
@@ -89,18 +103,30 @@ abstract class BaseRequestCubit<TRes, TOut, TError>
         return;
       }
 
-      emit(await handleResult(result));
+      final handledResult = await handleResult(result);
+      _emitIfOpen(handledResult);
     } catch (e, s) {
       logger.severe('Request error. Exception: $e. Stack trace: $s');
       try {
-        emit(await handleError(RequestErrorState(exception: e, stackTrace: s)));
+        final handledError = await handleError(
+          RequestErrorState(exception: e, stackTrace: s),
+        );
+        _emitIfOpen(handledError);
       } catch (e, s) {
         logger.severe(
           'Processing error failed. Exception: $e. Stack trace: $s',
         );
-        emit(RequestErrorState<TOut, TError>(exception: e, stackTrace: s));
+        _emitIfOpen(
+          RequestErrorState<TOut, TError>(exception: e, stackTrace: s),
+        );
       }
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _operation?.cancel();
+    return super.close();
   }
 
   /// Handles the given [errorState] and returns the corresponding state.

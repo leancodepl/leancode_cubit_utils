@@ -10,6 +10,26 @@ import 'utils/http_status_codes.dart';
 import 'utils/mocked_http_client.dart';
 import 'utils/test_request_cubit.dart';
 
+class _DelayedResultCubit extends RequestCubit<String, String, Object?> {
+  _DelayedResultCubit({required this.resultState})
+    : super('_DelayedResultCubit');
+
+  final Completer<RequestState<String, Object?>> resultState;
+  final handleResultStarted = Completer<void>();
+
+  @override
+  Future<String> request() async => 'Result';
+
+  @override
+  Future<RequestState<String, Object?>> handleResult(String result) {
+    if (!handleResultStarted.isCompleted) {
+      handleResultStarted.complete();
+    }
+
+    return resultState.future;
+  }
+}
+
 void main() {
   final client = MockedHttpClient();
 
@@ -137,6 +157,55 @@ void main() {
           isA<RequestErrorState<String, int>>(),
         ],
       );
+    });
+
+    group('close', () {
+      test('cancels an ongoing request without emitting after close', () async {
+        final request = Completer<http.Response>();
+        when(
+          () => client.get(Uri.parse('delayed')),
+        ).thenAnswer((_) => request.future);
+        final cubit = TestRequestCubit(
+          'TestRequestCubit',
+          client: client,
+          id: 'delayed',
+        );
+        final states = <RequestState<String, int>>[];
+        final subscription = cubit.stream.listen(states.add);
+
+        final runFuture = cubit.run();
+        await pumpEventQueue();
+
+        expect(states, hasLength(1));
+        expect(states.single, isA<RequestLoadingState<String, int>>());
+
+        await cubit.close();
+        request.complete(http.Response('Result', StatusCode.ok.value));
+
+        await expectLater(runFuture, completes);
+        expect(states, hasLength(1));
+
+        await subscription.cancel();
+      });
+
+      test('does not emit when closed while handling a result', () async {
+        final resultState = Completer<RequestState<String, Object?>>();
+        final cubit = _DelayedResultCubit(resultState: resultState);
+        final states = <RequestState<String, Object?>>[];
+        final subscription = cubit.stream.listen(states.add);
+
+        final runFuture = cubit.run();
+        await cubit.handleResultStarted.future;
+
+        await cubit.close();
+        resultState.complete(RequestSuccessState('Result'));
+
+        await expectLater(runFuture, completes);
+        expect(states, hasLength(1));
+        expect(states.single, isA<RequestLoadingState<String, Object?>>());
+
+        await subscription.cancel();
+      });
     });
   });
 
