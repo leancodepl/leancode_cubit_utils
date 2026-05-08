@@ -10,6 +10,35 @@ import 'utils/http_status_codes.dart';
 import 'utils/mocked_http_client.dart';
 import 'utils/test_request_cubit.dart';
 
+class _DelayedResultCubit extends RequestCubit<String, String, Object?> {
+  _DelayedResultCubit({required this.resultState})
+    : super('_DelayedResultCubit');
+
+  final Completer<RequestState<String, Object?>> resultState;
+  final resultHandlingStartedCompleter = Completer<void>();
+  bool errorHandlingWasCalled = false;
+
+  @override
+  Future<String> request() async => 'Result';
+
+  @override
+  Future<RequestState<String, Object?>> handleResult(String result) {
+    if (!resultHandlingStartedCompleter.isCompleted) {
+      resultHandlingStartedCompleter.complete();
+    }
+
+    return resultState.future;
+  }
+
+  @override
+  Future<RequestErrorState<String, Object?>> handleError(
+    RequestErrorState<String, Object?> errorState,
+  ) async {
+    errorHandlingWasCalled = true;
+    return errorState;
+  }
+}
+
 void main() {
   final client = MockedHttpClient();
 
@@ -136,6 +165,63 @@ void main() {
           isA<RequestLoadingState<String, int>>(),
           isA<RequestErrorState<String, int>>(),
         ],
+      );
+    });
+
+    group('close', () {
+      late Completer<http.Response> request;
+
+      blocTest<TestRequestCubit, RequestState<String, int>>(
+        'cancels an ongoing request without emitting after close',
+        setUp: () {
+          request = Completer<http.Response>();
+          when(
+            () => client.get(Uri.parse('delayed')),
+          ).thenAnswer((_) => request.future);
+        },
+        build: () =>
+            TestRequestCubit('TestRequestCubit', client: client, id: 'delayed'),
+        act: (cubit) async {
+          final runFuture = cubit.run();
+          await pumpEventQueue();
+          await cubit.close();
+          request.complete(http.Response('Result', StatusCode.ok.value));
+          await runFuture;
+        },
+        expect: () => <RequestState<String, int>>[RequestLoadingState()],
+      );
+
+      blocTest<_DelayedResultCubit, RequestState<String, Object?>>(
+        'does not emit when closed while handling a result',
+        build: () => _DelayedResultCubit(
+          resultState: Completer<RequestState<String, Object?>>(),
+        ),
+        act: (cubit) async {
+          final runFuture = cubit.run();
+          await cubit.resultHandlingStartedCompleter.future;
+          await cubit.close();
+          cubit.resultState.complete(RequestSuccessState('Result'));
+          await runFuture;
+        },
+        expect: () => <RequestState<String, Object?>>[RequestLoadingState()],
+      );
+
+      blocTest<_DelayedResultCubit, RequestState<String, Object?>>(
+        'does not handle errors after close',
+        build: () => _DelayedResultCubit(
+          resultState: Completer<RequestState<String, Object?>>(),
+        ),
+        act: (cubit) async {
+          final runFuture = cubit.run();
+          await cubit.resultHandlingStartedCompleter.future;
+          await cubit.close();
+          cubit.resultState.completeError(Exception('Error'));
+          await runFuture;
+        },
+        expect: () => <RequestState<String, Object?>>[RequestLoadingState()],
+        verify: (cubit) {
+          expect(cubit.errorHandlingWasCalled, isFalse);
+        },
       );
     });
   });
